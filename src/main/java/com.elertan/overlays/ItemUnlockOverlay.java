@@ -102,6 +102,9 @@ public class ItemUnlockOverlay extends Overlay {
 
     @Override
     public Dimension render(Graphics2D g) {
+        if (!config.showUnlockOverlay()) {
+            return null;
+        }
         if (phase == Phase.IDLE && current == null) {
             return null;
         }
