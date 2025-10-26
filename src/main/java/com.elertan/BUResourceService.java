@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.IndexedSprite;
-import net.runelite.api.SpritePixels;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.util.ImageUtil;
 
@@ -14,7 +13,6 @@ import javax.inject.Singleton;
 import javax.swing.*;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.Objects;
 
 @Slf4j
@@ -31,20 +29,6 @@ public class BUResourceService implements BUPluginLifecycle {
 
         public BUModIcons(int chatIconId) {
             this.chatIconId = chatIconId;
-        }
-    }
-
-    // Some arbitrary offset that does not clash with other sprite ids other plugins or RuneLite itself provides
-    private static final int SPRITE_ID_OFFSET = 1337_42_69;
-    public static class BUSprites {
-        @Getter
-        final private int iconId;
-        @Getter
-        final private int checkmarkId;
-
-        public BUSprites(int iconId, int checkmarkId) {
-            this.iconId = iconId;
-            this.checkmarkId = checkmarkId;
         }
     }
 
@@ -67,12 +51,10 @@ public class BUResourceService implements BUPluginLifecycle {
 
     @Getter
     private BUModIcons buModIcons;
-    @Getter
-    private BUSprites buSprites;
 
     @Override
     public void startUp() {
-        this.initializeModIconsAndSprites();
+        this.initializeModIcons();
     }
 
     @Override
@@ -80,11 +62,11 @@ public class BUResourceService implements BUPluginLifecycle {
 
     }
 
-    private void initializeModIconsAndSprites() {
+    private void initializeModIcons() {
         IndexedSprite[] modIcons = client.getModIcons();
         if (modIcons == null) {
             // Retry later when is initialized
-            clientThread.invokeLater(this::initializeModIconsAndSprites);
+            clientThread.invokeLater(this::initializeModIcons);
             return;
         }
 
@@ -99,36 +81,6 @@ public class BUResourceService implements BUPluginLifecycle {
         client.setModIcons(newModIcons);
 
         this.buModIcons = new BUModIcons(chatIconId);
-
-        // Sprites
-        Map<Integer, SpritePixels> spriteOverrides = client.getSpriteOverrides();
-
-        int iconSpriteId = SPRITE_ID_OFFSET;
-        SpritePixels iconSpritePixels = ImageUtil.getImageSpritePixels(iconBufferedImage, client);
-        spriteOverrides.put(iconSpriteId, iconSpritePixels);
-
-        int checkmarkIconSpriteId = iconSpriteId + 1;
-        SpritePixels checkmarkIconSpritePixels = ImageUtil.getImageSpritePixels(checkmarkIconBufferedImage, client);
-        spriteOverrides.put(checkmarkIconSpriteId, checkmarkIconSpritePixels);
-
-        this.buSprites = new BUSprites(iconSpriteId, checkmarkIconSpriteId);
-
         log.info("BUResourceService: mod icons and sprites initialized");
-    }
-
-    private void removeModIconsAndSprites() {
-        // TODO: Remove mod icons and sprites
-//        Map<Integer, SpritePixels> spriteOverrides = client.getSpriteOverrides();
-//        spriteOverrides.remove(buSprites.getIconId());
-//        spriteOverrides.remove(buSprites.getCheckmarkId());
-//
-//        IndexedSprite[] modIcons = client.getModIcons();
-//        if (modIcons != null && buModIcons != null) {
-//            int idx = buModIcons.getChatIconId();
-//            if (idx >= 0 && idx < modIcons.length) {
-//                IndexedSprite[] trimmed = Arrays.copyOf(modIcons, modIcons.length - 1);
-//                client.setModIcons(trimmed);
-//            }
-//        }
     }
 }
