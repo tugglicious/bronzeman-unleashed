@@ -77,7 +77,7 @@ public class GameRulesService implements BUPluginLifecycle {
 
         if (gameRules != null && oldGameRules != null) {
             ChatMessageBuilder builder = new ChatMessageBuilder();
-            builder.append("Game rules has been updated");
+            builder.append("Game rules have been updated");
 
             if (gameRules.getLastUpdatedByAccountHash() != null) {
                 Member member = null;

@@ -41,6 +41,8 @@ public class GameRules {
 
     public static GameRules createWithDefaults(Long lastUpdatedByAccountHash, ISOOffsetDateTime lastUpdatedAt) {
         GameRules rules = new GameRules();
+        rules.setLastUpdatedByAccountHash(lastUpdatedByAccountHash);
+        rules.setLastUpdatedAt(lastUpdatedAt);
         rules.setPreventTradeOutsideGroup(true);
         rules.setPreventTradeLockedItems(true);
         rules.setPreventGrandExchangeBuyOffers(true);
