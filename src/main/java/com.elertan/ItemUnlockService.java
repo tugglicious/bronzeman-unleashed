@@ -158,27 +158,29 @@ public class ItemUnlockService implements BUPluginLifecycle {
                         unlockedItem.getDroppedByNPCId()
                 );
 
-                clientThread.invokeLater(() -> {
-                    ChatMessageBuilder builder = new ChatMessageBuilder();
-                    builder.append("Unlocked item ");
-                    builder.append(buPluginConfig.chatItemNameColor(), unlockedItem.getName());
+                if (buPluginConfig.showItemUnlocksInChat()) {
+                    clientThread.invokeLater(() -> {
+                        ChatMessageBuilder builder = new ChatMessageBuilder();
+                        builder.append("Unlocked item ");
+                        builder.append(buPluginConfig.chatItemNameColor(), unlockedItem.getName());
 
-                    if (client.getAccountHash() != unlockedItem.getAcquiredByAccountHash()) {
-                        Member member = memberService.getMemberByAccountHash(unlockedItem.getAcquiredByAccountHash());
+                        if (client.getAccountHash() != unlockedItem.getAcquiredByAccountHash()) {
+                            Member member = memberService.getMemberByAccountHash(unlockedItem.getAcquiredByAccountHash());
 
-                        builder.append(" by ");
-                        builder.append(buPluginConfig.chatPlayerNameColor(), member.getName());
-                    }
-                    Integer droppedByNpcId = unlockedItem.getDroppedByNPCId();
-                    if (droppedByNpcId != null) {
-                        NPCComposition npcComposition = client.getNpcDefinition(droppedByNpcId);
-                        builder.append(" (drop from ");
-                        builder.append(buPluginConfig.chatNPCNameColor(), npcComposition.getName());
-                        builder.append(")");
-                    }
+                            builder.append(" by ");
+                            builder.append(buPluginConfig.chatPlayerNameColor(), member.getName());
+                        }
+                        Integer droppedByNpcId = unlockedItem.getDroppedByNPCId();
+                        if (droppedByNpcId != null) {
+                            NPCComposition npcComposition = client.getNpcDefinition(droppedByNpcId);
+                            builder.append(" (drop from ");
+                            builder.append(buPluginConfig.chatNPCNameColor(), npcComposition.getName());
+                            builder.append(")");
+                        }
 
-                    buChatService.sendMessage(builder.build());
-                });
+                        buChatService.sendMessage(builder.build());
+                    });
+                }
 
                 for (Consumer<UnlockedItem> listener : newUnlockedItemListeners) {
                     try {
