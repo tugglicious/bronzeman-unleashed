@@ -48,7 +48,7 @@ public class MemberService implements BUPluginLifecycle {
                 if (old == null) {
                     ChatMessageBuilder builder = new ChatMessageBuilder();
                     builder.append(buPluginConfig.chatPlayerNameColor(), member.getName());
-                    builder.append(" has joined your Bronzeman group.");
+                    builder.append(" has joined your Group Bronzeman.");
                     buChatService.sendMessage(builder.build());
                 } else {
                     if (!Objects.equals(member.getName(), old.getName())) {
@@ -75,7 +75,7 @@ public class MemberService implements BUPluginLifecycle {
             public void onDelete(Member member) {
                 ChatMessageBuilder builder = new ChatMessageBuilder();
                 builder.append(buPluginConfig.chatPlayerNameColor(), member.getName());
-                builder.append(" has left your Bronzeman group.");
+                builder.append(" has left your Group Bronzeman.");
                 buChatService.sendMessage(builder.build());
             }
         };
