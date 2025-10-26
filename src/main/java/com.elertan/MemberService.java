@@ -46,10 +46,14 @@ public class MemberService implements BUPluginLifecycle {
                 log.info("member service -> member update: {} - old: {}", member == null ? null : member.toString(), old == null ? null : old.toString());
 
                 if (old == null) {
-                    ChatMessageBuilder builder = new ChatMessageBuilder();
-                    builder.append(buPluginConfig.chatPlayerNameColor(), member.getName());
-                    builder.append(" has joined your Group Bronzeman.");
-                    buChatService.sendMessage(builder.build());
+                    // If the updated member is not us, inform of a joi
+                    // n
+                    if (member.getAccountHash() != client.getAccountHash()) {
+                        ChatMessageBuilder builder = new ChatMessageBuilder();
+                        builder.append(buPluginConfig.chatPlayerNameColor(), member.getName());
+                        builder.append(" has joined your Group Bronzeman.");
+                        buChatService.sendMessage(builder.build());
+                    }
                 } else {
                     if (!Objects.equals(member.getName(), old.getName())) {
                         ChatMessageBuilder builder = new ChatMessageBuilder();
