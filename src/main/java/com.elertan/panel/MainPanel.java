@@ -158,18 +158,28 @@ public class MainPanel extends JPanel implements AutoCloseable {
         unlockedItemsListener = new UnlockedItemsDataProvider.UnlockedItemsMapListener() {
             @Override
             public void onUpdate(UnlockedItem unlockedItem) {
+                log.info("MainPanel: unlockedItemsListener on update REFRESH");
                 refresh();
             }
 
             @Override
             public void onDelete(int itemId) {
+                log.info("MainPanel: unlockedItemsListener on delete REFRESH");
                 refresh();
             }
         };
         unlockedItemsDataProvider.addUnlockedItemsMapListener(unlockedItemsListener);
         unlockedItemsDataProvider.addStateListener(this::unlockedItemDataProviderStateListener);
+        membersDataProvider.addStateListener(this::membersDataProviderStateListener);
 
-        refresh();
+        membersDataProvider.waitUntilReady(null).whenComplete((__, throwable) -> {
+            if (throwable != null) {
+                log.error("error waiting for members data provider to become ready", throwable);
+                return;
+            }
+            log.info("MainPanel: membersDataProvider wait until ready REFRESH");
+            refresh();
+        });
 
         unlockedItemsDataProvider
                 .waitUntilReady(null)
@@ -178,17 +188,28 @@ public class MainPanel extends JPanel implements AutoCloseable {
                         log.error("error waiting for unlocked item data provider to become ready", throwable);
                         return;
                     }
+                    log.info("MainPanel: unlockedItemsDataProvider wait until ready REFRESH");
                     refresh();
                 });
+
+
+        refresh();
     }
 
     @Override
     public void close() throws Exception {
+        membersDataProvider.removeStateListener(this::membersDataProviderStateListener);
         unlockedItemsDataProvider.removeStateListener(this::unlockedItemDataProviderStateListener);
         unlockedItemsDataProvider.removeUnlockedItemsMapListener(unlockedItemsListener);
     }
 
     private void unlockedItemDataProviderStateListener(UnlockedItemsDataProvider.State state) {
+        log.info("MainPanel: unlockedItemDataProviderStateListener REFRESH");
+        refresh();
+    }
+
+    private void membersDataProviderStateListener(MembersDataProvider.State state) {
+        log.info("MainPanel: membersDataProviderStateListener REFRESH");
         refresh();
     }
 
