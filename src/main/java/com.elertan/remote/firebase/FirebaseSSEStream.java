@@ -113,6 +113,8 @@ public class FirebaseSSEStream {
             readExecutor.shutdownNow();
             readExecutor = null;
         }
+
+        log.info("Firebase SSE stream stopped");
     }
 
     private void setIsRunning(boolean running) {

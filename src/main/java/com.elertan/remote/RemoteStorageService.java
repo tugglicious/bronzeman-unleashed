@@ -130,6 +130,8 @@ public class RemoteStorageService implements BUPluginLifecycle {
 
             firebaseRealtimeDatabase = null;
         }
+
+        log.info("Dataport has been cleared");
     }
 
     private void configureFromFirebaseRealtimeDatabase(FirebaseRealtimeDatabaseURL url) {

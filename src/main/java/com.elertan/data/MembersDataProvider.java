@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.Consumer;
 
 @Slf4j
@@ -27,7 +28,7 @@ public class MembersDataProvider implements BUPluginLifecycle {
     }
 
     public interface MemberMapListener {
-        void onUpdate(Member member, Member old);
+        void onUpdate(Member newMember, Member oldMember);
 
         void onDelete(Member member);
     }
@@ -41,6 +42,7 @@ public class MembersDataProvider implements BUPluginLifecycle {
     private final ConcurrentLinkedQueue<MemberMapListener> memberMapListeners = new ConcurrentLinkedQueue<>();
 
     private ConcurrentHashMap<Long, Member> membersMap = new ConcurrentHashMap<>();
+    private ConcurrentSkipListSet<Long> optimisticallyAddedMembers = new ConcurrentSkipListSet<>();
 
     @Getter
     private State state = State.NotReady;
@@ -54,6 +56,7 @@ public class MembersDataProvider implements BUPluginLifecycle {
         storagePortListener = new KeyValueStoragePort.Listener<Long, Member>() {
             @Override
             public void onFullUpdate(Map<Long, Member> map) {
+                log.info("members data provider -> on full update");
                 if (membersMap == null) {
                     return;
                 }
@@ -61,16 +64,25 @@ public class MembersDataProvider implements BUPluginLifecycle {
             }
 
             @Override
-            public void onUpdate(Long key, Member value) {
+            public void onUpdate(Long key, Member member) {
+                log.info("members data provider -> on update");
+
                 if (membersMap == null) {
                     return;
                 }
-                Member old = membersMap.get(key);
-                membersMap.put(key, value);
+                Member oldMember;
+                if (optimisticallyAddedMembers.contains(key)) {
+                    optimisticallyAddedMembers.remove(key);
+                    oldMember = null;
+                } else {
+                    oldMember = membersMap.get(key);
+                }
+
+                membersMap.put(key, member);
 
                 for (MemberMapListener listener : memberMapListeners) {
                     try {
-                        listener.onUpdate(value, old);
+                        listener.onUpdate(member, oldMember);
                     } catch (Exception ex) {
                         log.error("membersUpdateListener: onUpdate", ex);
                     }
@@ -79,6 +91,8 @@ public class MembersDataProvider implements BUPluginLifecycle {
 
             @Override
             public void onDelete(Long key) {
+                log.info("members data provider -> on delete");
+
                 if (membersMap == null) {
                     return;
                 }
@@ -164,6 +178,7 @@ public class MembersDataProvider implements BUPluginLifecycle {
             throw new IllegalStateException("membersMap is null");
         }
 
+        optimisticallyAddedMembers.add(member.getAccountHash());
         membersMap.put(member.getAccountHash(), member);
         return keyValueStoragePort.update(member.getAccountHash(), member);
     }

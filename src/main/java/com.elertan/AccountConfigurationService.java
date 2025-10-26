@@ -47,7 +47,7 @@ public class AccountConfigurationService implements BUPluginLifecycle {
 
     private boolean isInitialCurrentAccountConfigurationDeterminedAfterAccountHash = true;
     private AccountConfiguration lastCurrentAccountConfiguration;
-    private ConcurrentLinkedQueue<Consumer<AccountConfiguration>> currentAccountConfigurationChangeListeners = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Consumer<AccountConfiguration>> currentAccountConfigurationChangeListeners = new ConcurrentLinkedQueue<>();
 
     @Override
     public void startUp() {
@@ -145,6 +145,10 @@ public class AccountConfigurationService implements BUPluginLifecycle {
             throw new IllegalStateException("autoOpenAccountConfigurationDisabledForAccountHashes is null");
         }
         return !autoOpenAccountConfigurationDisabledForAccountHashes.contains(accountHash);
+    }
+
+    public boolean isReady() {
+        return accountConfigurationMap != null;
     }
 
     private void notifyCurrentAccountConfigurationChange(AccountConfiguration accountConfiguration) {

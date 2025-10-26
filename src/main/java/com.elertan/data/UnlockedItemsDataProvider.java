@@ -60,15 +60,15 @@ public class UnlockedItemsDataProvider implements BUPluginLifecycle {
             }
 
             @Override
-            public void onUpdate(Integer key, UnlockedItem value) {
+            public void onUpdate(Integer key, UnlockedItem newUnlockedItem) {
                 if (unlockedItemsMap == null) {
                     return;
                 }
-                unlockedItemsMap.put(key, value);
+                unlockedItemsMap.put(key, newUnlockedItem);
 
                 for (UnlockedItemsMapListener listener : unlockedItemsMapListeners) {
                     try {
-                        listener.onUpdate(value);
+                        listener.onUpdate(newUnlockedItem);
                     } catch (Exception ex) {
                         log.error("unlockedItemUpdateListener: onUpdate", ex);
                     }

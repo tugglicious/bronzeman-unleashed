@@ -43,26 +43,32 @@ public class MemberService implements BUPluginLifecycle {
         memberMapListener = new MembersDataProvider.MemberMapListener() {
             @Override
             public void onUpdate(Member member, Member old) {
-                ChatMessageBuilder builder = new ChatMessageBuilder();
+                log.info("member service -> member update: {} - old: {}", member == null ? null : member.toString(), old == null ? null : old.toString());
+
                 if (old == null) {
+                    ChatMessageBuilder builder = new ChatMessageBuilder();
                     builder.append(buPluginConfig.chatPlayerNameColor(), member.getName());
                     builder.append(" has joined your Bronzeman group.");
+                    buChatService.sendMessage(builder.build());
                 } else {
                     if (!Objects.equals(member.getName(), old.getName())) {
+                        ChatMessageBuilder builder = new ChatMessageBuilder();
                         builder.append(buPluginConfig.chatPlayerNameColor(), old.getName());
                         builder.append(" has name changed to ");
                         builder.append(buPluginConfig.chatPlayerNameColor(), member.getName());
+                        buChatService.sendMessage(builder.build());
                     }
                     if (member.getRole() != old.getRole()) {
+                        ChatMessageBuilder builder = new ChatMessageBuilder();
                         builder.append(buPluginConfig.chatPlayerNameColor(), member.getName());
                         builder.append(" has their role has changed from ");
                         builder.append(buPluginConfig.chatHighlightColor(), old.getRole().toString());
                         builder.append(" to ");
                         builder.append(buPluginConfig.chatHighlightColor(), member.getRole().toString());
                         builder.append(".");
+                        buChatService.sendMessage(builder.build());
                     }
                 }
-                buChatService.sendMessage(builder.build());
             }
 
             @Override

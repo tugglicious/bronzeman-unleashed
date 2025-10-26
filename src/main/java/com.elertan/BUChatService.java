@@ -134,6 +134,8 @@ public class BUChatService implements BUPluginLifecycle {
     }
 
     public void sendMessage(String message) {
+        log.debug("Sending chat message: {}", message);
+
         waitForIsChatboxTransparentSet(null)
                 .whenComplete((__, throwable) -> {
                     if (throwable != null) {

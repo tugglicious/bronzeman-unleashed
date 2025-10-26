@@ -26,4 +26,9 @@ public class Member {
         this.joinedAt = joinedAt;
         this.role = role;
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s (%s)", name, role);
+    }
 }
