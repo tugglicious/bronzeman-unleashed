@@ -61,12 +61,14 @@ public class BUChatService implements BUPluginLifecycle {
     @Inject
     private BUEventService buEventService;
 
+    private final Consumer<AccountConfiguration> currentAccountConfigurationChangeListener = this::currentAccountConfigurationChangeListener;
+
     private Boolean isChatboxTransparent = null;
     private ConcurrentLinkedQueue<Consumer<Boolean>> isChatboxTransparentListeners = new ConcurrentLinkedQueue<>();
 
     @Override
     public void startUp() throws Exception {
-        accountConfigurationService.addCurrentAccountConfigurationChangeListener(this::currentAccountConfigurationChangeListener);
+        accountConfigurationService.addCurrentAccountConfigurationChangeListener(currentAccountConfigurationChangeListener);
 
         manageIconOnChatbox(false);
     }
@@ -74,7 +76,7 @@ public class BUChatService implements BUPluginLifecycle {
     @Override
     public void shutDown() throws Exception {
         manageIconOnChatbox(true);
-        accountConfigurationService.removeCurrentAccountConfigurationChangeListener(this::currentAccountConfigurationChangeListener);
+        accountConfigurationService.removeCurrentAccountConfigurationChangeListener(currentAccountConfigurationChangeListener);
     }
 
     public void onChatMessage(ChatMessage chatMessage) {

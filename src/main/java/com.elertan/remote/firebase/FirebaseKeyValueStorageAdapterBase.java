@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 @Slf4j
@@ -23,6 +24,8 @@ public class FirebaseKeyValueStorageAdapterBase<K, V> implements KeyValueStorage
     private final Function<String, K> stringToKeyTransformer;
     private final Function<K, String> keyToStringTransformer;
     private final Function<JsonElement, V> deserializeFromJsonElement;
+
+    private final Consumer<FirebaseSSE> sseListener = this::sseListener;
 
     public FirebaseKeyValueStorageAdapterBase(String basePath, FirebaseRealtimeDatabase db, Gson gson, Function<String, K> stringToKeyTransformer, Function<K, String> keyToStringTransformer, Function<JsonElement, V> deserializeFromJsonElement) {
         // Base key should be of format
@@ -45,7 +48,15 @@ public class FirebaseKeyValueStorageAdapterBase<K, V> implements KeyValueStorage
         this.deserializeFromJsonElement = deserializeFromJsonElement;
 
         FirebaseSSEStream stream = db.getStream();
-        stream.addServerSentEventListener(this::sseListener);
+        stream.addServerSentEventListener(sseListener);
+    }
+
+    @Override
+    public void close() throws Exception {
+        listeners.clear();
+
+        FirebaseSSEStream stream = db.getStream();
+        stream.removeServerSentEventListener(sseListener);
     }
 
     @Override
@@ -109,15 +120,6 @@ public class FirebaseKeyValueStorageAdapterBase<K, V> implements KeyValueStorage
     public void removeListener(Listener<K, V> listener) {
         listeners.remove(listener);
     }
-
-    @Override
-    public void close() throws Exception {
-        listeners.clear();
-
-        FirebaseSSEStream stream = db.getStream();
-        stream.removeServerSentEventListener(this::sseListener);
-    }
-
 
     private void sseListener(FirebaseSSE event) {
         FirebaseSSEType type = event.getType();

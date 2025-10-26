@@ -44,11 +44,12 @@ public class MembersDataProvider implements BUPluginLifecycle {
 
     @Getter
     private State state = State.NotReady;
-    private ConcurrentLinkedQueue<Consumer<State>> stateListeners = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Consumer<State>> stateListeners = new ConcurrentLinkedQueue<>();
+    private final Consumer<RemoteStorageService.State> remoteStorageServiceStateListener = this::remoteStorageServiceStateListener;
 
     @Override
     public void startUp() throws Exception {
-        remoteStorageService.addStateListener(this::remoteStorageServiceStateListener);
+        remoteStorageService.addStateListener(remoteStorageServiceStateListener);
 
         storagePortListener = new KeyValueStoragePort.Listener<Long, Member>() {
             @Override
@@ -100,7 +101,7 @@ public class MembersDataProvider implements BUPluginLifecycle {
     public void shutDown() throws Exception {
         state = State.NotReady;
 
-        remoteStorageService.removeStateListener(this::remoteStorageServiceStateListener);
+        remoteStorageService.removeStateListener(remoteStorageServiceStateListener);
     }
 
     public Map<Long, Member> getMembersMap() {

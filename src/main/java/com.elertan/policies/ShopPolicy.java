@@ -17,6 +17,7 @@ import net.runelite.client.callback.ClientThread;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -37,6 +38,9 @@ public class ShopPolicy extends PolicyBase implements BUPluginLifecycle {
 
     private final GameRulesService gameRulesService;
 
+    private final Consumer<UnlockedItem> newUnlockedItemListener = this::newUnlockedItemListener;
+    private final Consumer<Integer> lockUnlockedItemListener = this::lockUnlockedItemListener;
+
     private boolean isShopOpen = false;
 
     @Inject
@@ -48,14 +52,14 @@ public class ShopPolicy extends PolicyBase implements BUPluginLifecycle {
 
     @Override
     public void startUp() throws Exception {
-        itemUnlockService.addNewUnlockedItemListener(this::newUnlockedItemListener);
-        itemUnlockService.addLockUnlockedItemListener(this::lockUnlockedItemListener);
+        itemUnlockService.addNewUnlockedItemListener(newUnlockedItemListener);
+        itemUnlockService.addLockUnlockedItemListener(lockUnlockedItemListener);
     }
 
     @Override
     public void shutDown() throws Exception {
-        itemUnlockService.removeLockUnlockedItemListener(this::lockUnlockedItemListener);
-        itemUnlockService.removeNewUnlockedItemListener(this::newUnlockedItemListener);
+        itemUnlockService.removeLockUnlockedItemListener(lockUnlockedItemListener);
+        itemUnlockService.removeNewUnlockedItemListener(newUnlockedItemListener);
     }
 
     public void onWidgetLoaded(WidgetLoaded event) {

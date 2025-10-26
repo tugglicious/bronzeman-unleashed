@@ -30,8 +30,9 @@ public class GameRulesDataProvider implements BUPluginLifecycle {
 
     @Getter
     private State state = State.NotReady;
-    private ConcurrentLinkedQueue<Consumer<State>> stateListeners = new ConcurrentLinkedQueue<>();
-    private ConcurrentLinkedQueue<Consumer<GameRules>> gameRulesListeners = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Consumer<State>> stateListeners = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Consumer<GameRules>> gameRulesListeners = new ConcurrentLinkedQueue<>();
+    private final Consumer<RemoteStorageService.State> remoteStorageServiceStateListener = this::remoteStorageServiceStateListener;
 
     private ObjectStoragePort<GameRules> storagePort;
     private ObjectStoragePort.Listener<GameRules> storagePortListener;
@@ -41,7 +42,7 @@ public class GameRulesDataProvider implements BUPluginLifecycle {
 
     @Override
     public void startUp() {
-        remoteStorageService.addStateListener(this::remoteStorageServiceStateListener);
+        remoteStorageService.addStateListener(remoteStorageServiceStateListener);
 
         storagePortListener = new ObjectStoragePort.Listener<GameRules>() {
 
@@ -59,7 +60,7 @@ public class GameRulesDataProvider implements BUPluginLifecycle {
 
     @Override
     public void shutDown() {
-        remoteStorageService.removeStateListener(this::remoteStorageServiceStateListener);
+        remoteStorageService.removeStateListener(remoteStorageServiceStateListener);
     }
 
     public void addStateListener(Consumer<State> listener) {

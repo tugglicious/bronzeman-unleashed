@@ -37,17 +37,18 @@ public class UnlockedItemsDataProvider implements BUPluginLifecycle {
 
     @Getter
     private State state = State.NotReady;
-    private ConcurrentLinkedQueue<Consumer<State>> stateListeners = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Consumer<State>> stateListeners = new ConcurrentLinkedQueue<>();
     private KeyValueStoragePort<Integer, UnlockedItem> keyValueStoragePort;
 
     private KeyValueStoragePort.Listener<Integer, UnlockedItem> unlockedItemsStoragePortListener;
     private ConcurrentHashMap<Integer, UnlockedItem> unlockedItemsMap;
 
-    private ConcurrentLinkedQueue<UnlockedItemsMapListener> unlockedItemsMapListeners = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<UnlockedItemsMapListener> unlockedItemsMapListeners = new ConcurrentLinkedQueue<>();
+    private final Consumer<RemoteStorageService.State> remoteStorageServiceStateListener = this::remoteStorageServiceStateListener;
 
     @Override
     public void startUp() throws Exception {
-        remoteStorageService.addStateListener(this::remoteStorageServiceStateListener);
+        remoteStorageService.addStateListener(remoteStorageServiceStateListener);
 
         unlockedItemsStoragePortListener = new KeyValueStoragePort.Listener<Integer, UnlockedItem>() {
             @Override
@@ -101,7 +102,7 @@ public class UnlockedItemsDataProvider implements BUPluginLifecycle {
         unlockedItemsStoragePortListener = null;
         keyValueStoragePort = null;
 
-        remoteStorageService.removeStateListener(this::remoteStorageServiceStateListener);
+        remoteStorageService.removeStateListener(remoteStorageServiceStateListener);
     }
 
     public Map<Integer, UnlockedItem> getUnlockedItemsMap() {

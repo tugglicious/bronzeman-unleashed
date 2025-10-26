@@ -28,13 +28,14 @@ public class LastEventDataProvider implements BUPluginLifecycle {
     private State state = State.NotReady;
     private final ConcurrentLinkedQueue<Consumer<State>> stateListeners = new ConcurrentLinkedQueue<>();
     private final ConcurrentLinkedQueue<Consumer<BUEvent>> eventListeners = new ConcurrentLinkedQueue<>();
+    private final Consumer<RemoteStorageService.State> remoteStorageServiceStateListener = this::remoteStorageServiceStateListener;
 
     private ObjectStoragePort<BUEvent> storagePort;
     private ObjectStoragePort.Listener<BUEvent> storagePortListener;
 
     @Override
     public void startUp() throws Exception {
-        remoteStorageService.addStateListener(this::remoteStorageServiceStateListener);
+        remoteStorageService.addStateListener(remoteStorageServiceStateListener);
 
         storagePortListener = new ObjectStoragePort.Listener<BUEvent>() {
             @Override
@@ -57,7 +58,7 @@ public class LastEventDataProvider implements BUPluginLifecycle {
 
     @Override
     public void shutDown() throws Exception {
-        remoteStorageService.removeStateListener(this::remoteStorageServiceStateListener);
+        remoteStorageService.removeStateListener(remoteStorageServiceStateListener);
     }
 
     public void addStateListener(Consumer<State> listener) {

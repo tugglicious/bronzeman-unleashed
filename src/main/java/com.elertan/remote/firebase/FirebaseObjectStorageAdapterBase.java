@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 @Slf4j
@@ -16,6 +17,7 @@ public class FirebaseObjectStorageAdapterBase<T> implements ObjectStoragePort<T>
     private final Function<T, JsonElement> serializer;
     private final Function<JsonElement, T> deserializer;
     private final ConcurrentLinkedQueue<Listener<T>> listeners = new ConcurrentLinkedQueue<>();
+    private final Consumer<FirebaseSSE> sseListener = this::sseListener;
 
     public FirebaseObjectStorageAdapterBase(String path, FirebaseRealtimeDatabase db, Function<T, JsonElement> serializer, Function<JsonElement, T> deserializer) {
         // Base key should be of format
@@ -37,7 +39,13 @@ public class FirebaseObjectStorageAdapterBase<T> implements ObjectStoragePort<T>
         this.deserializer = deserializer;
 
         FirebaseSSEStream stream = db.getStream();
-        stream.addServerSentEventListener(this::sseListener);
+        stream.addServerSentEventListener(sseListener);
+    }
+
+    @Override
+    public void close() throws Exception {
+        FirebaseSSEStream stream = db.getStream();
+        stream.removeServerSentEventListener(sseListener);
     }
 
     @Override
@@ -65,12 +73,6 @@ public class FirebaseObjectStorageAdapterBase<T> implements ObjectStoragePort<T>
     @Override
     public void removeListener(Listener<T> listener) {
         listeners.remove(listener);
-    }
-
-    @Override
-    public void close() throws Exception {
-        FirebaseSSEStream stream = db.getStream();
-        stream.removeServerSentEventListener(this::sseListener);
     }
 
     private void sseListener(FirebaseSSE event) {

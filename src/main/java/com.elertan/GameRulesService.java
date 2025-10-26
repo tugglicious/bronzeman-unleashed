@@ -7,6 +7,8 @@ import com.google.inject.Singleton;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.function.Consumer;
+
 @Slf4j
 @Singleton
 public class GameRulesService implements BUPluginLifecycle {
@@ -18,6 +20,8 @@ public class GameRulesService implements BUPluginLifecycle {
     @Inject
     private GameRulesDataProvider gameRulesDataProvider;
 
+    private final Consumer<GameRules> gameRulesListener = this::gameRulesListener;
+
     @Getter
     private State state = State.NotReady;
 
@@ -26,12 +30,12 @@ public class GameRulesService implements BUPluginLifecycle {
 
     @Override
     public void startUp() throws Exception {
-        gameRulesDataProvider.addGameRulesListener(this::gameRulesListener);
+        gameRulesDataProvider.addGameRulesListener(gameRulesListener);
     }
 
     @Override
     public void shutDown() throws Exception {
-        gameRulesDataProvider.removeGameRulesListener(this::gameRulesListener);
+        gameRulesDataProvider.removeGameRulesListener(gameRulesListener);
 
         gameRules = null;
         state = State.NotReady;

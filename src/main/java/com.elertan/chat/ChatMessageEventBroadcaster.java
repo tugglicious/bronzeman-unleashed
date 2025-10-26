@@ -11,6 +11,7 @@ import net.runelite.api.Client;
 import net.runelite.client.chat.ChatMessageBuilder;
 
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 @Slf4j
@@ -35,14 +36,16 @@ public class ChatMessageEventBroadcaster implements BUPluginLifecycle {
     @Inject
     private MemberService memberService;
 
+    private final Consumer<BUEvent> eventListener = this::eventListener;
+
     @Override
     public void startUp() throws Exception {
-        buEventService.addEventListener(this::eventListener);
+        buEventService.addEventListener(eventListener);
     }
 
     @Override
     public void shutDown() throws Exception {
-        buEventService.removeEventListener(this::eventListener);
+        buEventService.removeEventListener(eventListener);
     }
 
     private void eventListener(BUEvent event) {

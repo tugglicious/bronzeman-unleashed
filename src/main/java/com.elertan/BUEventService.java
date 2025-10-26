@@ -14,18 +14,19 @@ import java.util.function.Consumer;
 @Singleton
 public class BUEventService implements BUPluginLifecycle {
     private final ConcurrentLinkedQueue<Consumer<BUEvent>> eventListeners = new ConcurrentLinkedQueue<>();
+    private final Consumer<BUEvent> lastEventListener = this::lastEventListener;
 
     @Inject
     private LastEventDataProvider lastEventDataProvider;
 
     @Override
     public void startUp() throws Exception {
-        lastEventDataProvider.addEventListener(this::lastEventListener);
+        lastEventDataProvider.addEventListener(lastEventListener);
     }
 
     @Override
     public void shutDown() throws Exception {
-        lastEventDataProvider.removeEventListener(this::lastEventListener);
+        lastEventDataProvider.removeEventListener(lastEventListener);
     }
 
     public void addEventListener(Consumer<BUEvent> eventListener) {

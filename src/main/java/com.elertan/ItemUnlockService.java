@@ -137,6 +137,8 @@ public class ItemUnlockService implements BUPluginLifecycle {
     private ConcurrentLinkedQueue<Consumer<UnlockedItem>> newUnlockedItemListeners = new ConcurrentLinkedQueue<>();
     private ConcurrentLinkedQueue<Consumer<Integer>> lockUnlockedItemListeners = new ConcurrentLinkedQueue<>();
 
+    private final Consumer<UnlockedItemsDataProvider.State> unlockedItemDataProviderStateListener = this::unlockedItemDataProviderStateListener;
+
     private UnlockedItemsDataProvider.UnlockedItemsMapListener unlockedItemsMapListener;
     private boolean hasUnlockedItemDataProviderReadyStateBeenSeen;
 
@@ -201,12 +203,12 @@ public class ItemUnlockService implements BUPluginLifecycle {
             }
         };
         unlockedItemsDataProvider.addUnlockedItemsMapListener(unlockedItemsMapListener);
-        unlockedItemsDataProvider.addStateListener(this::unlockedItemDataProviderStateListener);
+        unlockedItemsDataProvider.addStateListener(unlockedItemDataProviderStateListener);
     }
 
     @Override
     public void shutDown() throws Exception {
-        unlockedItemsDataProvider.removeStateListener(this::unlockedItemDataProviderStateListener);
+        unlockedItemsDataProvider.removeStateListener(unlockedItemDataProviderStateListener);
         unlockedItemsDataProvider.removeUnlockedItemsMapListener(unlockedItemsMapListener);
     }
 

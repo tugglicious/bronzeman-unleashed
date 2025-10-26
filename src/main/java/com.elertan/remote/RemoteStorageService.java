@@ -40,6 +40,7 @@ public class RemoteStorageService implements BUPluginLifecycle {
     private AccountConfigurationService accountConfigurationService;
 
     private final ConcurrentLinkedQueue<Consumer<State>> stateListeners = new ConcurrentLinkedQueue<>();
+    private final Consumer<AccountConfiguration> currentAccountConfigurationChangeListener = this::currentAccountConfigurationChangeListener;
 
     @Getter
     private State state = State.NotReady;
@@ -57,13 +58,13 @@ public class RemoteStorageService implements BUPluginLifecycle {
 
     @Override
     public void startUp() {
-        accountConfigurationService.addCurrentAccountConfigurationChangeListener(this::currentAccountConfigurationChangeListener);
+        accountConfigurationService.addCurrentAccountConfigurationChangeListener(currentAccountConfigurationChangeListener);
     }
 
     @Override
     public void shutDown() throws Exception {
         clearCurrentDataport();
-        accountConfigurationService.removeCurrentAccountConfigurationChangeListener(this::currentAccountConfigurationChangeListener);
+        accountConfigurationService.removeCurrentAccountConfigurationChangeListener(currentAccountConfigurationChangeListener);
     }
 
     public void addStateListener(Consumer<State> listener) {

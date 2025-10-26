@@ -14,6 +14,7 @@ import net.runelite.client.callback.ClientThread;
 
 import java.time.OffsetDateTime;
 import java.util.Map;
+import java.util.function.Consumer;
 
 @Slf4j
 @Singleton
@@ -27,14 +28,16 @@ public class MemberService implements BUPluginLifecycle {
     @Inject
     private MembersDataProvider membersDataProvider;
 
+    private final Consumer<AccountConfiguration> currentAccountConfigurationChangeListener = this::currentAccountConfigurationChangeListener;
+
     @Override
     public void startUp() throws Exception {
-        accountConfigurationService.addCurrentAccountConfigurationChangeListener(this::currentAccountConfigurationChangeListener);
+        accountConfigurationService.addCurrentAccountConfigurationChangeListener(currentAccountConfigurationChangeListener);
     }
 
     @Override
     public void shutDown() throws Exception {
-        accountConfigurationService.removeCurrentAccountConfigurationChangeListener(this::currentAccountConfigurationChangeListener);
+        accountConfigurationService.removeCurrentAccountConfigurationChangeListener(currentAccountConfigurationChangeListener);
     }
 
     public Member getMemberByName(String playerName) {

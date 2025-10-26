@@ -19,6 +19,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 @Slf4j
 public class BUPanel extends PluginPanel implements AutoCloseable {
@@ -39,6 +40,8 @@ public class BUPanel extends PluginPanel implements AutoCloseable {
     private final UnlockedItemsDataProvider unlockedItemsDataProvider;
     private final GameRulesDataProvider gameRulesDataProvider;
     private final MembersDataProvider membersDataProvider;
+
+    private final Consumer<AccountConfiguration> currentAccountConfigurationChangeListener = this::currentAccountConfigurationChangeListener;
 
     private final CardLayout layout = new CardLayout();
     private final Map<ViewState, JPanel> views = new EnumMap<>(ViewState.class);
@@ -63,7 +66,12 @@ public class BUPanel extends PluginPanel implements AutoCloseable {
         setLayout(layout);
         setViewState(ViewState.WAIT_FOR_LOGIN);
 
-        accountConfigurationService.addCurrentAccountConfigurationChangeListener(this::currentAccountConfigurationChangeListener);
+        accountConfigurationService.addCurrentAccountConfigurationChangeListener(currentAccountConfigurationChangeListener);
+    }
+
+    @Override
+    public void close() throws Exception {
+        accountConfigurationService.removeCurrentAccountConfigurationChangeListener(currentAccountConfigurationChangeListener);
     }
 
     private void setViewState(ViewState state) {
@@ -101,10 +109,5 @@ public class BUPanel extends PluginPanel implements AutoCloseable {
         } else {
             setViewState(ViewState.READY);
         }
-    }
-
-    @Override
-    public void close() throws Exception {
-        accountConfigurationService.removeCurrentAccountConfigurationChangeListener(this::currentAccountConfigurationChangeListener);
     }
 }
