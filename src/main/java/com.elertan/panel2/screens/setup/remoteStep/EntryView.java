@@ -2,16 +2,15 @@ package com.elertan.panel2.screens.setup.remoteStep;
 
 import com.elertan.ui.Bindings;
 import com.elertan.ui.Property;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
+import lombok.Getter;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
-import java.util.List;
 import java.util.Arrays;
 
 public class EntryView extends JPanel implements AutoCloseable {
+    @Getter
     private final EntryViewViewModel viewModel;
 
     private final AutoCloseable firebaseRealtimeDatabaseURLTextFieldTextBinding;
@@ -19,9 +18,8 @@ public class EntryView extends JPanel implements AutoCloseable {
     private final AutoCloseable errorMessageLabelTextBinding;
     private final AutoCloseable continueButtonEnabledBinding;
 
-    @Inject
-    public EntryView(Provider<EntryViewViewModel> viewModelProvider) {
-        this.viewModel = viewModelProvider.get();
+    public EntryView(EntryViewViewModel viewModel) {
+        this.viewModel = viewModel;
 
         setLayout(new GridBagLayout());
         setAlignmentY(Component.TOP_ALIGNMENT);

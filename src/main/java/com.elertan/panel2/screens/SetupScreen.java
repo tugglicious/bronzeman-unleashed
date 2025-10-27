@@ -1,29 +1,48 @@
 package com.elertan.panel2.screens;
 
-import com.elertan.AccountConfigurationService;
-import com.elertan.BUPanelService;
 import com.elertan.panel2.screens.setup.RemoteStepView;
+import com.elertan.panel2.screens.setup.RemoteStepViewViewModel;
 import com.elertan.ui.Bindings;
+import com.google.inject.ImplementedBy;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.inject.Singleton;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class SetupScreen extends JPanel implements AutoCloseable {
+    @ImplementedBy(FactoryImpl.class)
+    public interface Factory {
+        SetupScreen create();
+    }
+
+    @Singleton
+    static final class FactoryImpl implements Factory {
+        @Inject
+        Provider<SetupScreenViewModel> viewModelProvider;
+        @Inject
+        RemoteStepView.Factory remoteStepViewFactory;
+        @Inject
+        RemoteStepViewViewModel.Factory remoteStepViewViewModelFactory;
+
+        @Override
+        public SetupScreen create() {
+            SetupScreenViewModel viewModel = viewModelProvider.get();
+            RemoteStepViewViewModel remoteStepViewViewModel = remoteStepViewViewModelFactory.create(viewModel::onRemoteStepFinished);
+            return new SetupScreen(viewModel, remoteStepViewFactory, remoteStepViewViewModel);
+        }
+    }
+
     private final SetupScreenViewModel viewModel;
-    private final Provider<RemoteStepView> remoteStepViewProvider;
+    private final RemoteStepView.Factory remoteStepViewFactory;
+    private final RemoteStepViewViewModel remoteStepViewViewModel;
     private final AutoCloseable contentCardLayoutBinding;
 
-    @Inject
-    public SetupScreen(
-            Provider<SetupScreenViewModel> viewModelProvider,
-            Provider<RemoteStepView> remoteStepViewProvider,
-            BUPanelService buPanelService,
-            AccountConfigurationService accountConfigurationService
-    ) {
-        viewModel = viewModelProvider.get();
-        this.remoteStepViewProvider = remoteStepViewProvider;
+    private SetupScreen(SetupScreenViewModel viewModel, RemoteStepView.Factory remoteStepViewFactory, RemoteStepViewViewModel remoteStepViewViewModel) {
+        this.viewModel = viewModel;
+        this.remoteStepViewFactory = remoteStepViewFactory;
+        this.remoteStepViewViewModel = remoteStepViewViewModel;
 
         setLayout(new BorderLayout());
 
@@ -61,20 +80,7 @@ public class SetupScreen extends JPanel implements AutoCloseable {
         dontAskMeAgainButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         dontAskMeAgainButton.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
         dontAskMeAgainButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, dontAskMeAgainButton.getPreferredSize().height));
-        dontAskMeAgainButton.addActionListener(e -> {
-            int result = JOptionPane.showConfirmDialog(
-                    null,
-                    "We won't ask you again to set up bronzeman mode for this account.\n"
-                            + "You can set up bronzeman mode at any time by re-opening this panel.",
-                    "Confirm setup choice",
-                    JOptionPane.OK_CANCEL_OPTION,
-                    JOptionPane.WARNING_MESSAGE
-            );
-            if (result == JOptionPane.OK_OPTION) {
-                buPanelService.closePanel();
-                accountConfigurationService.addCurrentAccountHashToAutoOpenConfigurationDisabled();
-            }
-        });
+        dontAskMeAgainButton.addActionListener(e -> viewModel.onDontAskMeAgainButtonClick());
         inner.add(dontAskMeAgainButton);
 
         add(inner, BorderLayout.CENTER);
@@ -90,7 +96,7 @@ public class SetupScreen extends JPanel implements AutoCloseable {
     private JPanel buildStep(SetupScreenViewModel.Step step) {
         switch (step) {
             case REMOTE:
-                return remoteStepViewProvider.get();
+                return remoteStepViewFactory.create(remoteStepViewViewModel);
             case GAME_RULES:
                 return new JPanel();
         }

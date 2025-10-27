@@ -13,17 +13,17 @@ import java.awt.*;
 public class BUPanel2 extends PluginPanel implements AutoCloseable {
     private final BUPanelViewModel viewModel;
     private final Provider<WaitForLoginScreen> waitForLoginScreenProvider;
-    private final Provider<SetupScreen> setupScreenProvider;
+    private final SetupScreen.Factory setupScreenFactory;
 
     private final AutoCloseable cardLayoutBinding;
 
     @Inject
-    public BUPanel2(Provider<BUPanelViewModel> viewModelProvider, Provider<WaitForLoginScreen> waitForLoginScreenProvider, Provider<SetupScreen> setupScreenProvider) {
+    public BUPanel2(Provider<BUPanelViewModel> viewModelProvider, Provider<WaitForLoginScreen> waitForLoginScreenProvider, SetupScreen.Factory setupScreenFactory) {
         super(false);
 
         viewModel = viewModelProvider.get();
         this.waitForLoginScreenProvider = waitForLoginScreenProvider;
-        this.setupScreenProvider = setupScreenProvider;
+        this.setupScreenFactory = setupScreenFactory;
 
         CardLayout cardLayout = new CardLayout();
         setLayout(cardLayout);
@@ -42,7 +42,7 @@ public class BUPanel2 extends PluginPanel implements AutoCloseable {
             case WAIT_FOR_LOGIN:
                 return waitForLoginScreenProvider.get();
             case SETUP:
-                return setupScreenProvider.get();
+                return setupScreenFactory.create();
             case MAIN:
                 return new JPanel();
         }
