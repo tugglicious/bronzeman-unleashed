@@ -1,12 +1,15 @@
 package com.elertan.panel2.screens.setup.remoteStep;
 
 import com.elertan.ui.Bindings;
+import com.elertan.ui.Property;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
+import java.util.List;
+import java.util.Arrays;
 
 public class EntryView extends JPanel implements AutoCloseable {
     private final EntryViewViewModel viewModel;
@@ -111,12 +114,17 @@ public class EntryView extends JPanel implements AutoCloseable {
         buttonRow.add(Box.createHorizontalGlue());
 
         JButton continueButton = new JButton("Continue");
-        continueButtonEnabledBinding = Bindings.bindEnabled(continueButton, viewModel.isLoading.derive(isLoading -> !isLoading));
-        continueButton.setEnabled(false);
-        continueButton.addActionListener(e -> {
-//            setState(RemoteConfigurationView.State.CHECKING);
-//            checkUrl();
-        });
+        continueButtonEnabledBinding = Bindings.bindEnabled(
+                continueButton,
+                Property.deriveMany(
+                        Arrays.asList(
+                                viewModel.isLoading.derive(isLoading -> !isLoading),
+                                viewModel.isValid
+                        ),
+                        values -> values.stream().allMatch(value -> (Boolean) value)
+                )
+        );
+        continueButton.addActionListener(e -> viewModel.onContinueClick());
         buttonRow.add(continueButton);
 
         add(buttonRow, gbc);
