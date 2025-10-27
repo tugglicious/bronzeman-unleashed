@@ -1,0 +1,46 @@
+package com.elertan.panel2;
+
+import com.elertan.panel2.screens.WaitForLoginScreen;
+import com.elertan.ui.Bindings;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import net.runelite.client.ui.PluginPanel;
+
+import javax.swing.*;
+import java.awt.*;
+
+public class BUPanel2 extends PluginPanel implements AutoCloseable {
+    private final BUPanelViewModel viewModel;
+    private final Provider<WaitForLoginScreen> waitForLoginScreenProvider;
+
+    @Inject
+    public BUPanel2(Provider<BUPanelViewModel> viewModelProvider, Provider<WaitForLoginScreen> waitForLoginScreenProvider) {
+        super(false);
+
+        viewModel = viewModelProvider.get();
+        this.waitForLoginScreenProvider = waitForLoginScreenProvider;
+
+        CardLayout cardLayout = new CardLayout();
+        setLayout(cardLayout);
+
+        Bindings.bindCardLayout(this, cardLayout, viewModel.screen, this::buildScreen);
+    }
+
+    @Override
+    public void close() throws Exception {
+        viewModel.close();
+    }
+
+    private JPanel buildScreen(BUPanelViewModel.Screen screen) {
+        switch (screen) {
+            case WAIT_FOR_LOGIN:
+                return waitForLoginScreenProvider.get();
+            case SETUP:
+                return new JPanel();
+            case MAIN:
+                return new JPanel();
+        }
+
+        throw new IllegalStateException("Unknown screen: " + screen);
+    }
+}

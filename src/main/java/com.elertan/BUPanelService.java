@@ -4,8 +4,10 @@ import com.elertan.data.GameRulesDataProvider;
 import com.elertan.data.MembersDataProvider;
 import com.elertan.data.UnlockedItemsDataProvider;
 import com.elertan.panel.BUPanel;
+import com.elertan.panel2.BUPanel2;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
@@ -45,12 +47,16 @@ public class BUPanelService implements BUPluginLifecycle {
     @Inject
     private MembersDataProvider membersDataProvider;
 
-    private BUPanel buPanel;
+    @Inject
+    private Provider<BUPanel2> buPanelProvider;
+
+    private BUPanel2 buPanel;
     private NavigationButton panelNavigationButton;
 
     @Override
     public void startUp() {
-        buPanel = new BUPanel(buResourceService, httpClient, client, clientThread, gson, itemManager, buPanelService, accountConfigurationService, unlockedItemsDataProvider, gameRulesDataProvider, membersDataProvider);
+//        buPanel = new BUPanel(buResourceService, httpClient, client, clientThread, gson, itemManager, buPanelService, accountConfigurationService, unlockedItemsDataProvider, gameRulesDataProvider, membersDataProvider);
+        buPanel = buPanelProvider.get();
         panelNavigationButton = NavigationButton.builder()
                 .tooltip("Bronzeman Unleashed")
                 .icon(buResourceService.getIconBufferedImage())
