@@ -13,6 +13,8 @@ public class BUPanel2 extends PluginPanel implements AutoCloseable {
     private final BUPanelViewModel viewModel;
     private final Provider<WaitForLoginScreen> waitForLoginScreenProvider;
 
+    private final AutoCloseable cardLayoutBinding;
+
     @Inject
     public BUPanel2(Provider<BUPanelViewModel> viewModelProvider, Provider<WaitForLoginScreen> waitForLoginScreenProvider) {
         super(false);
@@ -23,11 +25,12 @@ public class BUPanel2 extends PluginPanel implements AutoCloseable {
         CardLayout cardLayout = new CardLayout();
         setLayout(cardLayout);
 
-        Bindings.bindCardLayout(this, cardLayout, viewModel.screen, this::buildScreen);
+        cardLayoutBinding = Bindings.bindCardLayout(this, cardLayout, viewModel.screen, this::buildScreen);
     }
 
     @Override
     public void close() throws Exception {
+        cardLayoutBinding.close();
         viewModel.close();
     }
 
