@@ -1,29 +1,67 @@
 package com.elertan.panel2;
 
-import com.elertan.panel2.screens.SetupScreen;
-import com.elertan.panel2.screens.WaitForLoginScreen;
+import com.elertan.panel2.screens.*;
 import com.elertan.ui.Bindings;
+import com.google.inject.ImplementedBy;
 import com.google.inject.Inject;
-import com.google.inject.Provider;
+import com.google.inject.Singleton;
 import net.runelite.client.ui.PluginPanel;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class BUPanel2 extends PluginPanel implements AutoCloseable {
+    @ImplementedBy(FactoryImpl.class)
+    public interface Factory {
+        BUPanel2 create(BUPanelViewModel viewModel);
+    }
+
+    @Singleton
+    private static final class FactoryImpl implements Factory {
+        @Inject
+        private WaitForLoginScreen.Factory waitForLoginScreenFactory;
+        @Inject
+        private SetupScreenViewModel.Factory setupScreenViewModelFactory;
+        @Inject
+        private SetupScreen.Factory setupScreenFactory;
+        @Inject
+        private MainScreenViewModel.Factory mainScreenViewModelFactory;
+        @Inject
+        private MainScreen.Factory mainScreenFactory;
+
+        @Override
+        public BUPanel2 create(BUPanelViewModel viewModel) {
+            SetupScreenViewModel setupScreenViewModel = setupScreenViewModelFactory.create();
+            MainScreenViewModel mainScreenViewModel = mainScreenViewModelFactory.create();
+            return new BUPanel2(viewModel, waitForLoginScreenFactory, setupScreenViewModel, setupScreenFactory, mainScreenViewModel, mainScreenFactory);
+        }
+    }
+
     private final BUPanelViewModel viewModel;
-    private final Provider<WaitForLoginScreen> waitForLoginScreenProvider;
+    private final WaitForLoginScreen.Factory waitForLoginScreenFactory;
+    private final SetupScreenViewModel setupScreenViewModel;
     private final SetupScreen.Factory setupScreenFactory;
+    private final MainScreenViewModel mainScreenViewModel;
+    private final MainScreen.Factory mainScreenFactory;
 
     private final AutoCloseable cardLayoutBinding;
 
-    @Inject
-    public BUPanel2(Provider<BUPanelViewModel> viewModelProvider, Provider<WaitForLoginScreen> waitForLoginScreenProvider, SetupScreen.Factory setupScreenFactory) {
+    private BUPanel2(
+            BUPanelViewModel viewModel,
+            WaitForLoginScreen.Factory waitForLoginScreenFactory,
+            SetupScreenViewModel setupScreenViewModel,
+            SetupScreen.Factory setupScreenFactory,
+            MainScreenViewModel mainScreenViewModel,
+            MainScreen.Factory mainScreenFactory
+    ) {
         super(false);
 
-        viewModel = viewModelProvider.get();
-        this.waitForLoginScreenProvider = waitForLoginScreenProvider;
+        this.viewModel = viewModel;
+        this.waitForLoginScreenFactory = waitForLoginScreenFactory;
+        this.setupScreenViewModel = setupScreenViewModel;
         this.setupScreenFactory = setupScreenFactory;
+        this.mainScreenViewModel = mainScreenViewModel;
+        this.mainScreenFactory = mainScreenFactory;
 
         CardLayout cardLayout = new CardLayout();
         setLayout(cardLayout);
@@ -40,11 +78,11 @@ public class BUPanel2 extends PluginPanel implements AutoCloseable {
     private JPanel buildScreen(BUPanelViewModel.Screen screen) {
         switch (screen) {
             case WAIT_FOR_LOGIN:
-                return waitForLoginScreenProvider.get();
+                return waitForLoginScreenFactory.create();
             case SETUP:
-                return setupScreenFactory.create();
+                return setupScreenFactory.create(setupScreenViewModel);
             case MAIN:
-                return new JPanel();
+                return mainScreenFactory.create(mainScreenViewModel);
         }
 
         throw new IllegalStateException("Unknown screen: " + screen);

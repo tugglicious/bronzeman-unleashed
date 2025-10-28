@@ -7,7 +7,6 @@ import com.elertan.panel2.screens.setup.RemoteStepViewViewModel;
 import com.elertan.ui.Bindings;
 import com.google.inject.ImplementedBy;
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 import javax.swing.*;
@@ -17,13 +16,11 @@ import java.util.concurrent.CompletableFuture;
 public class SetupScreen extends JPanel implements AutoCloseable {
     @ImplementedBy(FactoryImpl.class)
     public interface Factory {
-        SetupScreen create();
+        SetupScreen create(SetupScreenViewModel viewModel);
     }
 
     @Singleton
     static final class FactoryImpl implements Factory {
-        @Inject
-        Provider<SetupScreenViewModel> viewModelProvider;
         @Inject
         RemoteStepView.Factory remoteStepViewFactory;
         @Inject
@@ -34,8 +31,7 @@ public class SetupScreen extends JPanel implements AutoCloseable {
         GameRulesStepViewViewModel.Factory gameRulesStepViewViewModelFactory;
 
         @Override
-        public SetupScreen create() {
-            SetupScreenViewModel viewModel = viewModelProvider.get();
+        public SetupScreen create(SetupScreenViewModel viewModel) {
             RemoteStepViewViewModel remoteStepViewViewModel = remoteStepViewViewModelFactory.create(viewModel::onRemoteStepFinished);
             GameRulesStepViewViewModel gameRulesStepViewViewModel = gameRulesStepViewViewModelFactory.create(viewModel.gameRules, new GameRulesStepViewViewModel.Listener() {
                 @Override

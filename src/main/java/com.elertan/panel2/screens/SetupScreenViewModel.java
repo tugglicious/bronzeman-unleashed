@@ -4,13 +4,14 @@ import com.elertan.AccountConfigurationService;
 import com.elertan.BUPanelService;
 import com.elertan.models.AccountConfiguration;
 import com.elertan.models.GameRules;
-import com.elertan.panel2.screens.setup.RemoteStepViewViewModel;
 import com.elertan.remote.firebase.FirebaseRealtimeDatabase;
 import com.elertan.remote.firebase.FirebaseRealtimeDatabaseURL;
 import com.elertan.remote.firebase.storageAdapters.GameRulesFirebaseObjectStorageAdapter;
 import com.elertan.ui.Property;
 import com.google.gson.Gson;
+import com.google.inject.ImplementedBy;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import okhttp3.OkHttpClient;
@@ -20,6 +21,30 @@ import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 public final class SetupScreenViewModel implements AutoCloseable {
+    @ImplementedBy(FactoryImpl.class)
+    public interface Factory {
+        SetupScreenViewModel create();
+    }
+
+    @Singleton
+    private static final class FactoryImpl implements Factory {
+        @Inject
+        private Client client;
+        @Inject
+        private BUPanelService buPanelService;
+        @Inject
+        private AccountConfigurationService accountConfigurationService;
+        @Inject
+        private OkHttpClient httpClient;
+        @Inject
+        private Gson gson;
+
+        @Override
+        public SetupScreenViewModel create() {
+            return new SetupScreenViewModel(client, buPanelService, accountConfigurationService, httpClient, gson);
+        }
+    }
+
     public enum Step {
         REMOTE,
         GAME_RULES,
@@ -32,18 +57,25 @@ public final class SetupScreenViewModel implements AutoCloseable {
     private FirebaseRealtimeDatabase firebaseRealtimeDatabase;
     private GameRulesFirebaseObjectStorageAdapter gameRulesStoragePort;
 
-    @Inject
-    private Client client;
-    @Inject
-    private BUPanelService buPanelService;
-    @Inject
-    private AccountConfigurationService accountConfigurationService;
-    @Inject
-    private RemoteStepViewViewModel.Factory remoteStepViewViewModelFactory;
-    @Inject
-    private OkHttpClient httpClient;
-    @Inject
-    private Gson gson;
+    private final Client client;
+    private final BUPanelService buPanelService;
+    private final AccountConfigurationService accountConfigurationService;
+    private final OkHttpClient httpClient;
+    private final Gson gson;
+
+    private SetupScreenViewModel(
+            Client client,
+            BUPanelService buPanelService,
+            AccountConfigurationService accountConfigurationService,
+            OkHttpClient httpClient,
+            Gson gson
+    ) {
+        this.client = client;
+        this.buPanelService = buPanelService;
+        this.accountConfigurationService = accountConfigurationService;
+        this.httpClient = httpClient;
+        this.gson = gson;
+    }
 
     @Override
     public void close() throws Exception {
@@ -81,7 +113,7 @@ public final class SetupScreenViewModel implements AutoCloseable {
         firebaseRealtimeDatabase = new FirebaseRealtimeDatabase(httpClient, gson, url);
         gameRulesStoragePort = new GameRulesFirebaseObjectStorageAdapter(firebaseRealtimeDatabase, gson);
         gameRulesStoragePort.read().whenComplete((gameRules, throwable) -> {
-            if (throwable != null)  {
+            if (throwable != null) {
                 future.completeExceptionally(throwable);
                 return;
             }

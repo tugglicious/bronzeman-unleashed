@@ -6,6 +6,7 @@ import com.elertan.data.UnlockedItemsDataProvider;
 import com.elertan.models.AccountConfiguration;
 import com.elertan.panel.BUPanel;
 import com.elertan.panel2.BUPanel2;
+import com.elertan.panel2.BUPanelViewModel;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -32,7 +33,9 @@ public class BUPanelService implements BUPluginLifecycle {
     private AccountConfigurationService accountConfigurationService;
 
     @Inject
-    private Provider<BUPanel2> buPanelProvider;
+    private BUPanelViewModel.Factory buPanelViewModelFactory;
+    @Inject
+    private BUPanel2.Factory buPanelFactory;
 
     private BUPanel2 buPanel;
     private NavigationButton panelNavigationButton;
@@ -41,8 +44,7 @@ public class BUPanelService implements BUPluginLifecycle {
 
     @Override
     public void startUp() {
-//        buPanel = new BUPanel(buResourceService, httpClient, client, clientThread, gson, itemManager, buPanelService, accountConfigurationService, unlockedItemsDataProvider, gameRulesDataProvider, membersDataProvider);
-        buPanel = buPanelProvider.get();
+        buPanel = buPanelFactory.create(buPanelViewModelFactory.create());
         panelNavigationButton = NavigationButton.builder()
                 .tooltip("Bronzeman Unleashed")
                 .icon(buResourceService.getIconBufferedImage())

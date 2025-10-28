@@ -1,14 +1,31 @@
 package com.elertan.panel2.screens;
 
 import com.elertan.BUResourceService;
+import com.google.inject.ImplementedBy;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class WaitForLoginScreen extends JPanel {
-    @Inject
-    public WaitForLoginScreen(BUResourceService buResourceService) {
+    @ImplementedBy(FactoryImpl.class)
+    public interface Factory {
+        WaitForLoginScreen create();
+    }
+
+    @Singleton
+    private static class FactoryImpl implements Factory {
+        @Inject
+        private BUResourceService buResourceService;
+
+        @Override
+        public WaitForLoginScreen create() {
+            return new WaitForLoginScreen(buResourceService);
+        }
+    }
+
+    private WaitForLoginScreen(BUResourceService buResourceService) {
         setLayout(new BorderLayout());
 
         JPanel inner = new JPanel();
