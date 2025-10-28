@@ -44,7 +44,7 @@ public class GameRulesStepView extends JPanel {
     }
 
     private GameRulesStepView(GameRulesStepViewViewModel viewModel, GameRulesEditor gameRulesEditor) {
-        setLayout(new BorderLayout(0, 10));
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBorder(BorderFactory.createEmptyBorder(10, 5, 10, 5));
 
         JLabel titleLabel = new JLabel("Game Rules");
@@ -55,8 +55,10 @@ public class GameRulesStepView extends JPanel {
         header.setOpaque(false);
         header.add(titleLabel);
         header.add(Box.createVerticalStrut(10));
+        add(header);
 
-        add(gameRulesEditor, BorderLayout.CENTER);
+        gameRulesEditor.setMaximumSize(new Dimension(Integer.MAX_VALUE, gameRulesEditor.getPreferredSize().height));
+        add(gameRulesEditor);
 
         JPanel buttonRow = new JPanel();
         buttonRow.setLayout(new BoxLayout(buttonRow, BoxLayout.X_AXIS));
@@ -72,14 +74,8 @@ public class GameRulesStepView extends JPanel {
         finishButton.addActionListener(e -> viewModel.onFinishButtonClicked());
         buttonRow.add(finishButton);
 
-        // TODO: might not be correct
-//        add(buttonRow);
+        add(buttonRow);
 
-        // Filler to keep everything pinned to the top
-//        JPanel filler = new JPanel();
-//        filler.setOpaque(false);
-//        gbc.gridy++;
-//        gbc.weighty = 1.0;
-//        center.add(filler, gbc);
+        add(Box.createVerticalGlue());
     }
 }

@@ -30,7 +30,7 @@ public class GameRulesEditor extends JPanel {
         gbc.weightx = 1.0;
         gbc.weighty = 0.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.PAGE_START;
+        gbc.anchor = GridBagConstraints.NORTH;
 
         JLabel viewOnlyModeLabel = new JLabel("<html><div style=\"text-align:center;color:gray;\">The game rules are in view-only mode. Only the group owner can modify the rules.</div></html>");
         viewOnlyModeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
