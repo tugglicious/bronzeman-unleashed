@@ -21,13 +21,13 @@ public class GameRulesEditorViewModel implements AutoCloseable {
         @Getter
         private final Consumer<GameRules> onGameRulesChanged;
         @Getter
-        private final boolean isDisabled;
+        private final boolean isViewOnlyMode;
 
-        public Props(long accountHash, GameRules gameRules, Consumer<GameRules> onGameRulesChanged, boolean isDisabled) {
+        public Props(long accountHash, GameRules gameRules, Consumer<GameRules> onGameRulesChanged, boolean isViewOnlyMode) {
             this.accountHash = accountHash;
             this.gameRules = gameRules;
             this.onGameRulesChanged = onGameRulesChanged;
-            this.isDisabled = isDisabled;
+            this.isViewOnlyMode = isViewOnlyMode;
         }
     }
 
@@ -49,8 +49,8 @@ public class GameRulesEditorViewModel implements AutoCloseable {
     public final Property<Boolean> preventGrandExchangeBuyOffers;
     public final Property<Boolean> shareAchievementNotifications;
     public final Property<String> partyPassword;
-    public final Property<Boolean> isDisabled;
 
+    public final Property<Boolean> isViewOnlyMode;
 //    public final Property<Boolean> isValid;
 
 
@@ -77,7 +77,7 @@ public class GameRulesEditorViewModel implements AutoCloseable {
         shareAchievementNotifications = new Property<>(gameRules.isShareAchievementNotifications());
         partyPassword = new Property<>(gameRules.getPartyPassword());
 
-        isDisabled = new Property<>(initialProps.isDisabled());
+        isViewOnlyMode = new Property<>(initialProps.isViewOnlyMode());
 //        isValid = Property.deriveMany(
 //                Arrays.asList(
 //                        preventTradeOutsideGroup,
