@@ -1,7 +1,5 @@
 package com.elertan.ui;
 
-import lombok.Setter;
-
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;

@@ -2,6 +2,8 @@ package com.elertan.panel2.screens.setup;
 
 import com.elertan.panel2.components.GameRulesEditor;
 import com.elertan.panel2.components.GameRulesEditorViewModel;
+import com.elertan.ui.Bindings;
+import com.elertan.ui.Property;
 import com.google.inject.ImplementedBy;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -12,10 +14,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.function.Supplier;
 
-public class GameRulesStepView extends JPanel {
+public class GameRulesStepView extends JPanel implements AutoCloseable {
     @ImplementedBy(FactoryImpl.class)
     public interface Factory {
-        GameRulesStepView create(GameRulesStepViewViewModel viewModel);
+        GameRulesStepView create(GameRulesStepViewViewModel viewModel, Property<Boolean> gameRulesAreViewOnly);
     }
 
     @Slf4j
@@ -29,21 +31,28 @@ public class GameRulesStepView extends JPanel {
         GameRulesEditorViewModel.Factory gameRulesEditorViewModelFactory;
 
         @Override
-        public GameRulesStepView create(GameRulesStepViewViewModel viewModel) {
-            Supplier<GameRulesEditorViewModel.Props> makeProps = () -> new GameRulesEditorViewModel.Props(
-                    client.getAccountHash(),
-                    viewModel.gameRules.get(),
-                    viewModel.gameRules::set,
-                    false
-            );
+        public GameRulesStepView create(GameRulesStepViewViewModel viewModel, Property<Boolean> gameRulesAreViewOnly) {
+            Supplier<GameRulesEditorViewModel.Props> makeProps = () -> {
+                Boolean gameRulesAreViewOnlyValue = gameRulesAreViewOnly.get();
+                return new GameRulesEditorViewModel.Props(
+                        client.getAccountHash(),
+                        viewModel.gameRules.get(),
+                        viewModel.gameRules::set,
+                        gameRulesAreViewOnlyValue != null && gameRulesAreViewOnlyValue
+                );
+            };
             GameRulesEditorViewModel gameRulesEditorViewModel = gameRulesEditorViewModelFactory.create(makeProps.get());
 
             viewModel.gameRules.addListener((event) -> gameRulesEditorViewModel.setProps(makeProps.get()));
+            gameRulesAreViewOnly.addListener((event) -> gameRulesEditorViewModel.setProps(makeProps.get()));
 
             GameRulesEditor gameRulesEditor = gameRulesEditorFactory.create(gameRulesEditorViewModel);
             return new GameRulesStepView(viewModel, gameRulesEditor);
         }
     }
+
+    private final AutoCloseable backButtonEnabledBinding;
+    private final AutoCloseable finishButtonEnabledBinding;
 
     private GameRulesStepView(GameRulesStepViewViewModel viewModel, GameRulesEditor gameRulesEditor) {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -68,16 +77,24 @@ public class GameRulesStepView extends JPanel {
 
         JButton backButton = new JButton("Go back");
         backButton.addActionListener(e -> viewModel.onBackButtonClicked());
+        backButtonEnabledBinding = Bindings.bindEnabled(backButton, viewModel.isSubmitting.derive(b -> !b));
         buttonRow.add(backButton);
 
         buttonRow.add(Box.createHorizontalGlue());
 
         JButton finishButton = new JButton("Finish");
         finishButton.addActionListener(e -> viewModel.onFinishButtonClicked());
+        finishButtonEnabledBinding = Bindings.bindEnabled(finishButton, viewModel.isSubmitting.derive(b -> !b));
         buttonRow.add(finishButton);
 
         add(buttonRow);
 
         add(Box.createVerticalGlue());
+    }
+
+    @Override
+    public void close() throws Exception {
+        finishButtonEnabledBinding.close();
+        backButtonEnabledBinding.close();
     }
 }

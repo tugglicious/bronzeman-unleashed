@@ -12,6 +12,7 @@ import com.google.inject.Singleton;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.concurrent.CompletableFuture;
 
 public class SetupScreen extends JPanel implements AutoCloseable {
     @ImplementedBy(FactoryImpl.class)
@@ -43,8 +44,8 @@ public class SetupScreen extends JPanel implements AutoCloseable {
                 }
 
                 @Override
-                public void onFinish() {
-                    viewModel.onGameRulesStepFinish();
+                public CompletableFuture<Void> onFinish() {
+                    return viewModel.onGameRulesStepFinish();
                 }
             });
             return new SetupScreen(viewModel, remoteStepViewFactory, remoteStepViewViewModel, gameRulesStepViewFactory, gameRulesStepViewViewModel);
@@ -119,7 +120,7 @@ public class SetupScreen extends JPanel implements AutoCloseable {
             case REMOTE:
                 return remoteStepViewFactory.create(remoteStepViewViewModel);
             case GAME_RULES:
-                return gameRulesStepViewFactory.create(gameRulesStepViewViewModel);
+                return gameRulesStepViewFactory.create(gameRulesStepViewViewModel, viewModel.gameRulesAreViewOnly);
         }
 
         throw new IllegalStateException("Unknown step: " + step);
