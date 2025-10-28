@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Singleton
 public class ItemUnlockService implements BUPluginLifecycle {
-    private static final Set<Integer> AUTO_UNLOCKED_ITEMS = ImmutableSet.of(
+    public static final Set<Integer> AUTO_UNLOCKED_ITEMS = ImmutableSet.of(
             // Bond
             ItemID.OSRS_BOND,
             // All variations of coins
