@@ -89,15 +89,15 @@ public final class Bindings {
         };
     }
 
-    public static <T> AutoCloseable bindComboBox(JComboBox<T> comboBox, Property<List<T>> optionsProperty, Property<T> valueProperty, Map<T, String> enumToString) {
+    public static <T> AutoCloseable bindComboBox(JComboBox<T> comboBox, Property<List<T>> optionsProperty, Property<T> valueProperty, Property<Map<T, String>> valueToStringMapProperty) {
         if (comboBox == null) {
             throw new IllegalArgumentException("comboBox must not be null");
         }
         if (valueProperty == null) {
             throw new IllegalArgumentException("valueProperty must not be null");
         }
-        if (enumToString == null) {
-            throw new IllegalArgumentException("enumToString must not be null");
+        if (valueToStringMapProperty == null) {
+            throw new IllegalArgumentException("valueToStringMapProperty must not be null");
         }
 
         AtomicReference<Boolean> isUpdatingOptions = new AtomicReference<>(false);
@@ -141,13 +141,12 @@ public final class Bindings {
         ListCellRenderer<? super T> renderer = new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                String text;
-                if (value == null) {
-                    text = "";
-                } else {
-                    @SuppressWarnings("unchecked")
-                    T t = (T) value;
-                    text = enumToString.get(t);
+                @SuppressWarnings("unchecked")
+                T typedValue = (T) value;
+                Map<T, String> valueToStringMap = valueToStringMapProperty.get();
+                String text = valueToStringMap.get(typedValue);
+                if (text == null) {
+                    throw new IllegalStateException("valueToStringMap must contain a mapping for " + typedValue);
                 }
                 return super.getListCellRendererComponent(list, text, index, isSelected, cellHasFocus);
             }
@@ -171,7 +170,11 @@ public final class Bindings {
         @SuppressWarnings("resource")
         AutoCloseable valueBinding = bind(valueProperty, valueGetter, valueSetter);
 
+        PropertyChangeListener valueToStringMapPropertyListener = evt -> comboBox.repaint();
+        valueToStringMapProperty.addListener(valueToStringMapPropertyListener);
+
         return () -> {
+            valueToStringMapProperty.removeListener(valueToStringMapPropertyListener);
             valueBinding.close();
             optionsBinding.close();
             comboBox.removeActionListener(listener);

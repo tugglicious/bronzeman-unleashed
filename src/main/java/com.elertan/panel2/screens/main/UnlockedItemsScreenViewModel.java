@@ -46,8 +46,9 @@ public class UnlockedItemsScreenViewModel implements AutoCloseable {
         PLAYER_DESC,
     }
 
-    public final Property<List<UnlockedItem>> unlockedItems;
+    public final Property<List<UnlockedItem>> allUnlockedItems;
     public final Property<SortedBy> sortedBy = new Property<>(SortedBy.UNLOCKED_AT_DESC);
+    public final Property<Long> unlockedByAccountHash = new Property<>(null);
 
     private final UnlockedItemsDataProvider unlockedItemsDataProvider;
     private final UnlockedItemsDataProvider.UnlockedItemsMapListener unlockedItemsMapListener;
@@ -57,18 +58,17 @@ public class UnlockedItemsScreenViewModel implements AutoCloseable {
     private UnlockedItemsScreenViewModel(UnlockedItemsDataProvider unlockedItemsDataProvider) {
         this.unlockedItemsDataProvider = unlockedItemsDataProvider;
 
-        // TODO: Change this into something that runs on the background
         Map<Integer, UnlockedItem> unlockedItemsMap = unlockedItemsDataProvider.getUnlockedItemsMap();
-        unlockedItems = new Property<>(new ArrayList<>(unlockedItemsMap.values()));
+        allUnlockedItems = new Property<>(new ArrayList<>(unlockedItemsMap.values()));
         unlockedItemsMapListener = new UnlockedItemsDataProvider.UnlockedItemsMapListener() {
             @Override
             public void onUpdate(UnlockedItem unlockedItem) {
-                unlockedItems.set(new ArrayList<>(unlockedItemsMap.values()));
+                allUnlockedItems.set(new ArrayList<>(unlockedItemsMap.values()));
             }
 
             @Override
             public void onDelete(UnlockedItem unlockedItem) {
-                unlockedItems.set(new ArrayList<>(unlockedItemsMap.values()));
+                allUnlockedItems.set(new ArrayList<>(unlockedItemsMap.values()));
             }
         };
         unlockedItemsDataProvider.addUnlockedItemsMapListener(unlockedItemsMapListener);

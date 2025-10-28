@@ -1,7 +1,9 @@
 package com.elertan.panel2.screens.main.unlockedItems;
 
+import com.elertan.models.UnlockedItem;
 import com.elertan.panel2.screens.main.UnlockedItemsScreenViewModel;
 import com.elertan.panel2.screens.main.unlockedItems.items.HeaderView;
+import com.elertan.panel2.screens.main.unlockedItems.items.HeaderViewViewModel;
 import com.elertan.panel2.screens.main.unlockedItems.items.MainView;
 import com.elertan.ui.Property;
 import com.google.inject.ImplementedBy;
@@ -10,30 +12,34 @@ import com.google.inject.Singleton;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 public class ItemsScreen extends JPanel {
     @ImplementedBy(FactoryImpl.class)
     public interface Factory {
-        ItemsScreen create(Property<UnlockedItemsScreenViewModel.SortedBy> sortedBy);
+        ItemsScreen create(Property<List<UnlockedItem>> allUnlockedItems, Property<UnlockedItemsScreenViewModel.SortedBy> sortedBy, Property<Long> unlockedByAccountHash);
     }
 
     @Singleton
     private static final class FactoryImpl implements Factory {
+        @Inject
+        private HeaderViewViewModel.Factory headerViewViewModelFactory;
         @Inject
         private HeaderView.Factory headerViewFactory;
         @Inject
         private MainView.Factory mainViewFactory;
 
         @Override
-        public ItemsScreen create(Property<UnlockedItemsScreenViewModel.SortedBy> sortedBy) {
-            return new ItemsScreen(headerViewFactory, mainViewFactory, sortedBy);
+        public ItemsScreen create(Property<List<UnlockedItem>> allUnlockedItems, Property<UnlockedItemsScreenViewModel.SortedBy> sortedBy, Property<Long> unlockedByAccountHash) {
+            HeaderViewViewModel headerViewViewModel = headerViewViewModelFactory.create(allUnlockedItems, sortedBy, unlockedByAccountHash);
+            return new ItemsScreen(headerViewViewModel, headerViewFactory, mainViewFactory, sortedBy);
         }
     }
 
-    private ItemsScreen(HeaderView.Factory headerViewFactory, MainView.Factory mainViewFactory, Property<UnlockedItemsScreenViewModel.SortedBy> sortedBy) {
+    private ItemsScreen(HeaderViewViewModel headerViewViewModel, HeaderView.Factory headerViewFactory, MainView.Factory mainViewFactory, Property<UnlockedItemsScreenViewModel.SortedBy> sortedBy) {
         setLayout(new BorderLayout());
 
-        HeaderView headerView = headerViewFactory.create(sortedBy);
+        HeaderView headerView = headerViewFactory.create(headerViewViewModel);
         add(headerView, BorderLayout.NORTH);
 
         MainView mainView = mainViewFactory.create();

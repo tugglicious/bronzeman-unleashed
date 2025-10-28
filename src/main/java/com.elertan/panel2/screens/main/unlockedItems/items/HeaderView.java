@@ -8,19 +8,22 @@ import com.elertan.ui.Property;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.ImplementedBy;
 import com.google.inject.Inject;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.components.IconTextField;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class HeaderView extends JPanel implements AutoCloseable {
     @ImplementedBy(FactoryImpl.class)
     public interface Factory {
-        HeaderView create(Property<UnlockedItemsScreenViewModel.SortedBy> sortedBy);
+        HeaderView create(HeaderViewViewModel viewModel);
     }
 
     private static final class FactoryImpl implements Factory {
@@ -28,14 +31,15 @@ public class HeaderView extends JPanel implements AutoCloseable {
         private BUResourceService buResourceService;
 
         @Override
-        public HeaderView create(Property<UnlockedItemsScreenViewModel.SortedBy> sortedBy) {
-            return new HeaderView(buResourceService, sortedBy);
+        public HeaderView create(HeaderViewViewModel viewModel) {
+            return new HeaderView(viewModel, buResourceService);
         }
     }
 
     private final AutoCloseable sortedByComboBoxBinding;
+    private final AutoCloseable unlockedByComboBoxBinding;
 
-    private HeaderView(BUResourceService buResourceService, Property<UnlockedItemsScreenViewModel.SortedBy> sortedBy) {
+    private HeaderView(HeaderViewViewModel viewModel, BUResourceService buResourceService) {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 3));
 
@@ -75,7 +79,7 @@ public class HeaderView extends JPanel implements AutoCloseable {
         sortedByLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 5));
         JComboBox<UnlockedItemsScreenViewModel.SortedBy> sortedByComboBox = new JComboBox<>();
 
-        Map<UnlockedItemsScreenViewModel.SortedBy, String> sortedByEnumToString = ImmutableMap.<UnlockedItemsScreenViewModel.SortedBy, String>builder()
+        Map<UnlockedItemsScreenViewModel.SortedBy, String> sortedByEnumToStringMap = ImmutableMap.<UnlockedItemsScreenViewModel.SortedBy, String>builder()
                 .put(UnlockedItemsScreenViewModel.SortedBy.UNLOCKED_AT_ASC, "Unlocked at (asc)")
                 .put(UnlockedItemsScreenViewModel.SortedBy.ALPHABETICAL_ASC, "Alphabetical (asc)")
                 .put(UnlockedItemsScreenViewModel.SortedBy.PLAYER_ASC, "Player (asc)")
@@ -84,9 +88,9 @@ public class HeaderView extends JPanel implements AutoCloseable {
                 .put(UnlockedItemsScreenViewModel.SortedBy.PLAYER_DESC, "Player (desc)")
                 .build();
         Property<List<UnlockedItemsScreenViewModel.SortedBy>> sortedByOptions = new Property<>(
-                new ArrayList<>(sortedByEnumToString.keySet())
+                new ArrayList<>(sortedByEnumToStringMap.keySet())
         );
-        sortedByComboBoxBinding = Bindings.bindComboBox(sortedByComboBox, sortedByOptions, sortedBy, sortedByEnumToString);
+        sortedByComboBoxBinding = Bindings.bindComboBox(sortedByComboBox, sortedByOptions, viewModel.sortedBy, new Property<>(sortedByEnumToStringMap));
 
         sortedByRow.add(sortedByLabel, BorderLayout.WEST);
         sortedByRow.add(sortedByComboBox, BorderLayout.CENTER);
@@ -98,7 +102,35 @@ public class HeaderView extends JPanel implements AutoCloseable {
         JPanel unlockedByRow = new JPanel(new BorderLayout(5, 0));
         JLabel unlockedByLabel = new JLabel("Unlocked by:");
         unlockedByLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 5));
-        JComboBox<String> unlockedByComboBox = new JComboBox<>();
+        JComboBox<Long> unlockedByComboBox = new JComboBox<>();
+
+        Property<List<Long>> unlockedByOptions = viewModel
+                .accountHashesFromAllUnlockedItems
+                .derive((list) -> {
+                    List<Long> result = new ArrayList<>(list.size() + 1);
+                    // The "Everyone" option
+                    result.add(null);
+                    result.addAll(list);
+                    return result;
+                });
+
+        Property<Map<Long, String>> unlockedByValueToStringMapProperty = viewModel
+                .accountHashToMemberNameMap
+                .derive((map) -> {
+                    log.info(">>>>>>>>>>>>>>>>>>>unlockedByValueToStringMapProperty: derive: {} --- {}", map.size(), map);
+
+                    Map<Long, String> result = new HashMap<>();
+                    result.put(null, "Everyone");
+                    result.putAll(map);
+                    return result;
+                });
+
+        unlockedByComboBoxBinding = Bindings.bindComboBox(
+                unlockedByComboBox,
+                unlockedByOptions,
+                viewModel.unlockedByAccountHash,
+                unlockedByValueToStringMapProperty
+        );
 
         unlockedByRow.add(unlockedByLabel, BorderLayout.WEST);
         unlockedByRow.add(unlockedByComboBox, BorderLayout.CENTER);
@@ -110,6 +142,7 @@ public class HeaderView extends JPanel implements AutoCloseable {
 
     @Override
     public void close() throws Exception {
+        unlockedByComboBoxBinding.close();
         sortedByComboBoxBinding.close();
     }
 
