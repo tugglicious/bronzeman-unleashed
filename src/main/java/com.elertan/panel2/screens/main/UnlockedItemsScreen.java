@@ -29,11 +29,13 @@ public class UnlockedItemsScreen extends JPanel implements AutoCloseable {
         }
     }
 
+    private final UnlockedItemsScreenViewModel viewModel;
     private final LoadingScreen.Factory loadingScreenFactory;
     private final ItemsScreen.Factory itemsScreenFactory;
     private final AutoCloseable cardLayoutBinding;
 
     private UnlockedItemsScreen(UnlockedItemsScreenViewModel viewModel, LoadingScreen.Factory loadingScreenFactory, ItemsScreen.Factory itemsScreenFactory) {
+        this.viewModel = viewModel;
         this.loadingScreenFactory = loadingScreenFactory;
         this.itemsScreenFactory = itemsScreenFactory;
 
@@ -59,7 +61,7 @@ public class UnlockedItemsScreen extends JPanel implements AutoCloseable {
             case LOADING:
                 return loadingScreenFactory.create();
             case ITEMS:
-                return itemsScreenFactory.create();
+                return itemsScreenFactory.create(viewModel.sortedBy);
         }
 
         throw new IllegalStateException("Unknown view state: " + screen);

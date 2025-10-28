@@ -5,8 +5,10 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.beans.PropertyChangeListener;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -84,6 +86,95 @@ public final class Bindings {
         return () -> {
             binding.close();
             document.removeDocumentListener(documentListener);
+        };
+    }
+
+    public static <T> AutoCloseable bindComboBox(JComboBox<T> comboBox, Property<List<T>> optionsProperty, Property<T> valueProperty, Map<T, String> enumToString) {
+        if (comboBox == null) {
+            throw new IllegalArgumentException("comboBox must not be null");
+        }
+        if (valueProperty == null) {
+            throw new IllegalArgumentException("valueProperty must not be null");
+        }
+        if (enumToString == null) {
+            throw new IllegalArgumentException("enumToString must not be null");
+        }
+
+        AtomicReference<Boolean> isUpdatingOptions = new AtomicReference<>(false);
+
+        Supplier<List<T>> optionsGetter = () -> {
+            int itemCount = comboBox.getItemCount();
+            List<T> options = new ArrayList<>(itemCount);
+            for (int i = 0; i < itemCount; i++) {
+                @SuppressWarnings("unchecked")
+                T item = (T) comboBox.getItemAt(i);
+                options.add(item);
+            }
+            return options;
+        };
+
+        Consumer<List<T>> optionsSetter = (List<T> options) -> {
+            isUpdatingOptions.set(true);
+            try {
+                DefaultComboBoxModel<T> model = new DefaultComboBoxModel<>();
+                if (options != null) {
+                    for (T o : options) {
+                        model.addElement(o);
+                    }
+                }
+                comboBox.setModel(model); // selects first internally
+                comboBox.setSelectedItem(valueProperty.get()); // restore intended value
+            } finally {
+                isUpdatingOptions.set(false);
+            }
+        };
+
+        Supplier<T> valueGetter = () -> {
+            @SuppressWarnings("unchecked")
+            T selected = (T) comboBox.getSelectedItem();
+            return selected;
+        };
+
+        Consumer<T> valueSetter = comboBox::setSelectedItem;
+
+        // Use provided mapping for display text, defaulting to enum name
+        ListCellRenderer<? super T> renderer = new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                String text;
+                if (value == null) {
+                    text = "";
+                } else {
+                    @SuppressWarnings("unchecked")
+                    T t = (T) value;
+                    text = enumToString.get(t);
+                }
+                return super.getListCellRendererComponent(list, text, index, isSelected, cellHasFocus);
+            }
+        };
+        comboBox.setRenderer(renderer);
+
+        ActionListener listener = e -> {
+            Boolean isUpdatingOptionsValue = isUpdatingOptions.get();
+            if (isUpdatingOptionsValue != null && isUpdatingOptionsValue) {
+                return;
+            }
+
+            @SuppressWarnings("unchecked")
+            T selected = (T) comboBox.getSelectedItem();
+            valueProperty.set(selected);
+        };
+        comboBox.addActionListener(listener);
+
+        @SuppressWarnings("resource")
+        AutoCloseable optionsBinding = bind(optionsProperty, optionsGetter, optionsSetter);
+        @SuppressWarnings("resource")
+        AutoCloseable valueBinding = bind(valueProperty, valueGetter, valueSetter);
+
+        return () -> {
+            valueBinding.close();
+            optionsBinding.close();
+            comboBox.removeActionListener(listener);
         };
     }
 
