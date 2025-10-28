@@ -265,7 +265,7 @@ public final class Bindings {
         return () -> property.removeListener(listener);
     }
 
-    private static void invokeOnEDT(Runnable runnable) {
+    public static void invokeOnEDT(Runnable runnable) {
         if (SwingUtilities.isEventDispatchThread()) {
             runnable.run();
         } else {

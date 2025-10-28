@@ -187,11 +187,11 @@ public class MainView extends JPanel implements AutoCloseable {
             list.setListData(newListItems.toArray(new ListItem[0]));
         };
 
-        PropertyChangeListener listItemsListener = (event) -> {
+        PropertyChangeListener listItemsListener = (event) -> Bindings.invokeOnEDT(() -> {
             @SuppressWarnings("unchecked")
             List<ListItem> newListItems = (List<ListItem>)event.getNewValue();
             setter.accept(newListItems);
-        };
+        });
         listItems.addListener(listItemsListener);
         setter.accept(listItems.get());
 
