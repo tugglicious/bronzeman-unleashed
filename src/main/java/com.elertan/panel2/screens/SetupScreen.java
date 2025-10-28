@@ -1,5 +1,7 @@
 package com.elertan.panel2.screens;
 
+import com.elertan.panel2.screens.setup.GameRulesStepView;
+import com.elertan.panel2.screens.setup.GameRulesStepViewViewModel;
 import com.elertan.panel2.screens.setup.RemoteStepView;
 import com.elertan.panel2.screens.setup.RemoteStepViewViewModel;
 import com.elertan.ui.Bindings;
@@ -25,24 +27,43 @@ public class SetupScreen extends JPanel implements AutoCloseable {
         RemoteStepView.Factory remoteStepViewFactory;
         @Inject
         RemoteStepViewViewModel.Factory remoteStepViewViewModelFactory;
+        @Inject
+        GameRulesStepView.Factory gameRulesStepViewFactory;
+        @Inject
+        GameRulesStepViewViewModel.Factory gameRulesStepViewViewModelFactory;
 
         @Override
         public SetupScreen create() {
             SetupScreenViewModel viewModel = viewModelProvider.get();
             RemoteStepViewViewModel remoteStepViewViewModel = remoteStepViewViewModelFactory.create(viewModel::onRemoteStepFinished);
-            return new SetupScreen(viewModel, remoteStepViewFactory, remoteStepViewViewModel);
+            GameRulesStepViewViewModel gameRulesStepViewViewModel = gameRulesStepViewViewModelFactory.create(new GameRulesStepViewViewModel.Listener() {
+                @Override
+                public void onBack() {
+
+                }
+
+                @Override
+                public void onFinish() {
+
+                }
+            });
+            return new SetupScreen(viewModel, remoteStepViewFactory, remoteStepViewViewModel, gameRulesStepViewFactory, gameRulesStepViewViewModel);
         }
     }
 
     private final SetupScreenViewModel viewModel;
     private final RemoteStepView.Factory remoteStepViewFactory;
     private final RemoteStepViewViewModel remoteStepViewViewModel;
+    private final GameRulesStepView.Factory gameRulesStepViewFactory;
+    private final GameRulesStepViewViewModel gameRulesStepViewViewModel;
     private final AutoCloseable contentCardLayoutBinding;
 
-    private SetupScreen(SetupScreenViewModel viewModel, RemoteStepView.Factory remoteStepViewFactory, RemoteStepViewViewModel remoteStepViewViewModel) {
+    private SetupScreen(SetupScreenViewModel viewModel, RemoteStepView.Factory remoteStepViewFactory, RemoteStepViewViewModel remoteStepViewViewModel, GameRulesStepView.Factory gameRulesStepViewFactory, GameRulesStepViewViewModel gameRulesStepViewViewModel) {
         this.viewModel = viewModel;
         this.remoteStepViewFactory = remoteStepViewFactory;
         this.remoteStepViewViewModel = remoteStepViewViewModel;
+        this.gameRulesStepViewFactory = gameRulesStepViewFactory;
+        this.gameRulesStepViewViewModel = gameRulesStepViewViewModel;
 
         setLayout(new BorderLayout());
 
@@ -98,7 +119,7 @@ public class SetupScreen extends JPanel implements AutoCloseable {
             case REMOTE:
                 return remoteStepViewFactory.create(remoteStepViewViewModel);
             case GAME_RULES:
-                return new JPanel();
+                return gameRulesStepViewFactory.create(gameRulesStepViewViewModel);
         }
 
         throw new IllegalStateException("Unknown step: " + step);
