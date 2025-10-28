@@ -73,6 +73,13 @@ public class UnlockedItemsScreenViewModel implements AutoCloseable {
         };
         unlockedItemsDataProvider.addUnlockedItemsMapListener(unlockedItemsMapListener);
 
+//        unlockedItemsDataProvider.waitUntilReady(null).whenComplete((__, throwable) -> {
+//            if (throwable != null) {
+//                return;
+//            }
+//            allUnlockedItems.set(new ArrayList<>(unlockedItemsMap.values()));
+//        });
+
         sortedBy.addListener(sortedByListener);
     }
 

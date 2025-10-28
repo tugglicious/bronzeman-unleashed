@@ -305,10 +305,11 @@ public class MainPanel extends JPanel implements AutoCloseable {
                     }
 
                     Map<Long, Member> membersMap = membersDataProvider.getMembersMap();
-                    Set<String> allAcquiredByNames = membersMap.values().stream()
-                            .map(Member::getName)
-                            .filter(Objects::nonNull)
-                            .collect(Collectors.toCollection(TreeSet::new));
+                    Set<String> allAcquiredByNames = membersMap == null ? new HashSet<>() :
+                            membersMap.values().stream()
+                                    .map(Member::getName)
+                                    .filter(Objects::nonNull)
+                                    .collect(Collectors.toCollection(TreeSet::new));
 
                     final List<UnlockedItem> items = itemMap.values().stream()
                             .filter(item -> {
@@ -491,6 +492,9 @@ public class MainPanel extends JPanel implements AutoCloseable {
             final JList<UnlockedItem> list = new JList<>(new Vector<>(items));
 
             Map<Long, Member> membersMap = membersDataProvider.getMembersMap();
+            if (membersMap == null) {
+                throw new IllegalStateException("members map is null");
+            }
 
             list.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
             list.setBackground(ColorScheme.DARK_GRAY_COLOR);

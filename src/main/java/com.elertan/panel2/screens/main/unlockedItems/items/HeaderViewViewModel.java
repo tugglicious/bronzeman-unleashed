@@ -82,6 +82,10 @@ public class HeaderViewViewModel implements AutoCloseable {
 
     private Map<Long, String> buildAccountHashToMemberNameMap() {
         Map<Long, Member> membersMap = membersDataProvider.getMembersMap();
+        if (membersMap == null) {
+            return Collections.emptyMap();
+        }
+
         Map<Long, String> accountHashToMemberNameMap = new HashMap<>();
         for (Member member : membersMap.values()) {
             accountHashToMemberNameMap.put(member.getAccountHash(), member.getName());
