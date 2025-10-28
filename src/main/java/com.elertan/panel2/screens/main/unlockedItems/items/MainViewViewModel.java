@@ -1,9 +1,12 @@
 package com.elertan.panel2.screens.main.unlockedItems.items;
 
+import com.elertan.MemberService;
+import com.elertan.models.Member;
 import com.elertan.models.UnlockedItem;
 import com.elertan.panel2.screens.main.UnlockedItemsScreenViewModel;
 import com.elertan.ui.Property;
 import com.google.inject.ImplementedBy;
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import java.util.Arrays;
@@ -18,9 +21,12 @@ public class MainViewViewModel implements AutoCloseable {
 
     @Singleton
     private static final class FactoryImpl implements Factory {
+        @Inject
+        private MemberService memberService;
+
         @Override
         public MainViewViewModel create(Property<List<UnlockedItem>> allUnlockedItems, Property<String> searchText, Property<UnlockedItemsScreenViewModel.SortedBy> sortedBy, Property<Long> unlockedByAccountHash) {
-            return new MainViewViewModel(allUnlockedItems, searchText, sortedBy, unlockedByAccountHash);
+            return new MainViewViewModel(allUnlockedItems, searchText, sortedBy, unlockedByAccountHash, memberService);
         }
     }
 
@@ -33,7 +39,7 @@ public class MainViewViewModel implements AutoCloseable {
     public final Property<ViewState> viewState;
     public final Property<List<UnlockedItem>> unlockedItems;
 
-    private MainViewViewModel(Property<List<UnlockedItem>> allUnlockedItems, Property<String> searchText, Property<UnlockedItemsScreenViewModel.SortedBy> sortedBy, Property<Long> unlockedByAccountHash) {
+    private MainViewViewModel(Property<List<UnlockedItem>> allUnlockedItems, Property<String> searchText, Property<UnlockedItemsScreenViewModel.SortedBy> sortedBy, Property<Long> unlockedByAccountHash, MemberService memberService) {
         unlockedItems = Property.deriveManyAsync(
                 Arrays.asList(allUnlockedItems, searchText, sortedBy, unlockedByAccountHash),
                 (values) -> {
@@ -59,6 +65,65 @@ public class MainViewViewModel implements AutoCloseable {
                                     return false;
                                 }
                                 return searchTerm == null || item.getName().toLowerCase().contains(searchTerm);
+                            })
+                            .sorted((left, right) -> {
+                                int value = 0;
+
+                                switch (sortedByValue) {
+                                    case UNLOCKED_AT_ASC:
+                                        value = left.getAcquiredAt().getValue().compareTo(right.getAcquiredAt().getValue());
+                                        break;
+                                    case ALPHABETICAL_ASC:
+                                        value = left.getName().compareToIgnoreCase(right.getName());
+                                        break;
+                                    case PLAYER_ASC: {
+                                        Member leftMember = null;
+                                        try {
+                                            leftMember = memberService.getMemberByAccountHash(left.getAcquiredByAccountHash());
+                                        } catch (Exception ignored) {}
+                                        Member rightMember = null;
+                                        try {
+                                            rightMember = memberService.getMemberByAccountHash(right.getAcquiredByAccountHash());
+                                        } catch (Exception ignored) {}
+                                        if (leftMember != null && rightMember != null) {
+                                            value = leftMember.getName().compareToIgnoreCase(rightMember.getName());
+                                        } else if (leftMember == null) {
+                                            value = 1;
+                                        } else {
+                                            value = -1;
+                                        }
+                                        break;
+                                    }
+                                    case UNLOCKED_AT_DESC:
+                                        value = right.getAcquiredAt().getValue().compareTo(left.getAcquiredAt().getValue());
+                                        break;
+                                    case ALPHABETICAL_DESC:
+                                        value = right.getName().compareToIgnoreCase(left.getName());
+                                        break;
+                                    case PLAYER_DESC: {
+                                        Member leftMember = null;
+                                        try {
+                                            leftMember = memberService.getMemberByAccountHash(left.getAcquiredByAccountHash());
+                                        } catch (Exception ignored) {}
+                                        Member rightMember = null;
+                                        try {
+                                            rightMember = memberService.getMemberByAccountHash(right.getAcquiredByAccountHash());
+                                        } catch (Exception ignored) {}
+                                        if (leftMember != null && rightMember != null) {
+                                            value = rightMember.getName().compareToIgnoreCase(leftMember.getName());
+                                        } else if (leftMember == null) {
+                                            value = -1;
+                                        } else {
+                                            value = 1;
+                                        }
+                                        break;
+                                    }
+                                }
+                                if (value == 0) {
+                                    // Default to unlocked at descending for consistency when items are equal
+                                    return right.getAcquiredAt().getValue().compareTo(left.getAcquiredAt().getValue());
+                                }
+                                return value;
                             })
                             .collect(Collectors.toList());
                 }
