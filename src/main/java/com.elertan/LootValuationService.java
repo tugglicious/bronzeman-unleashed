@@ -9,6 +9,7 @@ import java.time.OffsetDateTime;
 import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
+import net.runelite.api.NPCComposition;
 import net.runelite.client.events.ServerNpcLoot;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.ItemStack;
@@ -50,6 +51,8 @@ public class LootValuationService implements BUPluginLifecycle {
         if (valuableLootNotificationThreshold == null || valuableLootNotificationThreshold <= 0) {
             return;
         }
+        NPCComposition npcComposition = event.getComposition();
+        int npcId = npcComposition.getId();
 
         for (ItemStack itemStack : itemStacks) {
             int itemId = itemStack.getId();
@@ -63,7 +66,8 @@ public class LootValuationService implements BUPluginLifecycle {
                     new ISOOffsetDateTime(OffsetDateTime.now()),
                     itemId,
                     quantity,
-                    price
+                    price,
+                    npcId
                 );
                 buEventService.publishEvent(valuableLootBUEvent).whenComplete((__, throwable) -> {
                     if (throwable != null) {

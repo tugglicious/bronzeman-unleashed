@@ -24,6 +24,7 @@ import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.ItemComposition;
+import net.runelite.api.NPCComposition;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.chat.ChatMessageBuilder;
 
@@ -267,11 +268,14 @@ public class ChatMessageEventBroadcaster implements BUPluginLifecycle {
 
         int totalCoins = e.getPricePerItem() * e.getQuantity();
         ItemComposition itemComposition = client.getItemDefinition(e.getItemId());
+        NPCComposition npcComposition = client.getNpcDefinition(e.getNpcId());
         String formattedCoins = String.format("%,d", totalCoins);
 
         ChatMessageBuilder builder = new ChatMessageBuilder();
         builder.append(config.chatPlayerNameColor(), member.getName());
-        builder.append(" has received a valuable drop: ");
+        builder.append(" has received a valuable drop from ");
+        builder.append(config.chatNPCNameColor(), npcComposition.getName());
+        builder.append(": ");
         if (e.getQuantity() > 1) {
             builder.append(config.chatItemNameColor(), String.format("%dx ", e.getQuantity()));
         }
