@@ -67,11 +67,12 @@ public class EntryView extends JPanel implements AutoCloseable {
         gbc.gridy++;
 
         final String guideUrl = "https://github.com/elertan/bronzeman-unleashed/blob/main/firebase-guide.md";
-        JEditorPane explanationPane = createHtmlInfoPane("<html><div style=\"text-align:left;color:gray;\">"
-            + "Either use the URL your group owner has given you or set up a Firebase Realtime DB using the guide."
-            + "<br><br>"
-            + "<a href=\"" + guideUrl + "\">You can view the guide here</a>."
-            + "</div></html>");
+        JEditorPane explanationPane = createHtmlInfoPane(
+            "<html><div style=\"text-align:left;color:gray;\">"
+                + "Either use the URL your group owner has given you or set up a Firebase Realtime DB using the guide."
+                + "<br><br>"
+                + "<a href=\"" + guideUrl + "\">You can view the guide here</a>."
+                + "</div></html>");
         add(explanationPane, gbc);
 
         gbc.gridy++;
@@ -97,7 +98,8 @@ public class EntryView extends JPanel implements AutoCloseable {
         errorMessageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         errorMessageLabelVisibleBinding = Bindings.bindVisible(
             errorMessageLabel,
-            viewModel.errorMessage.derive(errorMessage -> errorMessage != null && !errorMessage.isEmpty())
+            viewModel.errorMessage.derive(errorMessage -> errorMessage != null
+                && !errorMessage.isEmpty())
         );
         errorMessageLabelTextBinding = Bindings.bindLabelText(
             errorMessageLabel, viewModel.errorMessage.derive(errorMessage -> {

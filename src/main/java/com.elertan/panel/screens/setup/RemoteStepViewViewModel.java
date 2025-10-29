@@ -55,7 +55,8 @@ public final class RemoteStepViewViewModel implements AutoCloseable {
             httpClient,
             url
         );
-        attempt.setFirebaseRealtimeDatabaseCanConnectToFuture(firebaseRealtimeDatabaseCanConnectToFuture);
+        attempt.setFirebaseRealtimeDatabaseCanConnectToFuture(
+            firebaseRealtimeDatabaseCanConnectToFuture);
 
         TrySubmitAttempt finalAttempt = attempt;
         firebaseRealtimeDatabaseCanConnectToFuture.whenComplete((canConnect, throwable) -> {

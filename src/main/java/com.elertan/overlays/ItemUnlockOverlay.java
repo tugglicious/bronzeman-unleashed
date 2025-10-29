@@ -190,7 +190,8 @@ public class ItemUnlockOverlay extends Overlay {
         if (phase == Phase.OPENING) {
             openProgress = progress(now, overlayT0, config.unlockOverlayOpenAndCloseDuration());
         } else if (phase == Phase.CLOSING) {
-            openProgress = 1f - progress(now, overlayT0, config.unlockOverlayOpenAndCloseDuration());
+            openProgress =
+                1f - progress(now, overlayT0, config.unlockOverlayOpenAndCloseDuration());
         } else {
             openProgress = 1f;
         }
@@ -269,7 +270,15 @@ public class ItemUnlockOverlay extends Overlay {
                         alpha = clamp01(alpha);
                         if (alpha > 0f && current != null) {
                             drawTitle(g, frameX, y, visibleWidth, visibleHeight, alpha);
-                            drawItemBlock(g, current, frameX, y, visibleWidth, visibleHeight, alpha);
+                            drawItemBlock(
+                                g,
+                                current,
+                                frameX,
+                                y,
+                                visibleWidth,
+                                visibleHeight,
+                                alpha
+                            );
                         }
                     }
                     // If not bigEnough, draw nothing (content hidden while frame collapses).
@@ -285,7 +294,8 @@ public class ItemUnlockOverlay extends Overlay {
 
     private void startOpeningSession() {
         overlayT0 = System.currentTimeMillis();
-        sessionFrameHeight = config.showAcquiredByInUnlockOverlay() ? (HEIGHT + ACQUIRED_BY_HEIGHT) : HEIGHT;
+        sessionFrameHeight =
+            config.showAcquiredByInUnlockOverlay() ? (HEIGHT + ACQUIRED_BY_HEIGHT) : HEIGHT;
         phase = Phase.OPENING;
     }
 
@@ -307,7 +317,8 @@ public class ItemUnlockOverlay extends Overlay {
         g.fillRect(x + 6, y + 6, w - 12, h - 12);
     }
 
-    private void drawTitle(Graphics2D g, int frameX, int y, int visibleWidth, int visibleHeight, float alpha) {
+    private void drawTitle(Graphics2D g, int frameX, int y, int visibleWidth, int visibleHeight,
+        float alpha) {
         if (alpha <= 0f) {
             return;
         }
@@ -349,7 +360,8 @@ public class ItemUnlockOverlay extends Overlay {
         // Subtitle and item icon
         final int itemId = toast.itemId;
         final ItemComposition itemComposition = itemManager.getItemComposition(itemId);
-        final String subtitle = itemComposition != null ? itemComposition.getName() : "Unknown item";
+        final String subtitle =
+            itemComposition != null ? itemComposition.getName() : "Unknown item";
 
         g.setFont(FontManager.getRunescapeFont());
         FontMetrics fm = g.getFontMetrics();
@@ -431,7 +443,8 @@ public class ItemUnlockOverlay extends Overlay {
         final String droppedBy;
         final AsyncBufferedImage image;
 
-        UnlockToast(int itemId, long acquiredByAccountHash, String droppedBy, AsyncBufferedImage image) {
+        UnlockToast(int itemId, long acquiredByAccountHash, String droppedBy,
+            AsyncBufferedImage image) {
             this.itemId = itemId;
             this.acquiredByAccountHash = acquiredByAccountHash;
             this.droppedBy = droppedBy;

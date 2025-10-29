@@ -105,7 +105,8 @@ public final class Bindings {
         };
     }
 
-    public static AutoCloseable bindIconTextFieldText(IconTextField component, Property<String> property) {
+    public static AutoCloseable bindIconTextFieldText(IconTextField component,
+        Property<String> property) {
         Supplier<String> getter = component::getText;
 
         Consumer<String> setter = (String value) -> {
@@ -209,7 +210,13 @@ public final class Bindings {
                 T typedValue = (T) value;
                 Map<T, String> valueToStringMap = valueToStringMapProperty.get();
                 String text = valueToStringMap.getOrDefault(typedValue, "null");
-                return super.getListCellRendererComponent(list, text, index, isSelected, cellHasFocus);
+                return super.getListCellRendererComponent(
+                    list,
+                    text,
+                    index,
+                    isSelected,
+                    cellHasFocus
+                );
             }
         };
         comboBox.setRenderer(renderer);
@@ -273,7 +280,8 @@ public final class Bindings {
         return bind(property, getter, setter);
     }
 
-    public static <T> AutoCloseable bind(Property<T> property, Supplier<T> getter, Consumer<T> setter) {
+    public static <T> AutoCloseable bind(Property<T> property, Supplier<T> getter,
+        Consumer<T> setter) {
         PropertyChangeListener listener = (event) -> invokeOnEDT(() -> {
             @SuppressWarnings("unchecked")
             T newValue = (T) event.getNewValue();

@@ -154,7 +154,8 @@ public class BUChatService implements BUPluginLifecycle {
                     if (messageChatIcon == null) {
                         throw new IllegalStateException("Chat icon has not been set");
                     }
-                    Color chatColor = isChatboxTransparent ? config.chatColorTransparent() : config.chatColorOpaque();
+                    Color chatColor = isChatboxTransparent ? config.chatColorTransparent()
+                        : config.chatColorOpaque();
 
                     ChatMessageBuilder builder = new ChatMessageBuilder();
                     // We need to supply a color here, otherwise the image does not work...
@@ -162,7 +163,10 @@ public class BUChatService implements BUPluginLifecycle {
                     // Replacing all closing cols with our chat color to reset it back to our default
                     if (config.useChatColor()) {
                         String pluginChatColorTag = ColorUtil.colorTag(chatColor);
-                        String chatColorFixedMessage = message.replaceAll("</col>", pluginChatColorTag);
+                        String chatColorFixedMessage = message.replaceAll(
+                            "</col>",
+                            pluginChatColorTag
+                        );
                         builder.append(chatColor, " " + chatColorFixedMessage);
                     } else {
                         builder.append(" " + message);
@@ -227,7 +231,8 @@ public class BUChatService implements BUPluginLifecycle {
         }
     }
 
-    private void currentAccountConfigurationChangeListener(AccountConfiguration accountConfiguration) {
+    private void currentAccountConfigurationChangeListener(
+        AccountConfiguration accountConfiguration) {
         manageIconOnChatbox(false);
     }
 

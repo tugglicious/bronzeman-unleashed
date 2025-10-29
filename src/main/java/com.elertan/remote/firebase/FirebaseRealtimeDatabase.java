@@ -18,7 +18,8 @@ import okhttp3.ResponseBody;
 @Slf4j
 public class FirebaseRealtimeDatabase implements AutoCloseable {
 
-    private static final MediaType JSON_MEDIA_TYPE = MediaType.parse("application/json; charset=utf-8");
+    private static final MediaType JSON_MEDIA_TYPE = MediaType.parse(
+        "application/json; charset=utf-8");
 
     private final OkHttpClient httpClient;
     private final Gson gson;
@@ -28,14 +29,16 @@ public class FirebaseRealtimeDatabase implements AutoCloseable {
     @Getter
     private final FirebaseSSEStream stream;
 
-    public FirebaseRealtimeDatabase(OkHttpClient httpClient, Gson gson, FirebaseRealtimeDatabaseURL databaseURL) {
+    public FirebaseRealtimeDatabase(OkHttpClient httpClient, Gson gson,
+        FirebaseRealtimeDatabaseURL databaseURL) {
         this.httpClient = httpClient;
         this.gson = gson;
         this.databaseURL = databaseURL;
         this.stream = new FirebaseSSEStream(httpClient, gson, databaseURL);
     }
 
-    public static CompletableFuture<Boolean> canConnectTo(OkHttpClient httpClient, FirebaseRealtimeDatabaseURL url) {
+    public static CompletableFuture<Boolean> canConnectTo(OkHttpClient httpClient,
+        FirebaseRealtimeDatabaseURL url) {
         final String strUrl = url.getBaseUrl() + "/__BRONZEMAN_UNLEASED_CAN_CONNECT_TEST.json";
         Request request = FirebaseRealtimeDatabase.getRequestBuilder(strUrl).get().build();
 
@@ -55,7 +58,8 @@ public class FirebaseRealtimeDatabase implements AutoCloseable {
             .header("User-Agent", "BronzemanUnleashedPlugin");
     }
 
-    private static CompletableFuture<okhttp3.Response> enqueueAsync(OkHttpClient client, Request request) {
+    private static CompletableFuture<okhttp3.Response> enqueueAsync(OkHttpClient client,
+        Request request) {
         final okhttp3.Call call = client.newCall(request);
         final CompletableFuture<okhttp3.Response> future = new CompletableFuture<>();
         future.whenComplete((r, t) -> {
@@ -163,7 +167,11 @@ public class FirebaseRealtimeDatabase implements AutoCloseable {
 
                     ResponseBody body = res.body();
                     if (body == null) {
-                        String msg = String.format("%s %s -> empty body", request.method(), request.url());
+                        String msg = String.format(
+                            "%s %s -> empty body",
+                            request.method(),
+                            request.url()
+                        );
                         if (!future.isDone()) {
                             log.error(msg);
                             future.completeExceptionally(new IOException(msg));

@@ -40,7 +40,8 @@ public final class EntryViewViewModel implements AutoCloseable {
             .whenComplete((error, throwable) -> {
                 try {
                     if (throwable != null) {
-                        errorMessage.set("An error occurred while trying to connect to the database.");
+                        errorMessage.set(
+                            "An error occurred while trying to connect to the database.");
                         return;
                     }
 

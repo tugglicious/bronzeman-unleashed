@@ -4,10 +4,13 @@ import com.elertan.data.GameRulesDataProvider;
 import com.elertan.models.GameRules;
 import com.elertan.models.ISOOffsetDateTime;
 import com.elertan.models.Member;
+import com.elertan.utils.ListenerUtils;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.time.Duration;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 import lombok.Getter;
@@ -54,6 +57,37 @@ public class GameRulesService implements BUPluginLifecycle {
         listeners.remove(listener);
     }
 
+    public CompletableFuture<Void> waitUntilGameRulesReady(Duration timeout) {
+        return ListenerUtils.waitUntilReady(new ListenerUtils.WaitUntilReadyContext() {
+            private Consumer<GameRules> listener;
+
+            @Override
+            public boolean isReady() {
+                return gameRules != null;
+            }
+
+            @Override
+            public void addListener(Runnable notify) {
+                listener = gameRules -> notify.run();
+                gameRulesDataProvider.addGameRulesListener(listener);
+            }
+
+            @Override
+            public void removeListener() {
+                if (listener == null) {
+                    return;
+                }
+                gameRulesDataProvider.removeGameRulesListener(listener);
+                listener = null;
+            }
+
+            @Override
+            public Duration getTimeout() {
+                return timeout;
+            }
+        });
+    }
+
     private void gameRulesListener(GameRules gameRules) {
         GameRules oldGameRules = this.gameRules;
         this.gameRules = gameRules;
@@ -82,8 +116,9 @@ public class GameRulesService implements BUPluginLifecycle {
             if (gameRules.getLastUpdatedAt() != null) {
                 builder.append(" at ");
                 ISOOffsetDateTime lastUpdatedAt = gameRules.getLastUpdatedAt();
-                String formattedMoment = lastUpdatedAt.getValue().format(DateTimeFormatter.ofLocalizedDateTime(
-                    FormatStyle.MEDIUM));
+                String formattedMoment = lastUpdatedAt.getValue()
+                    .format(DateTimeFormatter.ofLocalizedDateTime(
+                        FormatStyle.MEDIUM));
                 builder.append(buPluginConfig.chatHighlightColor(), formattedMoment);
             }
             builder.append(".");

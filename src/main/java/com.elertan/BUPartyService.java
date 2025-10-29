@@ -55,7 +55,8 @@ public class BUPartyService implements BUPluginLifecycle {
                 partyService.changeParty(trimmedPartyPassword);
 
                 ChatMessageBuilder builder = new ChatMessageBuilder();
-                builder.append("Automatically joined party using bronzeman game rules configuration.");
+                builder.append(
+                    "Automatically joined party using bronzeman game rules configuration.");
                 buChatService.sendMessage(builder.build());
             }
         };

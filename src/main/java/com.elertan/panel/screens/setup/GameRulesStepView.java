@@ -25,7 +25,8 @@ public class GameRulesStepView extends JPanel implements AutoCloseable {
     private final AutoCloseable backButtonEnabledBinding;
     private final AutoCloseable finishButtonEnabledBinding;
 
-    private GameRulesStepView(GameRulesStepViewViewModel viewModel, GameRulesEditor gameRulesEditor) {
+    private GameRulesStepView(GameRulesStepViewViewModel viewModel,
+        GameRulesEditor gameRulesEditor) {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBorder(BorderFactory.createEmptyBorder(10, 5, 10, 5));
 
@@ -39,7 +40,10 @@ public class GameRulesStepView extends JPanel implements AutoCloseable {
         header.add(Box.createVerticalStrut(10));
         add(header);
 
-        gameRulesEditor.setMaximumSize(new Dimension(Integer.MAX_VALUE, gameRulesEditor.getPreferredSize().height));
+        gameRulesEditor.setMaximumSize(new Dimension(
+            Integer.MAX_VALUE,
+            gameRulesEditor.getPreferredSize().height
+        ));
         add(gameRulesEditor);
 
         JPanel buttonRow = new JPanel();
@@ -48,14 +52,20 @@ public class GameRulesStepView extends JPanel implements AutoCloseable {
 
         JButton backButton = new JButton("Go back");
         backButton.addActionListener(e -> viewModel.onBackButtonClicked());
-        backButtonEnabledBinding = Bindings.bindEnabled(backButton, viewModel.isSubmitting.derive(b -> !b));
+        backButtonEnabledBinding = Bindings.bindEnabled(
+            backButton,
+            viewModel.isSubmitting.derive(b -> !b)
+        );
         buttonRow.add(backButton);
 
         buttonRow.add(Box.createHorizontalGlue());
 
         JButton finishButton = new JButton("Finish");
         finishButton.addActionListener(e -> viewModel.onFinishButtonClicked());
-        finishButtonEnabledBinding = Bindings.bindEnabled(finishButton, viewModel.isSubmitting.derive(b -> !b));
+        finishButtonEnabledBinding = Bindings.bindEnabled(
+            finishButton,
+            viewModel.isSubmitting.derive(b -> !b)
+        );
         buttonRow.add(finishButton);
 
         add(buttonRow);
@@ -72,7 +82,8 @@ public class GameRulesStepView extends JPanel implements AutoCloseable {
     @ImplementedBy(FactoryImpl.class)
     public interface Factory {
 
-        GameRulesStepView create(GameRulesStepViewViewModel viewModel, Property<Boolean> gameRulesAreViewOnly);
+        GameRulesStepView create(GameRulesStepViewViewModel viewModel,
+            Property<Boolean> gameRulesAreViewOnly);
     }
 
     @Slf4j
@@ -87,7 +98,8 @@ public class GameRulesStepView extends JPanel implements AutoCloseable {
         private Client client;
 
         @Override
-        public GameRulesStepView create(GameRulesStepViewViewModel viewModel, Property<Boolean> gameRulesAreViewOnly) {
+        public GameRulesStepView create(GameRulesStepViewViewModel viewModel,
+            Property<Boolean> gameRulesAreViewOnly) {
             Supplier<GameRulesEditorViewModel.Props> makeProps = () -> {
                 Boolean gameRulesAreViewOnlyValue = gameRulesAreViewOnly.get();
                 return new GameRulesEditorViewModel.Props(
@@ -97,7 +109,8 @@ public class GameRulesStepView extends JPanel implements AutoCloseable {
                     gameRulesAreViewOnlyValue != null && gameRulesAreViewOnlyValue
                 );
             };
-            GameRulesEditorViewModel gameRulesEditorViewModel = gameRulesEditorViewModelFactory.create(makeProps.get());
+            GameRulesEditorViewModel gameRulesEditorViewModel = gameRulesEditorViewModelFactory.create(
+                makeProps.get());
 
             viewModel.gameRules.addListener((event) -> gameRulesEditorViewModel.setProps(makeProps.get()));
             gameRulesAreViewOnly.addListener((event) -> gameRulesEditorViewModel.setProps(makeProps.get()));

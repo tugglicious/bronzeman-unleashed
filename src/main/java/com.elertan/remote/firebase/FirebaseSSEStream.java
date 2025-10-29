@@ -44,7 +44,8 @@ public class FirebaseSSEStream {
     @Getter
     private volatile boolean isRunning = false;
 
-    public FirebaseSSEStream(OkHttpClient httpClient, Gson gson, FirebaseRealtimeDatabaseURL databaseURL) {
+    public FirebaseSSEStream(OkHttpClient httpClient, Gson gson,
+        FirebaseRealtimeDatabaseURL databaseURL) {
         this.gson = gson;
         this.databaseURL = databaseURL;
         this.sseClient = httpClient.newBuilder()

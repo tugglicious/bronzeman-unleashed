@@ -19,7 +19,8 @@ public final class FirebaseSSE {
 
     @Override
     public String toString() {
-        return "FirebaseSseEvent{type='" + type.raw() + "', path='" + path + "', data=" + data + "}";
+        return "FirebaseSseEvent{type='" + type.raw() + "', path='" + path + "', data=" + data
+            + "}";
     }
 
     @Override
@@ -31,7 +32,10 @@ public final class FirebaseSSE {
             return false;
         }
         FirebaseSSE that = (FirebaseSSE) o;
-        return Objects.equals(type, that.type) && Objects.equals(path, that.path) && Objects.equals(data, that.data);
+        return Objects.equals(type, that.type) && Objects.equals(path, that.path) && Objects.equals(
+            data,
+            that.data
+        );
     }
 
     @Override

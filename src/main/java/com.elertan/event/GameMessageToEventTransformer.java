@@ -41,16 +41,26 @@ public class GameMessageToEventTransformer {
     );
 
     static {
-        TRANSFORMERS.put(ParsedGameMessageType.LevelUp, GameMessageToEventTransformer::transformLevelUp);
-        TRANSFORMERS.put(ParsedGameMessageType.TotalLevel, GameMessageToEventTransformer::transformTotalLevel);
-        TRANSFORMERS.put(ParsedGameMessageType.CombatTask, GameMessageToEventTransformer::transformCombatTask);
+        TRANSFORMERS.put(
+            ParsedGameMessageType.LevelUp,
+            GameMessageToEventTransformer::transformLevelUp
+        );
+        TRANSFORMERS.put(
+            ParsedGameMessageType.TotalLevel,
+            GameMessageToEventTransformer::transformTotalLevel
+        );
+        TRANSFORMERS.put(
+            ParsedGameMessageType.CombatTask,
+            GameMessageToEventTransformer::transformCombatTask
+        );
         TRANSFORMERS.put(
             ParsedGameMessageType.QuestCompletion,
             GameMessageToEventTransformer::transformQuestCompletion
         );
     }
 
-    public static BUEvent transformGameMessage(ParsedGameMessage gameMessage, long dispatchedFromAccountHash) {
+    public static BUEvent transformGameMessage(ParsedGameMessage gameMessage,
+        long dispatchedFromAccountHash) {
         if (gameMessage == null) {
             return null;
         }
@@ -62,7 +72,8 @@ public class GameMessageToEventTransformer {
         return transformer.apply(gameMessage, dispatchedFromAccountHash);
     }
 
-    private static BUEvent transformLevelUp(ParsedGameMessage gameMessage, long dispatchedFromAccountHash) {
+    private static BUEvent transformLevelUp(ParsedGameMessage gameMessage,
+        long dispatchedFromAccountHash) {
         LevelUpParsedGameMessage m = (LevelUpParsedGameMessage) gameMessage;
 
         int level = m.getLevel();
@@ -74,19 +85,27 @@ public class GameMessageToEventTransformer {
         return new LevelUpAchievementBUEvent(dispatchedFromAccountHash, now, m.getSkill(), level);
     }
 
-    private static BUEvent transformTotalLevel(ParsedGameMessage gameMessage, long dispatchedFromAccountHash) {
+    private static BUEvent transformTotalLevel(ParsedGameMessage gameMessage,
+        long dispatchedFromAccountHash) {
         TotalLevelParsedGameMessage m = (TotalLevelParsedGameMessage) gameMessage;
         ISOOffsetDateTime now = new ISOOffsetDateTime(OffsetDateTime.now());
         return new TotalLevelAchievementBUEvent(dispatchedFromAccountHash, now, m.getTotalLevel());
     }
 
-    private static BUEvent transformCombatTask(ParsedGameMessage gameMessage, long dispatchedFromAccountHash) {
+    private static BUEvent transformCombatTask(ParsedGameMessage gameMessage,
+        long dispatchedFromAccountHash) {
         CombatTaskParsedGameMessage m = (CombatTaskParsedGameMessage) gameMessage;
         ISOOffsetDateTime now = new ISOOffsetDateTime(OffsetDateTime.now());
-        return new CombatTaskAchievementBUEvent(dispatchedFromAccountHash, now, m.getTier(), m.getName());
+        return new CombatTaskAchievementBUEvent(
+            dispatchedFromAccountHash,
+            now,
+            m.getTier(),
+            m.getName()
+        );
     }
 
-    private static BUEvent transformQuestCompletion(ParsedGameMessage gameMessage, long dispatchedFromAccountHash) {
+    private static BUEvent transformQuestCompletion(ParsedGameMessage gameMessage,
+        long dispatchedFromAccountHash) {
         QuestCompletionParsedGameMessage m = (QuestCompletionParsedGameMessage) gameMessage;
         ISOOffsetDateTime now = new ISOOffsetDateTime(OffsetDateTime.now());
         return new QuestCompletionAchievementBUEvent(dispatchedFromAccountHash, now, m.getName());

@@ -7,7 +7,8 @@ import com.google.gson.Gson;
 import java.util.function.Function;
 
 
-public class MembersFirebaseKeyValueStorageAdapter extends FirebaseKeyValueStorageAdapterBase<Long, Member> {
+public class MembersFirebaseKeyValueStorageAdapter extends
+    FirebaseKeyValueStorageAdapterBase<Long, Member> {
 
     private final static String BASE_PATH = "/Members";
     private final static Function<String, Long> stringToKey = Long::parseLong;

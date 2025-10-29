@@ -10,8 +10,9 @@ import java.util.Objects;
 /**
  * Value object for Firebase Realtime Database endpoints.
  * <p>
- * Ensures the host belongs to an allowed Firebase domain and provides a normalized base URL in the form
- * {@code scheme://host[:port]}. Handles IPv6 literals and omits default ports (80 for http, 443 for https).
+ * Ensures the host belongs to an allowed Firebase domain and provides a normalized base URL in the
+ * form {@code scheme://host[:port]}. Handles IPv6 literals and omits default ports (80 for http,
+ * 443 for https).
  */
 public final class FirebaseRealtimeDatabaseURL {
 
@@ -26,8 +27,8 @@ public final class FirebaseRealtimeDatabaseURL {
      * Construct from a {@link URL}.
      *
      * @param url non-null URL using http or https and pointing to an allowed Firebase host
-     * @throws IllegalArgumentException if the URL is null, uses an unsupported scheme, or the host is not a Firebase
-     *                                  host
+     * @throws IllegalArgumentException if the URL is null, uses an unsupported scheme, or the host
+     *                                  is not a Firebase host
      */
     public FirebaseRealtimeDatabaseURL(URL url) throws IllegalArgumentException {
         this.url = Objects.requireNonNull(url, "url");
@@ -38,7 +39,8 @@ public final class FirebaseRealtimeDatabaseURL {
         }
 
         if (!isFirebaseHost(this.url.getHost())) {
-            throw new IllegalArgumentException("The provided URL is not a valid FirebaseRealtimeDatabaseURL");
+            throw new IllegalArgumentException(
+                "The provided URL is not a valid FirebaseRealtimeDatabaseURL");
         }
     }
 
@@ -48,7 +50,8 @@ public final class FirebaseRealtimeDatabaseURL {
      * @param urlString textual URL
      * @throws IllegalArgumentException if the string is not a valid URL or not a Firebase host
      */
-    public FirebaseRealtimeDatabaseURL(String urlString) throws IllegalArgumentException, MalformedURLException {
+    public FirebaseRealtimeDatabaseURL(String urlString)
+        throws IllegalArgumentException, MalformedURLException {
         this(new URL(urlString));
     }
 

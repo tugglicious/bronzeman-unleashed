@@ -7,7 +7,8 @@ import lombok.NonNull;
 
 public class OffsetDateTimeUtils {
 
-    public static String formatRelativeTime(@NonNull OffsetDateTime now, @NonNull OffsetDateTime time) {
+    public static String formatRelativeTime(@NonNull OffsetDateTime now,
+        @NonNull OffsetDateTime time) {
         Duration d = Duration.between(time, now);
         long seconds = d.getSeconds();
 

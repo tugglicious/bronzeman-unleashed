@@ -98,11 +98,13 @@ public class MainViewViewModel implements AutoCloseable {
                     4);
                 Long unlockedByAccountHashValue = (Long) values.get(5);
 
-                if (allUnlockedItemsValue == null || membersMapValue == null || npcIdToNameMapValue == null) {
+                if (allUnlockedItemsValue == null || membersMapValue == null
+                    || npcIdToNameMapValue == null) {
                     return null;
                 }
 
-                String searchTextLowerCase = searchTextValue == null ? null : searchTextValue.toLowerCase().trim();
+                String searchTextLowerCase =
+                    searchTextValue == null ? null : searchTextValue.toLowerCase().trim();
                 if (searchTextLowerCase != null && searchTextLowerCase.isEmpty()) {
                     searchTextLowerCase = null;
                 }
@@ -187,7 +189,8 @@ public class MainViewViewModel implements AutoCloseable {
                     .collect(Collectors.toList());
             }
         );
-        viewState = unlockedItemListItems.derive(list -> list == null ? ViewState.LOADING : ViewState.READY);
+        viewState = unlockedItemListItems.derive(list -> list == null ? ViewState.LOADING
+            : ViewState.READY);
     }
 
     @Override
@@ -285,7 +288,8 @@ public class MainViewViewModel implements AutoCloseable {
         @Getter
         private final String droppedByNPCName;
 
-        private ListItem(UnlockedItem item, Member acquiredByMember, AsyncBufferedImage icon, String droppedByNPCName) {
+        private ListItem(UnlockedItem item, Member acquiredByMember, AsyncBufferedImage icon,
+            String droppedByNPCName) {
             this.item = item;
             this.acquiredByMember = acquiredByMember;
             this.icon = icon;

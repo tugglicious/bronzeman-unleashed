@@ -82,7 +82,8 @@ public class RemoteStorageService implements BUPluginLifecycle {
         }
     }
 
-    private void currentAccountConfigurationChangeListener(AccountConfiguration accountConfiguration) {
+    private void currentAccountConfigurationChangeListener(
+        AccountConfiguration accountConfiguration) {
         if (accountConfiguration == null) {
             try {
                 clearCurrentDataport();
@@ -132,10 +133,22 @@ public class RemoteStorageService implements BUPluginLifecycle {
     private void configureFromFirebaseRealtimeDatabase(FirebaseRealtimeDatabaseURL url) {
         firebaseRealtimeDatabase = new FirebaseRealtimeDatabase(httpClient, gson, url);
 
-        lastEventStoragePort = new LastEventFirebaseObjectStorageAdapter(firebaseRealtimeDatabase, gson);
-        membersStoragePort = new MembersFirebaseKeyValueStorageAdapter(firebaseRealtimeDatabase, gson);
-        unlockedItemsStoragePort = new UnlockedItemsFirebaseKeyValueStorageAdapter(firebaseRealtimeDatabase, gson);
-        gameRulesStoragePort = new GameRulesFirebaseObjectStorageAdapter(firebaseRealtimeDatabase, gson);
+        lastEventStoragePort = new LastEventFirebaseObjectStorageAdapter(
+            firebaseRealtimeDatabase,
+            gson
+        );
+        membersStoragePort = new MembersFirebaseKeyValueStorageAdapter(
+            firebaseRealtimeDatabase,
+            gson
+        );
+        unlockedItemsStoragePort = new UnlockedItemsFirebaseKeyValueStorageAdapter(
+            firebaseRealtimeDatabase,
+            gson
+        );
+        gameRulesStoragePort = new GameRulesFirebaseObjectStorageAdapter(
+            firebaseRealtimeDatabase,
+            gson
+        );
 
         FirebaseSSEStream stream = firebaseRealtimeDatabase.getStream();
         stream.start();

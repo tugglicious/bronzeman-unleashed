@@ -53,10 +53,20 @@ public class GameRulesEditor extends JPanel {
         add(createSection("Trade", "Trade settings", createTradePanel(), true), gbc);
         gbc.gridy++;
 
-        add(createSection("Grand Exchange", "Grand Exchange settings", createGrandExchangePanel(), true), gbc);
+        add(
+            createSection(
+                "Grand Exchange",
+                "Grand Exchange settings",
+                createGrandExchangePanel(),
+                true
+            ), gbc
+        );
         gbc.gridy++;
 
-        add(createSection("Achievements", "Achievements settings", createAchievementsPanel(), true), gbc);
+        add(
+            createSection("Achievements", "Achievements settings", createAchievementsPanel(), true),
+            gbc
+        );
         gbc.gridy++;
 
         add(createSection("Party", "Controls the party settings", createPartyPanel(), true), gbc);
@@ -66,11 +76,15 @@ public class GameRulesEditor extends JPanel {
         gbc.gridy++;
     }
 
-    private JPanel createSection(String title, String description, JComponent content, boolean defaultExpanded) {
+    private JPanel createSection(String title, String description, JComponent content,
+        boolean defaultExpanded) {
         JPanel outer = new JPanel(new BorderLayout());
         outer.setOpaque(false);
 
-        JToggleButton headerButton = new JToggleButton(createColoredToggleButtonText(defaultExpanded, title));
+        JToggleButton headerButton = new JToggleButton(createColoredToggleButtonText(
+            defaultExpanded,
+            title
+        ));
         headerButton.setFont(headerButton.getFont().deriveFont(Font.BOLD, 16f));
         headerButton.setFocusPainted(false);
         headerButton.setContentAreaFilled(false);
@@ -113,7 +127,8 @@ public class GameRulesEditor extends JPanel {
     private String createColoredToggleButtonText(boolean expanded, String title) {
 //        String expandedText = (expanded ? "X " : "V ");
         String expandedText = "";
-        return "<html><div style=\"text-align:left;color:rgb(220,138,0);\">" + expandedText + title + "</div></html>";
+        return "<html><div style=\"text-align:left;color:rgb(220,138,0);\">" + expandedText + title
+            + "</div></html>";
     }
 
     private JPanel createTradePanel() {
@@ -173,7 +188,10 @@ public class GameRulesEditor extends JPanel {
         gbc.insets = new Insets(0, 0, 5, 0);
 
         JCheckBox preventGrandExchangeBuyOffersCheckbox = new JCheckBox();
-        Bindings.bindSelected(preventGrandExchangeBuyOffersCheckbox, viewModel.preventGrandExchangeBuyOffers);
+        Bindings.bindSelected(
+            preventGrandExchangeBuyOffersCheckbox,
+            viewModel.preventGrandExchangeBuyOffers
+        );
         Bindings.bindEnabled(
             preventGrandExchangeBuyOffersCheckbox,
             viewModel.isViewOnlyMode.derive(isViewOnlyMode -> !isViewOnlyMode)
@@ -247,7 +265,8 @@ public class GameRulesEditor extends JPanel {
         return panel;
     }
 
-    private JPanel createTextFieldInput(String labelText, String description, JTextField textField) {
+    private JPanel createTextFieldInput(String labelText, String description,
+        JTextField textField) {
         JPanel inputPanel = new JPanel(new GridBagLayout());
 
         inputPanel.setOpaque(false);
@@ -259,6 +278,7 @@ public class GameRulesEditor extends JPanel {
         gbc.insets = new Insets(0, 0, 5, 0);
 
         JLabel label = new JLabel(labelText);
+        label.setForeground(Color.WHITE);
         label.setToolTipText(description);
         inputPanel.add(label, gbc);
         gbc.gridy++;
@@ -277,6 +297,7 @@ public class GameRulesEditor extends JPanel {
         panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 
         JLabel label = new JLabel(labelText);
+        label.setForeground(Color.WHITE);
         label.setToolTipText(description);
         panel.add(label);
 

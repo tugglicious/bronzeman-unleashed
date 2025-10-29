@@ -7,7 +7,8 @@ import com.elertan.remote.firebase.FirebaseRealtimeDatabase;
 import com.google.gson.Gson;
 
 
-public class LastEventFirebaseObjectStorageAdapter extends FirebaseObjectStorageAdapterBase<BUEvent> {
+public class LastEventFirebaseObjectStorageAdapter extends
+    FirebaseObjectStorageAdapterBase<BUEvent> {
 
     private final static String PATH = "/LastEvent";
 

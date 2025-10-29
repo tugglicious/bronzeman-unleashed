@@ -29,7 +29,8 @@ public final class BUPanelViewModel implements AutoCloseable {
             currentAccountConfigurationChangeListener);
     }
 
-    private void currentAccountConfigurationChangeListener(AccountConfiguration accountConfiguration) {
+    private void currentAccountConfigurationChangeListener(
+        AccountConfiguration accountConfiguration) {
         if (accountConfiguration == null) {
             screen.set(Screen.SETUP);
         } else {

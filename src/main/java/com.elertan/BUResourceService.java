@@ -23,7 +23,10 @@ public class BUResourceService implements BUPluginLifecycle {
     private static final String CONFIGURE_ICON_FILE_PATH = "/configure-icon.png";
     private static final String LOADING_SPINNER_FILE_PATH = "/loading-spinner.gif";
     @Getter
-    private final BufferedImage iconBufferedImage = ImageUtil.loadImageResource(BUPlugin.class, ICON_FILE_PATH);
+    private final BufferedImage iconBufferedImage = ImageUtil.loadImageResource(
+        BUPlugin.class,
+        ICON_FILE_PATH
+    );
     @Getter
     private final BufferedImage checkmarkIconBufferedImage = ImageUtil.loadImageResource(
         BUPlugin.class,

@@ -177,7 +177,10 @@ public class ItemUnlockService implements BUPluginLifecycle {
                         if (droppedByNpcId != null) {
                             NPCComposition npcComposition = client.getNpcDefinition(droppedByNpcId);
                             builder.append(" (drop from ");
-                            builder.append(buPluginConfig.chatNPCNameColor(), npcComposition.getName());
+                            builder.append(
+                                buPluginConfig.chatNPCNameColor(),
+                                npcComposition.getName()
+                            );
                             builder.append(")");
                         }
 
@@ -235,7 +238,9 @@ public class ItemUnlockService implements BUPluginLifecycle {
 
         Collection<ItemStack> itemStack = event.getItems();
         NPCComposition npcComposition = event.getComposition();
-        List<Integer> itemIds = itemStack.stream().map(ItemStack::getId).collect(Collectors.toList());
+        List<Integer> itemIds = itemStack.stream()
+            .map(ItemStack::getId)
+            .collect(Collectors.toList());
 
         for (int itemId : itemIds) {
             if (hasUnlockedItem(itemId)) {
@@ -392,10 +397,14 @@ public class ItemUnlockService implements BUPluginLifecycle {
                 throw new IllegalStateException("Unlocked items map is null");
             }
             int unlockedItemsSize = map.size();
-            buChatService.sendMessage(String.format("Loaded with %d unlocked items.", unlockedItemsSize));
+            buChatService.sendMessage(String.format(
+                "Loaded with %d unlocked items.",
+                unlockedItemsSize
+            ));
 
             // This is the first time the unlocked items are ready
-            log.info("Unlocked items data provider ready for item unlock service first time, checking inventory");
+            log.info(
+                "Unlocked items data provider ready for item unlock service first time, checking inventory");
             for (Integer containerId : INCLUDED_CONTAINER_IDS) {
                 ItemContainer itemContainer = client.getItemContainer(containerId);
                 unlockItemsFromItemContainer(itemContainer);

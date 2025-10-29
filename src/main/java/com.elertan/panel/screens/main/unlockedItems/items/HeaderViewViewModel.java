@@ -4,6 +4,7 @@ import com.elertan.data.MembersDataProvider;
 import com.elertan.models.Member;
 import com.elertan.models.UnlockedItem;
 import com.elertan.panel.screens.main.UnlockedItemsScreenViewModel;
+import com.elertan.panel.screens.main.UnlockedItemsScreenViewModel.SortedBy;
 import com.elertan.ui.Property;
 import com.google.inject.ImplementedBy;
 import com.google.inject.Inject;
@@ -22,16 +23,17 @@ public class HeaderViewViewModel implements AutoCloseable {
     public final Property<Long> unlockedByAccountHash;
     public final Property<List<Long>> accountHashesFromAllUnlockedItems;
     public final Property<Map<Long, String>> accountHashToMemberNameMap;
+    private final Runnable navigateToConfiguration;
     private final MembersDataProvider membersDataProvider;
     private final MembersDataProvider.MemberMapListener memberMapListener;
 
     private HeaderViewViewModel(
         Property<List<UnlockedItem>> allUnlockedItems,
         Property<String> searchText,
-        Property<UnlockedItemsScreenViewModel.SortedBy> sortedBy,
+        Property<SortedBy> sortedBy,
         Property<Long> unlockedByAccountHash,
-        MembersDataProvider membersDataProvider
-    ) {
+        MembersDataProvider membersDataProvider,
+        Runnable navigateToConfiguration) {
         this.membersDataProvider = membersDataProvider;
 
         this.searchText = searchText;
@@ -43,8 +45,12 @@ public class HeaderViewViewModel implements AutoCloseable {
                 return new ArrayList<>();
             }
 
-            return items.stream().map(UnlockedItem::getAcquiredByAccountHash).distinct().collect(Collectors.toList());
+            return items.stream()
+                .map(UnlockedItem::getAcquiredByAccountHash)
+                .distinct()
+                .collect(Collectors.toList());
         });
+        this.navigateToConfiguration = navigateToConfiguration;
 
         accountHashToMemberNameMap = new Property<>(buildAccountHashToMemberNameMap());
 
@@ -75,7 +81,7 @@ public class HeaderViewViewModel implements AutoCloseable {
     }
 
     public void onOpenConfigurationClick() {
-
+        navigateToConfiguration.run();
     }
 
     private Map<Long, String> buildAccountHashToMemberNameMap() {
@@ -98,7 +104,8 @@ public class HeaderViewViewModel implements AutoCloseable {
             Property<List<UnlockedItem>> allUnlockedItems,
             Property<String> searchText,
             Property<UnlockedItemsScreenViewModel.SortedBy> sortedBy,
-            Property<Long> unlockedByAccountHash
+            Property<Long> unlockedByAccountHash,
+            Runnable navigateToConfiguration
         );
     }
 
@@ -113,14 +120,16 @@ public class HeaderViewViewModel implements AutoCloseable {
             Property<List<UnlockedItem>> allUnlockedItems,
             Property<String> searchText,
             Property<UnlockedItemsScreenViewModel.SortedBy> sortedBy,
-            Property<Long> unlockedByAccountHash
+            Property<Long> unlockedByAccountHash,
+            Runnable navigateToConfiguration
         ) {
             return new HeaderViewViewModel(
                 allUnlockedItems,
                 searchText,
                 sortedBy,
                 unlockedByAccountHash,
-                membersDataProvider
+                membersDataProvider,
+                navigateToConfiguration
             );
         }
     }

@@ -105,7 +105,10 @@ public class SetupScreen extends JPanel implements AutoCloseable {
             case REMOTE:
                 return remoteStepViewFactory.create(remoteStepViewViewModel);
             case GAME_RULES:
-                return gameRulesStepViewFactory.create(gameRulesStepViewViewModel, viewModel.gameRulesAreViewOnly);
+                return gameRulesStepViewFactory.create(
+                    gameRulesStepViewViewModel,
+                    viewModel.gameRulesAreViewOnly
+                );
         }
 
         throw new IllegalStateException("Unknown step: " + step);

@@ -69,7 +69,8 @@ public class GameRulesDataProvider implements BUPluginLifecycle {
         gameRulesListeners.remove(listener);
     }
 
-    public CompletableFuture<Void> updateGameRules(GameRules gameRules) throws IllegalStateException {
+    public CompletableFuture<Void> updateGameRules(GameRules gameRules)
+        throws IllegalStateException {
         if (state == State.NotReady) {
             throw new IllegalStateException("Not ready yet");
         }

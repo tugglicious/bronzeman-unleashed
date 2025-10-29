@@ -13,19 +13,19 @@ import javax.swing.JPanel;
 
 public class MainScreen extends JPanel implements AutoCloseable {
 
+    private final MainScreenViewModel viewModel;
     private final UnlockedItemsScreenViewModel unlockedItemsScreenViewModel;
     private final UnlockedItemsScreen.Factory unlockedItemsScreenFactory;
     private final ConfigScreenViewModel configScreenViewModel;
     private final ConfigScreen.Factory configScreenFactory;
     private final AutoCloseable cardLayoutBinding;
 
-    private MainScreen(
-        MainScreenViewModel viewModel,
+    private MainScreen(MainScreenViewModel viewModel,
         UnlockedItemsScreenViewModel unlockedItemsScreenViewModel,
         UnlockedItemsScreen.Factory unlockedItemsScreenFactory,
         ConfigScreenViewModel configScreenViewModel,
-        ConfigScreen.Factory configScreenFactory
-    ) {
+        ConfigScreen.Factory configScreenFactory) {
+        this.viewModel = viewModel;
         this.unlockedItemsScreenViewModel = unlockedItemsScreenViewModel;
         this.unlockedItemsScreenFactory = unlockedItemsScreenFactory;
         this.configScreenViewModel = configScreenViewModel;
@@ -34,7 +34,12 @@ public class MainScreen extends JPanel implements AutoCloseable {
         CardLayout cardLayout = new CardLayout();
         setLayout(cardLayout);
 
-        cardLayoutBinding = Bindings.bindCardLayout(this, cardLayout, viewModel.mainScreen, this::buildScreen);
+        cardLayoutBinding = Bindings.bindCardLayout(
+            this,
+            cardLayout,
+            viewModel.mainScreen,
+            this::buildScreen
+        );
     }
 
     @Override
@@ -45,7 +50,10 @@ public class MainScreen extends JPanel implements AutoCloseable {
     private JPanel buildScreen(MainScreenViewModel.MainScreen screen) {
         switch (screen) {
             case UNLOCKED_ITEMS:
-                return unlockedItemsScreenFactory.create(unlockedItemsScreenViewModel);
+                return unlockedItemsScreenFactory.create(
+                    unlockedItemsScreenViewModel,
+                    viewModel::navigateToConfig
+                );
             case CONFIG:
                 return configScreenFactory.create(configScreenViewModel);
         }
@@ -74,7 +82,8 @@ public class MainScreen extends JPanel implements AutoCloseable {
         @Override
         public MainScreen create(MainScreenViewModel viewModel) {
             UnlockedItemsScreenViewModel unlockedItemsScreenViewModel = unlockedItemsScreenViewModelFactory.create();
-            ConfigScreenViewModel configScreenViewModel = configScreenViewModelFactory.create();
+            ConfigScreenViewModel configScreenViewModel = configScreenViewModelFactory.create(
+                viewModel::navigateToUnlockedItems);
 
             return new MainScreen(
                 viewModel,

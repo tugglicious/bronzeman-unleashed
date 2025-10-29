@@ -48,7 +48,8 @@ public class ShopPolicy extends PolicyBase implements BUPluginLifecycle {
 
 
     @Inject
-    public ShopPolicy(AccountConfigurationService accountConfigurationService, GameRulesService gameRulesService) {
+    public ShopPolicy(AccountConfigurationService accountConfigurationService,
+        GameRulesService gameRulesService) {
         super(accountConfigurationService, gameRulesService);
 
         this.gameRulesService = gameRulesService;
@@ -87,8 +88,8 @@ public class ShopPolicy extends PolicyBase implements BUPluginLifecycle {
     }
 
     /**
-     * Draws unlocked-item checkmarks over shop items without using sprite IDs or widget children. Placement, size, and
-     * opacity match the previous widget-based approach.
+     * Draws unlocked-item checkmarks over shop items without using sprite IDs or widget children.
+     * Placement, size, and opacity match the previous widget-based approach.
      */
     private class ShopOverlay extends Overlay {
 
@@ -129,7 +130,10 @@ public class ShopPolicy extends PolicyBase implements BUPluginLifecycle {
 
             // Draw semi-transparent checkmarks in the same bottom-right position as before
             Composite prev = g.getComposite();
-            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f)); // opacity 50%
+            g.setComposite(AlphaComposite.getInstance(
+                AlphaComposite.SRC_OVER,
+                0.5f
+            )); // opacity 50%
 
             for (Widget w : children) {
                 if (w == null || w.isHidden()) {

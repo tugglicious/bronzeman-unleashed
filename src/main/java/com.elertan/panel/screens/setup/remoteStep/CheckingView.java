@@ -38,7 +38,10 @@ public class CheckingView extends JPanel implements AutoCloseable {
         JPanel buttons = new JPanel();
         buttons.setLayout(new BoxLayout(buttons, BoxLayout.X_AXIS));
         JButton cancelButton = new JButton("Cancel");
-        cancelButtonEnabledBinding = Bindings.bindEnabled(cancelButton, viewModel.isCancelled.derive(b -> !b));
+        cancelButtonEnabledBinding = Bindings.bindEnabled(
+            cancelButton,
+            viewModel.isCancelled.derive(b -> !b)
+        );
         cancelButton.addActionListener(e -> viewModel.onCancelButtonClick());
         buttons.add(cancelButton);
 

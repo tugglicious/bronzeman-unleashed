@@ -58,7 +58,8 @@ public class GameRules {
         this.partyPassword = partyPassword;
     }
 
-    public static GameRules createWithDefaults(Long lastUpdatedByAccountHash, ISOOffsetDateTime lastUpdatedAt) {
+    public static GameRules createWithDefaults(Long lastUpdatedByAccountHash,
+        ISOOffsetDateTime lastUpdatedAt) {
         return new GameRules(lastUpdatedByAccountHash, lastUpdatedAt, true, true, true, true, null);
     }
 

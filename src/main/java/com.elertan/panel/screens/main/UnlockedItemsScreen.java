@@ -14,16 +14,19 @@ public class UnlockedItemsScreen extends JPanel implements AutoCloseable {
     private final UnlockedItemsScreenViewModel viewModel;
     private final LoadingScreen.Factory loadingScreenFactory;
     private final ItemsScreen.Factory itemsScreenFactory;
+    private final Runnable navigateToConfiguration;
     private final AutoCloseable cardLayoutBinding;
 
     private UnlockedItemsScreen(
         UnlockedItemsScreenViewModel viewModel,
         LoadingScreen.Factory loadingScreenFactory,
-        ItemsScreen.Factory itemsScreenFactory
+        ItemsScreen.Factory itemsScreenFactory,
+        Runnable navigateToConfiguration
     ) {
         this.viewModel = viewModel;
         this.loadingScreenFactory = loadingScreenFactory;
         this.itemsScreenFactory = itemsScreenFactory;
+        this.navigateToConfiguration = navigateToConfiguration;
 
         CardLayout cardLayout = new CardLayout();
         setLayout(cardLayout);
@@ -31,7 +34,8 @@ public class UnlockedItemsScreen extends JPanel implements AutoCloseable {
         cardLayoutBinding = Bindings.bindCardLayout(
             this,
             cardLayout,
-            viewModel.allUnlockedItems.derive(list -> list == null ? UnlockedItemsScreenViewModel.Screen.LOADING
+            viewModel.allUnlockedItems.derive(list -> list == null
+                ? UnlockedItemsScreenViewModel.Screen.LOADING
                 : UnlockedItemsScreenViewModel.Screen.ITEMS),
             this::buildScreen
         );
@@ -51,7 +55,8 @@ public class UnlockedItemsScreen extends JPanel implements AutoCloseable {
                     viewModel.allUnlockedItems,
                     viewModel.searchText,
                     viewModel.sortedBy,
-                    viewModel.unlockedByAccountHash
+                    viewModel.unlockedByAccountHash,
+                    navigateToConfiguration
                 );
         }
 
@@ -62,7 +67,8 @@ public class UnlockedItemsScreen extends JPanel implements AutoCloseable {
     @ImplementedBy(FactoryImpl.class)
     public interface Factory {
 
-        UnlockedItemsScreen create(UnlockedItemsScreenViewModel viewModel);
+        UnlockedItemsScreen create(UnlockedItemsScreenViewModel viewModel,
+            Runnable navigateToConfiguration);
     }
 
     @Singleton
@@ -74,8 +80,14 @@ public class UnlockedItemsScreen extends JPanel implements AutoCloseable {
         private ItemsScreen.Factory itemsScreenFactory;
 
         @Override
-        public UnlockedItemsScreen create(UnlockedItemsScreenViewModel viewModel) {
-            return new UnlockedItemsScreen(viewModel, loadingScreenFactory, itemsScreenFactory);
+        public UnlockedItemsScreen create(UnlockedItemsScreenViewModel viewModel,
+            Runnable navigateToConfiguration) {
+            return new UnlockedItemsScreen(
+                viewModel,
+                loadingScreenFactory,
+                itemsScreenFactory,
+                navigateToConfiguration
+            );
         }
     }
 

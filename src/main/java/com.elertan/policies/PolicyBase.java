@@ -10,7 +10,8 @@ public class PolicyBase {
     private final AccountConfigurationService accountConfigurationService;
     private final GameRulesService gameRulesService;
 
-    public PolicyBase(AccountConfigurationService accountConfigurationService, GameRulesService gameRulesService) {
+    public PolicyBase(AccountConfigurationService accountConfigurationService,
+        GameRulesService gameRulesService) {
         this.accountConfigurationService = accountConfigurationService;
         this.gameRulesService = gameRulesService;
     }

@@ -36,7 +36,8 @@ public class TradePolicy extends PolicyBase implements BUPluginLifecycle {
     private BUChatService buChatService;
 
     @Inject
-    public TradePolicy(AccountConfigurationService accountConfigurationService, GameRulesService gameRulesService) {
+    public TradePolicy(AccountConfigurationService accountConfigurationService,
+        GameRulesService gameRulesService) {
         super(accountConfigurationService, gameRulesService);
 
         this.gameRulesService = gameRulesService;

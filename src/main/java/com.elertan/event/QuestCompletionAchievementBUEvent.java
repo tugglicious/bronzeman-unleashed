@@ -8,7 +8,8 @@ public class QuestCompletionAchievementBUEvent extends BUEvent {
     @Getter
     private final String name;
 
-    public QuestCompletionAchievementBUEvent(long dispatchedFromAccountHash, ISOOffsetDateTime timestamp, String name) {
+    public QuestCompletionAchievementBUEvent(long dispatchedFromAccountHash,
+        ISOOffsetDateTime timestamp, String name) {
         super(dispatchedFromAccountHash, timestamp);
         this.name = name;
     }

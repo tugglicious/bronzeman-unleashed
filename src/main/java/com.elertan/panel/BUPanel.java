@@ -43,7 +43,12 @@ public class BUPanel extends PluginPanel implements AutoCloseable {
         CardLayout cardLayout = new CardLayout();
         setLayout(cardLayout);
 
-        cardLayoutBinding = Bindings.bindCardLayout(this, cardLayout, viewModel.screen, this::buildScreen);
+        cardLayoutBinding = Bindings.bindCardLayout(
+            this,
+            cardLayout,
+            viewModel.screen,
+            this::buildScreen
+        );
     }
 
     @Override

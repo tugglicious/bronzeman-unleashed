@@ -8,14 +8,21 @@ import java.util.EnumMap;
 
 public class BUEventGson {
 
-    private static final EnumMap<BUEventType, Class<? extends BUEvent>> REGISTRY = new EnumMap<>(BUEventType.class);
+    private static final EnumMap<BUEventType, Class<? extends BUEvent>> REGISTRY = new EnumMap<>(
+        BUEventType.class);
 
     static {
         REGISTRY.put(BUEventType.LevelUpAchievement, LevelUpAchievementBUEvent.class);
         REGISTRY.put(BUEventType.TotalLevelAchievement, TotalLevelAchievementBUEvent.class);
         REGISTRY.put(BUEventType.CombatTaskAchievement, CombatTaskAchievementBUEvent.class);
-        REGISTRY.put(BUEventType.DiaryCompletionAchievement, DiaryCompletionAchievementBUEvent.class);
-        REGISTRY.put(BUEventType.QuestCompletionAchievement, QuestCompletionAchievementBUEvent.class);
+        REGISTRY.put(
+            BUEventType.DiaryCompletionAchievement,
+            DiaryCompletionAchievementBUEvent.class
+        );
+        REGISTRY.put(
+            BUEventType.QuestCompletionAchievement,
+            QuestCompletionAchievementBUEvent.class
+        );
     }
 
     public static JsonElement serialize(Gson gson, BUEvent value) {
@@ -40,7 +47,8 @@ public class BUEventGson {
 
         Class<? extends BUEvent> type = REGISTRY.get(eventType);
         if (type == null) {
-            throw new IllegalStateException("Registration of type " + eventType + " was not registered");
+            throw new IllegalStateException(
+                "Registration of type " + eventType + " was not registered");
         }
 
         return gson.fromJson(data, type);

@@ -39,7 +39,8 @@ public class ItemsScreen extends JPanel {
             Property<List<UnlockedItem>> allUnlockedItems,
             Property<String> searchText,
             Property<UnlockedItemsScreenViewModel.SortedBy> sortedBy,
-            Property<Long> unlockedByAccountHash
+            Property<Long> unlockedByAccountHash,
+            Runnable navigateToConfiguration
         );
     }
 
@@ -54,19 +55,21 @@ public class ItemsScreen extends JPanel {
         private MainViewViewModel.Factory mainViewViewModelFactory;
         @Inject
         private MainView.Factory mainViewFactory;
-
+        
         @Override
         public ItemsScreen create(
             Property<List<UnlockedItem>> allUnlockedItems,
             Property<String> searchText,
             Property<UnlockedItemsScreenViewModel.SortedBy> sortedBy,
-            Property<Long> unlockedByAccountHash
+            Property<Long> unlockedByAccountHash,
+            Runnable navigateToConfiguration
         ) {
             HeaderViewViewModel headerViewViewModel = headerViewViewModelFactory.create(
                 allUnlockedItems,
                 searchText,
                 sortedBy,
-                unlockedByAccountHash
+                unlockedByAccountHash,
+                navigateToConfiguration
             );
             MainViewViewModel mainViewViewModel = mainViewViewModelFactory.create(
                 allUnlockedItems,

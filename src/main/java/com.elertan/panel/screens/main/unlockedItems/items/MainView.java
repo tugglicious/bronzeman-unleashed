@@ -38,7 +38,12 @@ public class MainView extends JPanel implements AutoCloseable {
 
         CardLayout cardLayout = new CardLayout();
         setLayout(cardLayout);
-        cardLayoutBinding = Bindings.bindCardLayout(this, cardLayout, viewModel.viewState, this::buildViewState);
+        cardLayoutBinding = Bindings.bindCardLayout(
+            this,
+            cardLayout,
+            viewModel.viewState,
+            this::buildViewState
+        );
     }
 
     @Override
@@ -112,18 +117,27 @@ public class MainView extends JPanel implements AutoCloseable {
             String acquiredAt = null;
             if (item.getAcquiredAt() != null) {
                 OffsetDateTime now = OffsetDateTime.now();
-                acquiredAt = OffsetDateTimeUtils.formatRelativeTime(now, item.getAcquiredAt().getValue());
+                acquiredAt = OffsetDateTimeUtils.formatRelativeTime(
+                    now,
+                    item.getAcquiredAt().getValue()
+                );
             }
 
             StringBuilder tooltipBuilder = new StringBuilder();
             tooltipBuilder.append("<html>");
             tooltipBuilder.append(String.format("<b>%s</b><br>", name));
             if (acquiredBy != null) {
-                tooltipBuilder.append(String.format("<p><font color='gray'>by </font>%s</p>", acquiredBy));
+                tooltipBuilder.append(String.format(
+                    "<p><font color='gray'>by </font>%s</p>",
+                    acquiredBy
+                ));
             }
             String droppedByNPCName = listItem.getDroppedByNPCName();
             if (droppedByNPCName != null) {
-                tooltipBuilder.append(String.format("<p><font color='gray'>drop from </font>%s</p>", droppedByNPCName));
+                tooltipBuilder.append(String.format(
+                    "<p><font color='gray'>drop from </font>%s</p>",
+                    droppedByNPCName
+                ));
             }
             if (acquiredAt != null) {
                 tooltipBuilder.append(String.format("<font color='gray'>%s</font>", acquiredAt));

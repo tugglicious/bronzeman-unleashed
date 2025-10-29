@@ -1,13 +1,101 @@
 package com.elertan.panel.screens.main;
 
+import com.elertan.panel.components.GameRulesEditor;
+import com.elertan.panel.components.GameRulesEditorViewModel;
+import com.elertan.ui.Bindings;
+import com.elertan.ui.Property;
 import com.google.inject.ImplementedBy;
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.util.Arrays;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-public class ConfigScreen extends JPanel {
+public class ConfigScreen extends JPanel implements AutoCloseable {
 
-    private ConfigScreen(ConfigScreenViewModel viewModel) {
+    private final AutoCloseable backButtonEnabledBinding;
+    private final AutoCloseable updateGameRulesButtonEnabledBinding;
 
+    private ConfigScreen(ConfigScreenViewModel viewModel,
+        GameRulesEditorViewModel gameRulesEditorViewModel,
+        GameRulesEditor.Factory gameRulesEditorFactory) {
+        setLayout(new GridBagLayout());
+        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.NORTH;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+
+        gbc.weighty = 0.0;
+        JButton backButton = new JButton("Back");
+        backButton.addActionListener(e -> viewModel.onBackButtonClick());
+        backButtonEnabledBinding = Bindings.bindEnabled(
+            backButton,
+            viewModel.isSubmittingProperty.derive(b -> !b)
+        );
+        add(backButton, gbc);
+        gbc.gridy++;
+
+        add(Box.createVerticalStrut(10), gbc);
+        gbc.gridy++;
+
+        JLabel titleLabel = new JLabel("Game Rules");
+        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 15f));
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        add(titleLabel, gbc);
+        gbc.gridy++;
+
+        add(Box.createVerticalStrut(10), gbc);
+        gbc.gridy++;
+
+        gbc.weightx = 1.0;
+        GameRulesEditor gameRulesEditor = gameRulesEditorFactory.create(gameRulesEditorViewModel);
+        add(gameRulesEditor, gbc);
+        gbc.gridy++;
+
+        gbc.weightx = 0.0;
+        JButton updateGameRulesButton = new JButton("Update Game Rules");
+        updateGameRulesButton.addActionListener(e -> viewModel.updateGameRulesClick());
+        updateGameRulesButtonEnabledBinding = Bindings.bindEnabled(
+            updateGameRulesButton,
+            Property.deriveMany(
+                Arrays.asList(
+                    viewModel.gameRulesEditorViewModelPropsProperty,
+                    viewModel.isSubmittingProperty
+                ),
+                (values) -> {
+                    GameRulesEditorViewModel.Props props = viewModel.gameRulesEditorViewModelPropsProperty.get();
+                    Boolean isSubmitting = viewModel.isSubmittingProperty.get();
+
+                    if (props == null || isSubmitting == null) {
+                        return false;
+                    }
+
+                    return !props.isViewOnlyMode() && !isSubmitting;
+                }
+            )
+        );
+        add(updateGameRulesButton, gbc);
+        gbc.gridy++;
+
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        add(Box.createVerticalGlue(), gbc);
+    }
+
+    @Override
+    public void close() throws Exception {
+        updateGameRulesButtonEnabledBinding.close();
+        backButtonEnabledBinding.close();
     }
 
     @ImplementedBy(FactoryImpl.class)
@@ -19,9 +107,23 @@ public class ConfigScreen extends JPanel {
     @Singleton
     private static final class FactoryImpl implements Factory {
 
+        @Inject
+        private GameRulesEditor.Factory gameRulesEditorFactory;
+        @Inject
+        private GameRulesEditorViewModel.Factory gameRulesEditorViewModelFactory;
+
         @Override
         public ConfigScreen create(ConfigScreenViewModel viewModel) {
-            return new ConfigScreen(viewModel);
+            GameRulesEditorViewModel.Props props = viewModel.gameRulesEditorViewModelPropsProperty.get();
+            GameRulesEditorViewModel gameRulesEditorViewModel = gameRulesEditorViewModelFactory.create(
+                props);
+
+            viewModel.gameRulesEditorViewModelPropsProperty.addListener((event) -> {
+                GameRulesEditorViewModel.Props newProps = viewModel.gameRulesEditorViewModelPropsProperty.get();
+                gameRulesEditorViewModel.setProps(newProps);
+            });
+
+            return new ConfigScreen(viewModel, gameRulesEditorViewModel, gameRulesEditorFactory);
         }
     }
 }

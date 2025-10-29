@@ -69,9 +69,15 @@ public class MemberService implements BUPluginLifecycle {
                         ChatMessageBuilder builder = new ChatMessageBuilder();
                         builder.append(buPluginConfig.chatPlayerNameColor(), member.getName());
                         builder.append(" has their role has changed from ");
-                        builder.append(buPluginConfig.chatHighlightColor(), old.getRole().toString());
+                        builder.append(
+                            buPluginConfig.chatHighlightColor(),
+                            old.getRole().toString()
+                        );
                         builder.append(" to ");
-                        builder.append(buPluginConfig.chatHighlightColor(), member.getRole().toString());
+                        builder.append(
+                            buPluginConfig.chatHighlightColor(),
+                            member.getRole().toString()
+                        );
                         builder.append(".");
                         buChatService.sendMessage(builder.build());
                     }
@@ -130,6 +136,10 @@ public class MemberService implements BUPluginLifecycle {
         return membersMap.get(accountHash);
     }
 
+    public Member getMyMember() {
+        return getMemberByAccountHash(client.getAccountHash());
+    }
+
     public boolean isPlayingAlone() {
         if (membersDataProvider.getState() != MembersDataProvider.State.Ready) {
             throw new IllegalStateException("Member data provider is not ready");
@@ -141,7 +151,8 @@ public class MemberService implements BUPluginLifecycle {
         return membersMap.size() == 1;
     }
 
-    private void currentAccountConfigurationChangeListener(AccountConfiguration accountConfiguration) {
+    private void currentAccountConfigurationChangeListener(
+        AccountConfiguration accountConfiguration) {
         if (accountConfiguration == null) {
             return;
         }
@@ -197,12 +208,20 @@ public class MemberService implements BUPluginLifecycle {
             Member member = membersMap.get(accountHash);
             String memberName = member.getName();
             if (memberName == null || !memberName.equals(name)) {
-                log.info("member service -> name changed from '{}' to '{}' issue-ing member update", memberName, name);
+                log.info(
+                    "member service -> name changed from '{}' to '{}' issue-ing member update",
+                    memberName,
+                    name
+                );
                 shouldUpdateMember = true;
             }
         }
 
-        log.info("should update member: {} - should be owner: {}", shouldUpdateMember, shouldBeOwner);
+        log.info(
+            "should update member: {} - should be owner: {}",
+            shouldUpdateMember,
+            shouldBeOwner
+        );
 
         if (shouldUpdateMember) {
             log.info("adding member...");

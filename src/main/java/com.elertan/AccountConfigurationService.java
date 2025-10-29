@@ -88,7 +88,8 @@ public class AccountConfigurationService implements BUPluginLifecycle {
         setAccountConfiguration(accountConfiguration, client.getAccountHash());
     }
 
-    public void setAccountConfiguration(AccountConfiguration accountConfiguration, long accountHash) {
+    public void setAccountConfiguration(AccountConfiguration accountConfiguration,
+        long accountHash) {
         ensureInitialized();
         if (accountHash == INVALID_ACCOUNT_HASH) {
             throw new IllegalStateException("accountHash is invalid");
@@ -124,7 +125,8 @@ public class AccountConfigurationService implements BUPluginLifecycle {
         currentAccountConfigurationChangeListeners.remove(listener);
     }
 
-    public void addCurrentAccountHashToAutoOpenConfigurationDisabled() throws IllegalStateException {
+    public void addCurrentAccountHashToAutoOpenConfigurationDisabled()
+        throws IllegalStateException {
         long accountHash = client.getAccountHash();
         if (accountHash == INVALID_ACCOUNT_HASH) {
             throw new IllegalStateException("accountHash is invalid");
@@ -154,7 +156,8 @@ public class AccountConfigurationService implements BUPluginLifecycle {
         return accountConfigurationMap != null;
     }
 
-    private void notifyCurrentAccountConfigurationChange(AccountConfiguration accountConfiguration) {
+    private void notifyCurrentAccountConfigurationChange(
+        AccountConfiguration accountConfiguration) {
         for (Consumer<AccountConfiguration> listener : currentAccountConfigurationChangeListeners) {
             try {
                 listener.accept(accountConfiguration);
@@ -177,7 +180,10 @@ public class AccountConfigurationService implements BUPluginLifecycle {
             return;
         }
 
-        Map<Long, AccountConfiguration> parsed = gson.fromJson(json, ACCOUNT_CONFIGURATION_MAP_TYPE);
+        Map<Long, AccountConfiguration> parsed = gson.fromJson(
+            json,
+            ACCOUNT_CONFIGURATION_MAP_TYPE
+        );
         if (parsed == null) {
             // Defensive: gson can return null for malformed or "null" input
             parsed = new ConcurrentHashMap<>();
@@ -193,8 +199,10 @@ public class AccountConfigurationService implements BUPluginLifecycle {
             return;
         }
 
-        List<Long> parsed = gson.fromJson(json,
-            AUTO_OPEN_ACCOUNT_CONFIGURATION_DISABLED_FOR_ACCOUNT_HASHES_TYPE);
+        List<Long> parsed = gson.fromJson(
+            json,
+            AUTO_OPEN_ACCOUNT_CONFIGURATION_DISABLED_FOR_ACCOUNT_HASHES_TYPE
+        );
         if (parsed == null) {
             parsed = new ArrayList<>();
         }
@@ -218,8 +226,10 @@ public class AccountConfigurationService implements BUPluginLifecycle {
         final String json = gson.toJson(accountConfigurationMap);
         // Only write if changed to avoid redundant config writes
         if (!Objects.equals(json, lastStoredAccountConfigurationMapJson)) {
-            configManager.setConfiguration(BUPluginConfig.GROUP,
-                BUPluginConfig.ACCOUNT_CONFIG_MAP_JSON_KEY, json);
+            configManager.setConfiguration(
+                BUPluginConfig.GROUP,
+                BUPluginConfig.ACCOUNT_CONFIG_MAP_JSON_KEY, json
+            );
             lastStoredAccountConfigurationMapJson = json;
         }
     }

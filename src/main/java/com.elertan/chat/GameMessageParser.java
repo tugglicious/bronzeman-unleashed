@@ -10,9 +10,11 @@ import net.runelite.client.util.Text;
 public class GameMessageParser {
 
     private static final Pattern LEVEL_UP =
-        Pattern.compile("Congratulations, you've just advanced your (.+) level\\. You are now level (\\d+)\\.");
+        Pattern.compile(
+            "Congratulations, you've just advanced your (.+) level\\. You are now level (\\d+)\\.");
     private static final Pattern MAX_LEVEL_UP =
-        Pattern.compile("Congratulations, you've reached the highest possible (.+) level of (\\d+)\\.");
+        Pattern.compile(
+            "Congratulations, you've reached the highest possible (.+) level of (\\d+)\\.");
     private static final Pattern TOTAL_LEVEL =
         Pattern.compile("Congratulations, you've reached a total level of (\\d+)\\.");
     private static final Pattern COMBAT_TASK =

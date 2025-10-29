@@ -11,11 +11,11 @@ public class MainScreenViewModel {
     private MainScreenViewModel() {
     }
 
-    public void onUnlockedItemsNavigateToConfig() {
+    public void navigateToConfig() {
         mainScreen.set(MainScreen.CONFIG);
     }
 
-    public void onConfigNavigateToUnlockedItems() {
+    public void navigateToUnlockedItems() {
         mainScreen.set(MainScreen.UNLOCKED_ITEMS);
     }
 

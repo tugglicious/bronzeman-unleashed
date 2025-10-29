@@ -80,7 +80,10 @@ public final class SetupScreenViewModel implements AutoCloseable {
 
         // We also want to grab the game rules from the remote database, if they exist
         firebaseRealtimeDatabase = new FirebaseRealtimeDatabase(httpClient, gson, url);
-        gameRulesStoragePort = new GameRulesFirebaseObjectStorageAdapter(firebaseRealtimeDatabase, gson);
+        gameRulesStoragePort = new GameRulesFirebaseObjectStorageAdapter(
+            firebaseRealtimeDatabase,
+            gson
+        );
         gameRulesStoragePort.read().whenComplete((gameRules, throwable) -> {
             if (throwable != null) {
                 future.completeExceptionally(throwable);
@@ -203,7 +206,13 @@ public final class SetupScreenViewModel implements AutoCloseable {
 
         @Override
         public SetupScreenViewModel create() {
-            return new SetupScreenViewModel(client, buPanelService, accountConfigurationService, httpClient, gson);
+            return new SetupScreenViewModel(
+                client,
+                buPanelService,
+                accountConfigurationService,
+                httpClient,
+                gson
+            );
         }
     }
 }

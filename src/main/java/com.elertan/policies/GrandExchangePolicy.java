@@ -78,7 +78,11 @@ public class GrandExchangePolicy extends PolicyBase implements BUPluginLifecycle
             try {
                 hasUnlockedItem = itemUnlockService.hasUnlockedItem(itemId);
             } catch (Exception e) {
-                log.error("Failed to check hasUnlockedItem({}) in onGrandExchangeSearchBuild", itemId, e);
+                log.error(
+                    "Failed to check hasUnlockedItem({}) in onGrandExchangeSearchBuild",
+                    itemId,
+                    e
+                );
                 return;
             }
 
