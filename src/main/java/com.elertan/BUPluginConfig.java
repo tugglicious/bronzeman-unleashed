@@ -120,7 +120,7 @@ public interface BUPluginConfig extends Config {
 
     @ConfigItem(keyName = "chatQuestNameNameColor", name = "Quest name color", description = "The color used to draw the quest name in the chat", section = chatSection)
     default Color chatQuestNameColor() {
-        return new Color(105, 116, 242);
+        return new Color(13, 172, 242);
     }
 
     @ConfigItem(keyName = SHOULD_AUTOMATICALLY_JOIN_PARTY_KEY, name = "Auto-join party on login", description = "Whether to automatically join the party when you login on a Bronzeman character (when a party password is set)", section = partySection)
