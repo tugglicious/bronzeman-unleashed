@@ -34,6 +34,8 @@ import net.runelite.client.callback.ClientThread;
 import net.runelite.client.chat.ChatMessageBuilder;
 import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.chat.QueuedMessage;
+import net.runelite.client.game.ChatIconManager;
+import net.runelite.client.game.ItemManager;
 import net.runelite.client.util.ColorUtil;
 
 @Slf4j
@@ -53,6 +55,10 @@ public class BUChatService implements BUPluginLifecycle {
     private ClientThread clientThread;
     @Inject
     private ChatMessageManager chatMessageManager;
+    @Inject
+    private ChatIconManager chatIconManager;
+    @Inject
+    private ItemManager itemManager;
     @Inject
     private BUPluginConfig config;
     @Inject
@@ -155,7 +161,7 @@ public class BUChatService implements BUPluginLifecycle {
                 }
 
                 clientThread.invokeLater(() -> {
-                    String messageChatIcon = getMessageChatIcon();
+                    String messageChatIcon = getMessageChatIconTag();
 
                     if (messageChatIcon == null) {
                         throw new IllegalStateException("Chat icon has not been set");
@@ -244,7 +250,7 @@ public class BUChatService implements BUPluginLifecycle {
     }
 
     private void addIconToChatMessage(ChatMessage chatMessage) {
-        String messageChatIcon = getMessageChatIcon();
+        String messageChatIcon = getMessageChatIconTag();
         if (messageChatIcon == null) {
             return;
         }
@@ -257,7 +263,7 @@ public class BUChatService implements BUPluginLifecycle {
     }
 
     private void manageIconOnChatbox(boolean isShuttingDown) {
-        String messageChatIcon = getMessageChatIcon();
+        String messageChatIcon = getMessageChatIconTag();
         if (messageChatIcon == null) {
             return;
         }
@@ -290,7 +296,7 @@ public class BUChatService implements BUPluginLifecycle {
         }
     }
 
-    private String getMessageChatIcon() {
+    private String getMessageChatIconTag() {
         BUResourceService.BUModIcons buModIcons = buResourceService.getBuModIcons();
         if (buModIcons == null) {
             log.error("buModIcons is null, can't get chatIconId");
@@ -298,5 +304,10 @@ public class BUChatService implements BUPluginLifecycle {
         }
         int chatIconId = buModIcons.getChatIconId();
         return "<img=" + chatIconId + ">";
+    }
+
+    public CompletableFuture<String> getItemIconTag(int itemId) {
+        return buResourceService.getOrSetupItemImageModIconId(itemId)
+            .thenApply((id) -> "<img=" + id + ">");
     }
 }

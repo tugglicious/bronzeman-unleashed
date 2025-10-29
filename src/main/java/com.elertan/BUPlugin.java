@@ -25,6 +25,7 @@ import net.runelite.api.events.ScriptPostFired;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.events.WidgetClosed;
 import net.runelite.api.events.WidgetLoaded;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
@@ -33,11 +34,8 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 
 @Slf4j
-@PluginDescriptor(
-    name = "Bronzeman Unleashed",
-    description = "Bronzeman Unleashed description",
-    tags = {"bronzeman"}
-)
+@PluginDescriptor(name = "Bronzeman Unleashed", description = "Bronzeman Unleashed description", tags = {
+    "bronzeman"})
 public final class BUPlugin extends Plugin {
 
     @Inject
@@ -83,6 +81,8 @@ public final class BUPlugin extends Plugin {
 
     @Inject
     private Client client;
+    @Inject
+    private ClientThread clientThread;
     @Inject
     private BUPluginConfig config;
 

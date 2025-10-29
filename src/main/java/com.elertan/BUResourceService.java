@@ -4,6 +4,8 @@ import com.elertan.resource.BUImageUtil;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.swing.ImageIcon;
@@ -12,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.IndexedSprite;
 import net.runelite.client.callback.ClientThread;
+import net.runelite.client.game.ItemManager;
+import net.runelite.client.util.AsyncBufferedImage;
 import net.runelite.client.util.ImageUtil;
 
 @Slf4j
@@ -40,10 +44,13 @@ public class BUResourceService implements BUPluginLifecycle {
     @Getter
     private final ImageIcon loadingSpinnerImageIcon = new ImageIcon(Objects.requireNonNull(BUPlugin.class.getResource(
         LOADING_SPINNER_FILE_PATH)));
+    private final ConcurrentHashMap<Integer, Integer> itemImageModIconIdCache = new ConcurrentHashMap<>();
     @Inject
     private Client client;
     @Inject
     private ClientThread clientThread;
+    @Inject
+    private ItemManager itemManager;
     @Getter
     private BUModIcons buModIcons;
 
@@ -66,7 +73,7 @@ public class BUResourceService implements BUPluginLifecycle {
         }
 
         // Mod icons
-        BufferedImage chatIcon = BUImageUtil.resizeNearest(iconBufferedImage, 13, 13);
+        BufferedImage chatIcon = BUImageUtil.resizeNearest(iconBufferedImage, 13, 13, 0, 0);
         IndexedSprite chatIconSprite = ImageUtil.getImageIndexedSprite(chatIcon, client);
 
         int chatIconId = modIcons.length;
@@ -77,6 +84,36 @@ public class BUResourceService implements BUPluginLifecycle {
 
         this.buModIcons = new BUModIcons(chatIconId);
         log.info("BUResourceService: mod icons and sprites initialized");
+    }
+
+    public CompletableFuture<Integer> getOrSetupItemImageModIconId(int itemId) {
+        CompletableFuture<Integer> future = new CompletableFuture<>();
+
+        if (itemImageModIconIdCache.containsKey(itemId)) {
+            Integer modIconId = itemImageModIconIdCache.get(itemId);
+            if (modIconId != null) {
+                future.complete(modIconId);
+                return future;
+            }
+        }
+
+        clientThread.invokeLater(() -> {
+            AsyncBufferedImage asyncBufferedImage = itemManager.getImage(itemId);
+            BufferedImage resized = BUImageUtil.resizeNearest(asyncBufferedImage, 15, 15, 2, 2);
+            IndexedSprite sprite = ImageUtil.getImageIndexedSprite(resized, client);
+            IndexedSprite[] modIcons = client.getModIcons();
+            int lastIdx = modIcons.length;
+            IndexedSprite[] newModIcons = Arrays.copyOf(
+                modIcons,
+                lastIdx + 1
+            );
+            newModIcons[lastIdx] = sprite;
+            client.setModIcons(newModIcons);
+
+            future.complete(lastIdx);
+        });
+
+        return future;
     }
 
     public static class BUModIcons {
