@@ -160,6 +160,16 @@ public class UnlockedItemsDataProvider implements BUPluginLifecycle {
         return keyValueStoragePort.update(unlockedItem.getId(), unlockedItem);
     }
 
+    public CompletableFuture<Void> removeUnlockedItemById(int itemId) {
+        if (state != State.Ready) {
+            Exception ex = new IllegalStateException("State is not ready");
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(ex);
+            return future;
+        }
+        return keyValueStoragePort.delete(itemId);
+    }
+
     private void remoteStorageServiceStateListener(RemoteStorageService.State state) {
         if (state == RemoteStorageService.State.NotReady) {
             unlockedItemsMap = null;

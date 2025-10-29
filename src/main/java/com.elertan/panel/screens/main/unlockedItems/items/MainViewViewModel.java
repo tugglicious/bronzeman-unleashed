@@ -1,5 +1,6 @@
 package com.elertan.panel.screens.main.unlockedItems.items;
 
+import com.elertan.ItemUnlockService;
 import com.elertan.data.MembersDataProvider;
 import com.elertan.models.Member;
 import com.elertan.models.UnlockedItem;
@@ -15,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.swing.JOptionPane;
 import lombok.Getter;
 import net.runelite.api.Client;
 import net.runelite.api.NPCComposition;
@@ -33,6 +35,7 @@ public class MainViewViewModel implements AutoCloseable {
     private final MembersDataProvider membersDataProvider;
     private final ClientThread clientThread;
     private final Client client;
+    private final ItemUnlockService itemUnlockService;
     private final PropertyChangeListener allUnlockedItemsListener = this::allUnlockedItemsListener;
     private final MembersDataProvider.MemberMapListener memberMapListener;
     private final ItemManager itemManager;
@@ -45,12 +48,14 @@ public class MainViewViewModel implements AutoCloseable {
         MembersDataProvider membersDataProvider,
         ItemManager itemManager,
         ClientThread clientThread,
-        Client client
+        Client client,
+        ItemUnlockService itemUnlockService
     ) {
         this.allUnlockedItems = allUnlockedItems;
         this.membersDataProvider = membersDataProvider;
         this.clientThread = clientThread;
         this.client = client;
+        this.itemUnlockService = itemUnlockService;
 
         allUnlockedItems.addListener(allUnlockedItemsListener);
         onNewUnlockedItems(allUnlockedItems.get());
@@ -199,6 +204,31 @@ public class MainViewViewModel implements AutoCloseable {
         allUnlockedItems.removeListener(allUnlockedItemsListener);
     }
 
+    public void removeFromUnlockedItems(ListItem listItem) {
+        UnlockedItem unlockedItem = listItem.getItem();
+        if (unlockedItem == null) {
+            return;
+        }
+
+        int result = JOptionPane.showConfirmDialog(
+            null,
+            String.format(
+                "Removing '%s' from the unlocked items is a permanent action.\n\n",
+                unlockedItem.getName()
+            )
+                + "This means in order to unlock this item again, you will need to acquire it again.",
+            "Confirm remove unlocked item",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        );
+        if (result != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        int itemId = unlockedItem.getId();
+        itemUnlockService.removeUnlockedItemById(itemId);
+    }
+
     private void allUnlockedItemsListener(PropertyChangeEvent propertyChangeEvent) {
         List<UnlockedItem> newUnlockedItems = (List<UnlockedItem>) propertyChangeEvent.getNewValue();
         onNewUnlockedItems(newUnlockedItems);
@@ -256,6 +286,8 @@ public class MainViewViewModel implements AutoCloseable {
         private ClientThread clientThread;
         @Inject
         private Client client;
+        @Inject
+        private ItemUnlockService itemUnlockService;
 
         @Override
         public MainViewViewModel create(
@@ -272,7 +304,8 @@ public class MainViewViewModel implements AutoCloseable {
                 membersDataProvider,
                 itemManager,
                 clientThread,
-                client
+                client,
+                itemUnlockService
             );
         }
     }

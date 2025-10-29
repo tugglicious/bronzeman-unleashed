@@ -280,6 +280,37 @@ public class ItemUnlockService implements BUPluginLifecycle {
         return map.containsKey(itemId);
     }
 
+    public CompletableFuture<Void> removeUnlockedItemById(int itemId) {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        boolean hasUnlockedItem;
+        try {
+            hasUnlockedItem = hasUnlockedItem(itemId);
+        } catch (Exception ex) {
+            future.completeExceptionally(ex);
+            return future;
+        }
+        if (!hasUnlockedItem) {
+            log.warn(
+                "Attempted to remove unlocked item with id {} but it is not unlocked yet",
+                itemId
+            );
+            future.complete(null);
+            return future;
+        }
+
+        unlockedItemsDataProvider.removeUnlockedItemById(itemId).whenComplete((__, throwable) -> {
+            if (throwable != null) {
+                future.completeExceptionally(throwable);
+                return;
+            }
+
+            log.info("Removed unlocked item with id {}", itemId);
+            future.complete(null);
+        });
+
+        return future;
+    }
+
     private CompletableFuture<Void> unlockItem(int initialItemId, Integer droppedByNPCId) {
         CompletableFuture<Void> future = new CompletableFuture<>();
 

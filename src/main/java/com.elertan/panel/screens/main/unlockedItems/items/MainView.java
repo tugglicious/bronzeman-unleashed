@@ -10,6 +10,8 @@ import com.google.inject.Inject;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.GridBagLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeListener;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -17,13 +19,17 @@ import java.util.function.Consumer;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.util.AsyncBufferedImage;
 
+@Slf4j
 public class MainView extends JPanel implements AutoCloseable {
 
     private final MainViewViewModel viewModel;
@@ -96,6 +102,42 @@ public class MainView extends JPanel implements AutoCloseable {
 
         list.setLayoutOrientation(JList.HORIZONTAL_WRAP);
         list.setVisibleRowCount(-1);
+
+        JPopupMenu contextMenu = new JPopupMenu();
+        JMenuItem removeFromUnlockedItemsMenuItem = new JMenuItem("Remove from unlocked items");
+        contextMenu.add(removeFromUnlockedItemsMenuItem);
+
+        removeFromUnlockedItemsMenuItem.addActionListener(e -> {
+            MainViewViewModel.ListItem selected = list.getSelectedValue();
+            if (selected == null) {
+                return;
+            }
+
+            viewModel.removeFromUnlockedItems(selected);
+        });
+
+        // Show the popup on right click and select the item under the cursor
+        list.addMouseListener(new MouseAdapter() {
+            private void maybeShowPopup(MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    int index = list.locationToIndex(e.getPoint());
+                    if (index != -1) {
+                        list.setSelectedIndex(index);
+                        contextMenu.show(list, e.getX(), e.getY());
+                    }
+                }
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                maybeShowPopup(e);
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                maybeShowPopup(e);
+            }
+        });
 
         list.setCellRenderer((jl, listItem, index, isSelected, cellHasFocus) -> {
             JLabel label = new JLabel();
