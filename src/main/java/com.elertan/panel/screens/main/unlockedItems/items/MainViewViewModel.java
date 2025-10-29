@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.swing.JOptionPane;
 import lombok.Getter;
@@ -31,7 +32,7 @@ public class MainViewViewModel implements AutoCloseable {
     private final Property<List<UnlockedItem>> allUnlockedItems;
     private final Property<Map<Long, Member>> membersMap;
     private final Property<Map<Integer, String>> npcIdToNameMap = new Property<>(null);
-    private final Map<Integer, AsyncBufferedImage> iconCache = new HashMap<>();
+    private final Map<Integer, AsyncBufferedImage> iconCache = new ConcurrentHashMap<>();
     private final MembersDataProvider membersDataProvider;
     private final ClientThread clientThread;
     private final Client client;
