@@ -13,6 +13,7 @@ import com.elertan.event.DiaryCompletionAchievementBUEvent;
 import com.elertan.event.QuestCompletionAchievementBUEvent;
 import com.elertan.event.SkillLevelUpAchievementBUEvent;
 import com.elertan.event.TotalLevelAchievementBUEvent;
+import com.elertan.event.ValuableLootBUEvent;
 import com.elertan.models.Member;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
@@ -22,6 +23,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
+import net.runelite.api.ItemComposition;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.chat.ChatMessageBuilder;
 
 @Slf4j
@@ -31,6 +34,8 @@ public class ChatMessageEventBroadcaster implements BUPluginLifecycle {
     @Inject
     private Client client;
     @Inject
+    private ClientThread clientThread;
+    @Inject
     private BUPluginConfig config;
     @Inject
     private BUEventService buEventService;
@@ -38,6 +43,7 @@ public class ChatMessageEventBroadcaster implements BUPluginLifecycle {
     private BUChatService buChatService;
     @Inject
     private MemberService memberService;
+
     private final Map<BUEventType, Function<BUEvent, String>> eventToChatMessageTransformers =
         ImmutableMap.<BUEventType, Function<BUEvent, String>>builder()
             .put(BUEventType.SkillLevelUpAchievement, this::transformSkillLevelUpAchievementEvent)
@@ -52,7 +58,9 @@ public class ChatMessageEventBroadcaster implements BUPluginLifecycle {
                 BUEventType.DiaryCompletionAchievement,
                 this::transformDiaryCompletionAchievementEvent
             )
+            .put(BUEventType.ValuableLoot, this::transformValuableLootEvent)
             .build();
+
     private final Consumer<BUEvent> eventListener = this::eventListener;
 
     @Override
@@ -66,27 +74,27 @@ public class ChatMessageEventBroadcaster implements BUPluginLifecycle {
     }
 
     private void eventListener(BUEvent event) {
-        long fromAccountHash = event.getDispatchedFromAccountHash();
-
-        if (client.getAccountHash() == fromAccountHash) {
-            // This event is from us, so we should ignore it
-            return;
-        }
-
         BUEventType type = event.getType();
         Function<BUEvent, String> chatMessageTransformer = eventToChatMessageTransformers.get(type);
         if (chatMessageTransformer == null) {
             return;
         }
-        String message = chatMessageTransformer.apply(event);
-        if (message == null) {
-//            log.warn("chat achievement event listener daemon has transformed event ({}) to message but message is null", type.name());
-            return;
-        }
-        buChatService.sendMessage(message);
+
+        // Invoke on client thread, because some APIs require it
+        clientThread.invokeLater(() -> {
+            String message = chatMessageTransformer.apply(event);
+            if (message == null) {
+                return;
+            }
+            buChatService.sendMessage(message);
+        });
     }
 
     private String transformSkillLevelUpAchievementEvent(BUEvent event) {
+        if (client.getAccountHash() == event.getDispatchedFromAccountHash()) {
+            return null;
+        }
+
         SkillLevelUpAchievementBUEvent e = (SkillLevelUpAchievementBUEvent) event;
         Member member = memberService.getMemberByAccountHash(e.getDispatchedFromAccountHash());
         if (member == null) {
@@ -117,6 +125,10 @@ public class ChatMessageEventBroadcaster implements BUPluginLifecycle {
     }
 
     private String transformTotalLevelAchievementEvent(BUEvent event) {
+        if (client.getAccountHash() == event.getDispatchedFromAccountHash()) {
+            return null;
+        }
+
         TotalLevelAchievementBUEvent e = (TotalLevelAchievementBUEvent) event;
         Member member = memberService.getMemberByAccountHash(e.getDispatchedFromAccountHash());
         if (member == null) {
@@ -137,6 +149,10 @@ public class ChatMessageEventBroadcaster implements BUPluginLifecycle {
     }
 
     private String transformCombatLevelUpAchievementEvent(BUEvent event) {
+        if (client.getAccountHash() == event.getDispatchedFromAccountHash()) {
+            return null;
+        }
+
         CombatLevelUpAchievementBUEvent e = (CombatLevelUpAchievementBUEvent) event;
         Member member = memberService.getMemberByAccountHash(e.getDispatchedFromAccountHash());
         if (member == null) {
@@ -163,6 +179,10 @@ public class ChatMessageEventBroadcaster implements BUPluginLifecycle {
     }
 
     private String transformCombatTaskAchievementEvent(BUEvent event) {
+        if (client.getAccountHash() == event.getDispatchedFromAccountHash()) {
+            return null;
+        }
+
         CombatTaskAchievementBUEvent e = (CombatTaskAchievementBUEvent) event;
         Member member = memberService.getMemberByAccountHash(e.getDispatchedFromAccountHash());
         if (member == null) {
@@ -184,6 +204,10 @@ public class ChatMessageEventBroadcaster implements BUPluginLifecycle {
     }
 
     private String transformQuestCompletionAchievementEvent(BUEvent event) {
+        if (client.getAccountHash() == event.getDispatchedFromAccountHash()) {
+            return null;
+        }
+
         QuestCompletionAchievementBUEvent e = (QuestCompletionAchievementBUEvent) event;
         Member member = memberService.getMemberByAccountHash(e.getDispatchedFromAccountHash());
         if (member == null) {
@@ -204,6 +228,10 @@ public class ChatMessageEventBroadcaster implements BUPluginLifecycle {
 
 
     private String transformDiaryCompletionAchievementEvent(BUEvent event) {
+        if (client.getAccountHash() == event.getDispatchedFromAccountHash()) {
+            return null;
+        }
+
         DiaryCompletionAchievementBUEvent e = (DiaryCompletionAchievementBUEvent) event;
         Member member = memberService.getMemberByAccountHash(e.getDispatchedFromAccountHash());
         if (member == null) {
@@ -221,6 +249,37 @@ public class ChatMessageEventBroadcaster implements BUPluginLifecycle {
         builder.append(" tier of the ");
         builder.append(e.getArea());
         builder.append(" diary.");
+
+        return builder.build();
+    }
+
+
+    private String transformValuableLootEvent(BUEvent event) {
+        ValuableLootBUEvent e = (ValuableLootBUEvent) event;
+        Member member = memberService.getMemberByAccountHash(e.getDispatchedFromAccountHash());
+        if (member == null) {
+            log.error(
+                "could not find member by hash {} at transformValuableLootEvent",
+                e.getDispatchedFromAccountHash()
+            );
+            return null;
+        }
+
+        int totalCoins = e.getPricePerItem() * e.getQuantity();
+        ItemComposition itemComposition = client.getItemDefinition(e.getItemId());
+        String formattedCoins = String.format("%,d", totalCoins);
+
+        ChatMessageBuilder builder = new ChatMessageBuilder();
+        builder.append(config.chatPlayerNameColor(), member.getName());
+        builder.append(" has received a valuable drop: ");
+        if (e.getQuantity() > 1) {
+            builder.append(config.chatItemNameColor(), String.format("%dx ", e.getQuantity()));
+        }
+        builder.append(config.chatItemNameColor(), itemComposition.getName());
+        builder.append(" (");
+        builder.append(formattedCoins);
+        builder.append(" coins)");
+        builder.append(".");
 
         return builder.build();
     }

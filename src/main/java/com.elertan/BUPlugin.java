@@ -78,6 +78,8 @@ public final class BUPlugin extends Plugin {
     private ShopPolicy shopPolicy;
     @Inject
     private ChatMessageEventBroadcaster chatMessageEventBroadcaster;
+    @Inject
+    private LootValuationService lootValuationService;
 
     @Inject
     private Client client;
@@ -113,6 +115,7 @@ public final class BUPlugin extends Plugin {
         lifecycleDependencies.add(itemUnlockService);
         lifecycleDependencies.add(buPartyService);
         lifecycleDependencies.add(buEventService);
+        lifecycleDependencies.add(lootValuationService);
         // Policies
         lifecycleDependencies.add(grandExchangePolicy);
         lifecycleDependencies.add(tradePolicy);
@@ -198,6 +201,7 @@ public final class BUPlugin extends Plugin {
     @Subscribe
     public void onServerNpcLoot(ServerNpcLoot event) {
         itemUnlockService.onServerNpcLoot(event);
+        lootValuationService.onServerNpcLoot(event);
     }
 
     @Subscribe

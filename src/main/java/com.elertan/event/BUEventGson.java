@@ -23,6 +23,7 @@ public class BUEventGson {
             BUEventType.QuestCompletionAchievement,
             QuestCompletionAchievementBUEvent.class
         );
+        REGISTRY.put(BUEventType.ValuableLoot, ValuableLootBUEvent.class);
     }
 
     public static JsonElement serialize(Gson gson, BUEvent value) {
