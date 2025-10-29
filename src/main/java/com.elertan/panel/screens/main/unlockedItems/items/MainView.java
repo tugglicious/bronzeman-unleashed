@@ -7,7 +7,6 @@ import com.elertan.ui.Bindings;
 import com.elertan.utils.OffsetDateTimeUtils;
 import com.google.inject.ImplementedBy;
 import com.google.inject.Inject;
-import net.runelite.api.Client;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.util.AsyncBufferedImage;
 
@@ -39,6 +38,7 @@ public class MainView extends JPanel implements AutoCloseable {
 
     private final AutoCloseable cardLayoutBinding;
     private AutoCloseable listBinding;
+    private Timer relativeTimeUpdateTimer;
 
     private MainView(MainViewViewModel viewModel, BUResourceService buResourceService) {
         this.viewModel = viewModel;
@@ -51,6 +51,9 @@ public class MainView extends JPanel implements AutoCloseable {
 
     @Override
     public void close() throws Exception {
+        if (relativeTimeUpdateTimer != null && relativeTimeUpdateTimer.isRunning()) {
+            relativeTimeUpdateTimer.stop();
+        }
         if (listBinding != null) {
             listBinding.close();
         }
@@ -165,20 +168,18 @@ public class MainView extends JPanel implements AutoCloseable {
         return panel;
     }
 
-    private Timer relativeTimeTimer;
-
     private void scheduleRelativeTimeUpdate(JList<?> list) {
         // cancel previous timer if active
-        if (relativeTimeTimer != null && relativeTimeTimer.isRunning()) {
-            relativeTimeTimer.stop();
+        if (relativeTimeUpdateTimer != null && relativeTimeUpdateTimer.isRunning()) {
+            relativeTimeUpdateTimer.stop();
         }
 
         // start a new 1-minute timer
-        relativeTimeTimer = new Timer(60_000, e -> {
+        relativeTimeUpdateTimer = new Timer(60_000, e -> {
             list.repaint();               // update visible relative times
             scheduleRelativeTimeUpdate(list); // restart countdown
         });
-        relativeTimeTimer.setRepeats(false);
-        relativeTimeTimer.start();
+        relativeTimeUpdateTimer.setRepeats(false);
+        relativeTimeUpdateTimer.start();
     }
 }
