@@ -6,32 +6,25 @@ import com.elertan.remote.ObjectStoragePort;
 import com.elertan.remote.RemoteStorageService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Singleton
 public class LastEventDataProvider implements BUPluginLifecycle {
-    public enum State {
-        NotReady,
-        Ready,
-    }
 
-    @Inject
-    private RemoteStorageService remoteStorageService;
-
-    @Getter
-    private State state = State.NotReady;
     private final ConcurrentLinkedQueue<Consumer<State>> stateListeners = new ConcurrentLinkedQueue<>();
     private final ConcurrentLinkedQueue<Consumer<BUEvent>> eventListeners = new ConcurrentLinkedQueue<>();
-    private final Consumer<RemoteStorageService.State> remoteStorageServiceStateListener = this::remoteStorageServiceStateListener;
-
+    @Inject
+    private RemoteStorageService remoteStorageService;
+    @Getter
+    private State state = State.NotReady;
     private ObjectStoragePort<BUEvent> storagePort;
     private ObjectStoragePort.Listener<BUEvent> storagePortListener;
+    private final Consumer<RemoteStorageService.State> remoteStorageServiceStateListener = this::remoteStorageServiceStateListener;
 
     @Override
     public void startUp() throws Exception {
@@ -120,5 +113,10 @@ public class LastEventDataProvider implements BUPluginLifecycle {
                 log.error("set state listener last event data provider error", e);
             }
         }
+    }
+
+    public enum State {
+        NotReady,
+        Ready,
     }
 }

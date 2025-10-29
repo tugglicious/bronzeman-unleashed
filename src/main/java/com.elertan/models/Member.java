@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class Member {
+
     @JsonAdapter(AccountHashJsonAdapter.class)
     @Getter
     @Setter

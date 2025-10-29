@@ -1,8 +1,21 @@
 package com.elertan.overlays;
 
-import com.elertan.*;
+import com.elertan.AccountConfigurationService;
+import com.elertan.BUPluginConfig;
+import com.elertan.BUResourceService;
+import com.elertan.MemberService;
 import com.elertan.data.MembersDataProvider;
 import com.elertan.models.Member;
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Composite;
+import java.awt.Dimension;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.ItemComposition;
@@ -15,15 +28,10 @@ import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.util.AsyncBufferedImage;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import java.awt.*;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
 @Slf4j
 @Singleton
 public class ItemUnlockOverlay extends Overlay {
+
     // Frame + layout
     private static final int WIDTH = 250;
     private static final int HEIGHT = 70;
@@ -35,7 +43,8 @@ public class ItemUnlockOverlay extends Overlay {
     private static final int SWAP_TIME_MS = 350;     // crossfade between items (image+name only)
 
     private static final String TITLE = "Item Unlocked";
-
+    // Queue + items
+    private final ConcurrentLinkedQueue<UnlockToast> queue = new ConcurrentLinkedQueue<>();
     @Inject
     private ItemManager itemManager;
     @Inject
@@ -52,22 +61,13 @@ public class ItemUnlockOverlay extends Overlay {
     private MemberService memberService;
     @Inject
     private AccountConfigurationService accountConfigurationService;
-
-    // Queue + items
-    private final ConcurrentLinkedQueue<UnlockToast> queue = new ConcurrentLinkedQueue<>();
     private UnlockToast current;
     private UnlockToast next;
-
-    // State machine
-    private enum Phase {IDLE, OPENING, SHOWING, SWAPPING, CLOSING}
-
     private Phase phase = Phase.IDLE;
-
     // Clocks
     private long overlayT0;    // frame open/close animation start
     private long itemT0;       // current item start
     private long swapT0;       // swap start
-
     // Session layout lock to avoid height jumps
     private int sessionFrameHeight = HEIGHT;
 
@@ -77,29 +77,52 @@ public class ItemUnlockOverlay extends Overlay {
         setLayer(OverlayLayer.ABOVE_WIDGETS);
     }
 
+    private static float progress(long now, long t0, int durationMs) {
+        if (durationMs <= 0) {
+            return 1f;
+        }
+        return clamp01((now - t0) / (float) durationMs);
+    }
+
+    private static float clamp01(float v) {
+        if (v < 0f) {
+            return 0f;
+        }
+        if (v > 1f) {
+            return 1f;
+        }
+        return v;
+    }
+
+    private static long elapsed(long now, long t0) {
+        return Math.max(0L, now - t0);
+    }
+
+    // ----- helpers -----
+
     public void enqueueShowUnlock(int itemId, long acquiredByAccountHash, Integer droppedByNPCId) {
         // We need members information for acquired by, waiting just in case
         membersDataProvider.waitUntilReady(null)
-                .whenComplete((__, throwable) -> {
-                    if (throwable != null) {
-                        log.error("error waiting for members data provider to complete");
-                        return;
-                    }
+            .whenComplete((__, throwable) -> {
+                if (throwable != null) {
+                    log.error("error waiting for members data provider to complete");
+                    return;
+                }
 
-                    clientThread.invokeLater(() -> {
-                        AsyncBufferedImage img = itemManager.getImage(itemId, 1, false);
-                        String droppedBy = null;
-                        if (droppedByNPCId != null) {
-                            NPCComposition npcComposition = client.getNpcDefinition(droppedByNPCId);
-                            droppedBy = npcComposition.getName();
-                        }
-                        queue.add(new UnlockToast(itemId, acquiredByAccountHash, droppedBy, img));
-                        if (phase == Phase.IDLE && current == null) {
-                            current = queue.poll();
-                            startOpeningSession();
-                        }
-                    });
+                clientThread.invokeLater(() -> {
+                    AsyncBufferedImage img = itemManager.getImage(itemId, 1, false);
+                    String droppedBy = null;
+                    if (droppedByNPCId != null) {
+                        NPCComposition npcComposition = client.getNpcDefinition(droppedByNPCId);
+                        droppedBy = npcComposition.getName();
+                    }
+                    queue.add(new UnlockToast(itemId, acquiredByAccountHash, droppedBy, img));
+                    if (phase == Phase.IDLE && current == null) {
+                        current = queue.poll();
+                        startOpeningSession();
+                    }
                 });
+            });
     }
 
     @Override
@@ -260,27 +283,10 @@ public class ItemUnlockOverlay extends Overlay {
         return new Dimension(WIDTH, sessionFrameHeight);
     }
 
-    // ----- helpers -----
-
     private void startOpeningSession() {
         overlayT0 = System.currentTimeMillis();
         sessionFrameHeight = config.showAcquiredByInUnlockOverlay() ? (HEIGHT + ACQUIRED_BY_HEIGHT) : HEIGHT;
         phase = Phase.OPENING;
-    }
-
-    private static float progress(long now, long t0, int durationMs) {
-        if (durationMs <= 0) return 1f;
-        return clamp01((now - t0) / (float) durationMs);
-    }
-
-    private static float clamp01(float v) {
-        if (v < 0f) return 0f;
-        if (v > 1f) return 1f;
-        return v;
-    }
-
-    private static long elapsed(long now, long t0) {
-        return Math.max(0L, now - t0);
     }
 
     private void drawFrame(Graphics2D g, int x, int y, int w, int h) {
@@ -302,7 +308,9 @@ public class ItemUnlockOverlay extends Overlay {
     }
 
     private void drawTitle(Graphics2D g, int frameX, int y, int visibleWidth, int visibleHeight, float alpha) {
-        if (alpha <= 0f) return;
+        if (alpha <= 0f) {
+            return;
+        }
 
         final Composite old = g.getComposite();
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
@@ -327,9 +335,13 @@ public class ItemUnlockOverlay extends Overlay {
         g.setComposite(old);
     }
 
-    private void drawItemBlock(Graphics2D g, UnlockToast toast, int frameX, int y,
-                               int visibleWidth, int visibleHeight, float alpha) {
-        if (alpha <= 0f) return;
+    private void drawItemBlock(
+        Graphics2D g, UnlockToast toast, int frameX, int y,
+        int visibleWidth, int visibleHeight, float alpha
+    ) {
+        if (alpha <= 0f) {
+            return;
+        }
 
         final Composite old = g.getComposite();
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
@@ -398,18 +410,22 @@ public class ItemUnlockOverlay extends Overlay {
     }
 
     private boolean shouldShowAcquiredBy(long acquiredByAccountHash) {
-        if (!config.showAcquiredByInUnlockOverlay()) return false;
+        if (!config.showAcquiredByInUnlockOverlay()) {
+            return false;
+        }
 
         if (!config.showAcquiredByInUnlockOverlayForSelf()) {
             long accountHash = client.getAccountHash();
-            if (Objects.equals(accountHash, acquiredByAccountHash)) {
-                return false;
-            }
+            return !Objects.equals(accountHash, acquiredByAccountHash);
         }
         return true;
     }
 
+    // State machine
+    private enum Phase {IDLE, OPENING, SHOWING, SWAPPING, CLOSING}
+
     private static final class UnlockToast {
+
         final int itemId;
         final long acquiredByAccountHash;
         final String droppedBy;

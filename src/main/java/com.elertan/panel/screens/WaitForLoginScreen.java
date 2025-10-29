@@ -4,26 +4,16 @@ import com.elertan.BUResourceService;
 import com.google.inject.ImplementedBy;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Font;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 public class WaitForLoginScreen extends JPanel {
-    @ImplementedBy(FactoryImpl.class)
-    public interface Factory {
-        WaitForLoginScreen create();
-    }
-
-    @Singleton
-    private static class FactoryImpl implements Factory {
-        @Inject
-        private BUResourceService buResourceService;
-
-        @Override
-        public WaitForLoginScreen create() {
-            return new WaitForLoginScreen(buResourceService);
-        }
-    }
 
     private WaitForLoginScreen(BUResourceService buResourceService) {
         setLayout(new BorderLayout());
@@ -54,5 +44,23 @@ public class WaitForLoginScreen extends JPanel {
         inner.add(loadingSpinnerLabel);
 
         add(inner, BorderLayout.NORTH);
+    }
+
+    @ImplementedBy(FactoryImpl.class)
+    public interface Factory {
+
+        WaitForLoginScreen create();
+    }
+
+    @Singleton
+    private static class FactoryImpl implements Factory {
+
+        @Inject
+        private BUResourceService buResourceService;
+
+        @Override
+        public WaitForLoginScreen create() {
+            return new WaitForLoginScreen(buResourceService);
+        }
     }
 }

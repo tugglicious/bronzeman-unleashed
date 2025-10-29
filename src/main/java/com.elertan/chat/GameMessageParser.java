@@ -1,31 +1,31 @@
 package com.elertan.chat;
 
-import net.runelite.client.util.Text;
-
-import java.util.List;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import net.runelite.client.util.Text;
 
 public class GameMessageParser {
+
     private static final Pattern LEVEL_UP =
-            Pattern.compile("Congratulations, you've just advanced your (.+) level\\. You are now level (\\d+)\\.");
+        Pattern.compile("Congratulations, you've just advanced your (.+) level\\. You are now level (\\d+)\\.");
     private static final Pattern MAX_LEVEL_UP =
-            Pattern.compile("Congratulations, you've reached the highest possible (.+) level of (\\d+)\\.");
+        Pattern.compile("Congratulations, you've reached the highest possible (.+) level of (\\d+)\\.");
     private static final Pattern TOTAL_LEVEL =
-            Pattern.compile("Congratulations, you've reached a total level of (\\d+)\\.");
+        Pattern.compile("Congratulations, you've reached a total level of (\\d+)\\.");
     private static final Pattern COMBAT_TASK =
-            Pattern.compile("Congratulations, you've completed a (\\w+) combat task: (.+) \\(.+");
+        Pattern.compile("Congratulations, you've completed a (\\w+) combat task: (.+) \\(.+");
     private static final Pattern QUEST_COMPLETE =
-            Pattern.compile("Congratulations, you've completed a quest: (.+)");
+        Pattern.compile("Congratulations, you've completed a quest: (.+)");
 
     private static final List<Function<String, ParsedGameMessage>> allParsers = Arrays.asList(
-            GameMessageParser::tryParseLevelUp,
-            GameMessageParser::tryParseTotalLevel,
-            GameMessageParser::tryParseCombatTask,
-            GameMessageParser::tryParseQuestComplete,
-            GameMessageParser::tryParseMaxLevelUp
+        GameMessageParser::tryParseLevelUp,
+        GameMessageParser::tryParseTotalLevel,
+        GameMessageParser::tryParseCombatTask,
+        GameMessageParser::tryParseQuestComplete,
+        GameMessageParser::tryParseMaxLevelUp
     );
 
     public static ParsedGameMessage tryParseGameMessage(String message) {

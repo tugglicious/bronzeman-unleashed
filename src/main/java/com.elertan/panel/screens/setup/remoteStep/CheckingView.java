@@ -1,11 +1,18 @@
 package com.elertan.panel.screens.setup.remoteStep;
 
 import com.elertan.ui.Bindings;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 
 public class CheckingView extends JPanel implements AutoCloseable {
+
     private final AutoCloseable cancelButtonEnabledBinding;
 
     public CheckingView(CheckingViewViewModel viewModel) {

@@ -6,68 +6,17 @@ import com.elertan.ui.Property;
 import com.google.inject.ImplementedBy;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.Setter;
 import okhttp3.OkHttpClient;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
-
 public final class RemoteStepViewViewModel implements AutoCloseable {
-    @ImplementedBy(FactoryImpl.class)
-    public interface Factory {
-        RemoteStepViewViewModel create(Listener listener);
-    }
-
-    @Singleton
-    private static class FactoryImpl implements Factory {
-        private final OkHttpClient httpClient;
-
-        @Inject
-        public FactoryImpl(OkHttpClient httpClient) {
-            this.httpClient = httpClient;
-        }
-
-        @Override
-        public RemoteStepViewViewModel create(Listener listener) {
-            return new RemoteStepViewViewModel(httpClient, listener);
-        }
-    }
-
-    public interface Listener {
-        CompletableFuture<Void> onRemoteStepFinished(FirebaseRealtimeDatabaseURL url);
-    }
-
-    private static final class TrySubmitAttempt {
-        @Setter
-        private CompletableFuture<String> future;
-        @Setter
-        private CompletableFuture<Boolean> firebaseRealtimeDatabaseCanConnectToFuture;
-        @Setter
-        private CompletableFuture<Void> onRemoteStepFinishedFuture;
-
-        public void cancel() {
-            if (future != null) {
-                future.cancel(true);
-            }
-            if (firebaseRealtimeDatabaseCanConnectToFuture != null) {
-                firebaseRealtimeDatabaseCanConnectToFuture.cancel(true);
-            }
-            if (onRemoteStepFinishedFuture != null) {
-                onRemoteStepFinishedFuture.cancel(true);
-            }
-        }
-    }
-    private final AtomicReference<TrySubmitAttempt> trySubmitAttempt = new AtomicReference<>(null);
-
-    public enum StateView {
-        ENTRY,
-        CHECKING
-    }
-
-    private final OkHttpClient httpClient;
-    private final Listener listener;
 
     public final Property<StateView> stateView = new Property<>(StateView.ENTRY);
+    private final AtomicReference<TrySubmitAttempt> trySubmitAttempt = new AtomicReference<>(null);
+    private final OkHttpClient httpClient;
+    private final Listener listener;
 
     private RemoteStepViewViewModel(OkHttpClient httpClient, Listener listener) {
         this.httpClient = httpClient;
@@ -102,7 +51,10 @@ public final class RemoteStepViewViewModel implements AutoCloseable {
             stateView.set(StateView.ENTRY);
         });
 
-        CompletableFuture<Boolean> firebaseRealtimeDatabaseCanConnectToFuture = FirebaseRealtimeDatabase.canConnectTo(httpClient, url);
+        CompletableFuture<Boolean> firebaseRealtimeDatabaseCanConnectToFuture = FirebaseRealtimeDatabase.canConnectTo(
+            httpClient,
+            url
+        );
         attempt.setFirebaseRealtimeDatabaseCanConnectToFuture(firebaseRealtimeDatabaseCanConnectToFuture);
 
         TrySubmitAttempt finalAttempt = attempt;
@@ -112,7 +64,8 @@ public final class RemoteStepViewViewModel implements AutoCloseable {
                 return;
             }
             if (!canConnect) {
-                future.complete("Could not connect to the Firebase Realtime database, please check the URL or try again later.");
+                future.complete(
+                    "Could not connect to the Firebase Realtime database, please check the URL or try again later.");
                 return;
             }
 
@@ -131,12 +84,65 @@ public final class RemoteStepViewViewModel implements AutoCloseable {
         return future;
     }
 
-
     public void onCancelChecking() {
         TrySubmitAttempt attempt = trySubmitAttempt.getAndSet(null);
         if (attempt != null) {
             attempt.cancel();
         }
         stateView.set(StateView.ENTRY);
+    }
+
+    public enum StateView {
+        ENTRY,
+        CHECKING
+    }
+
+    @ImplementedBy(FactoryImpl.class)
+    public interface Factory {
+
+        RemoteStepViewViewModel create(Listener listener);
+    }
+
+    public interface Listener {
+
+        CompletableFuture<Void> onRemoteStepFinished(FirebaseRealtimeDatabaseURL url);
+    }
+
+    @Singleton
+    private static class FactoryImpl implements Factory {
+
+        private final OkHttpClient httpClient;
+
+        @Inject
+        public FactoryImpl(OkHttpClient httpClient) {
+            this.httpClient = httpClient;
+        }
+
+        @Override
+        public RemoteStepViewViewModel create(Listener listener) {
+            return new RemoteStepViewViewModel(httpClient, listener);
+        }
+    }
+
+    private static final class TrySubmitAttempt {
+
+        @Setter
+        private CompletableFuture<String> future;
+        @Setter
+        private CompletableFuture<Boolean> firebaseRealtimeDatabaseCanConnectToFuture;
+        @Setter
+        private CompletableFuture<Void> onRemoteStepFinishedFuture;
+
+        public void cancel() {
+            if (future != null) {
+                future.cancel(true);
+            }
+            if (firebaseRealtimeDatabaseCanConnectToFuture != null) {
+                firebaseRealtimeDatabaseCanConnectToFuture.cancel(true);
+            }
+            if (onRemoteStepFinishedFuture != null) {
+                onRemoteStepFinishedFuture.cancel(true);
+            }
+        }
     }
 }

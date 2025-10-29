@@ -12,63 +12,32 @@ import com.google.gson.Gson;
 import com.google.inject.ImplementedBy;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.util.concurrent.CompletableFuture;
+import javax.swing.JOptionPane;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import okhttp3.OkHttpClient;
 
-import javax.swing.*;
-import java.util.concurrent.CompletableFuture;
-
 @Slf4j
 public final class SetupScreenViewModel implements AutoCloseable {
-    @ImplementedBy(FactoryImpl.class)
-    public interface Factory {
-        SetupScreenViewModel create();
-    }
-
-    @Singleton
-    private static final class FactoryImpl implements Factory {
-        @Inject
-        private Client client;
-        @Inject
-        private BUPanelService buPanelService;
-        @Inject
-        private AccountConfigurationService accountConfigurationService;
-        @Inject
-        private OkHttpClient httpClient;
-        @Inject
-        private Gson gson;
-
-        @Override
-        public SetupScreenViewModel create() {
-            return new SetupScreenViewModel(client, buPanelService, accountConfigurationService, httpClient, gson);
-        }
-    }
-
-    public enum Step {
-        REMOTE,
-        GAME_RULES,
-    }
 
     public final Property<Step> step = new Property<>(Step.REMOTE);
     public final Property<Boolean> gameRulesAreViewOnly = new Property<>(null);
     public final Property<GameRules> gameRules = new Property<>(null);
-
-    private FirebaseRealtimeDatabase firebaseRealtimeDatabase;
-    private GameRulesFirebaseObjectStorageAdapter gameRulesStoragePort;
-
     private final Client client;
     private final BUPanelService buPanelService;
     private final AccountConfigurationService accountConfigurationService;
     private final OkHttpClient httpClient;
     private final Gson gson;
+    private FirebaseRealtimeDatabase firebaseRealtimeDatabase;
+    private GameRulesFirebaseObjectStorageAdapter gameRulesStoragePort;
 
     private SetupScreenViewModel(
-            Client client,
-            BUPanelService buPanelService,
-            AccountConfigurationService accountConfigurationService,
-            OkHttpClient httpClient,
-            Gson gson
+        Client client,
+        BUPanelService buPanelService,
+        AccountConfigurationService accountConfigurationService,
+        OkHttpClient httpClient,
+        Gson gson
     ) {
         this.client = client;
         this.buPanelService = buPanelService;
@@ -91,12 +60,12 @@ public final class SetupScreenViewModel implements AutoCloseable {
 
     public void onDontAskMeAgainButtonClick() {
         int result = JOptionPane.showConfirmDialog(
-                null,
-                "We won't ask you again to set up bronzeman mode for this account.\n"
-                        + "You can set up bronzeman mode at any time by re-opening this panel.",
-                "Confirm setup choice",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.WARNING_MESSAGE
+            null,
+            "We won't ask you again to set up bronzeman mode for this account.\n"
+                + "You can set up bronzeman mode at any time by re-opening this panel.",
+            "Confirm setup choice",
+            JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.WARNING_MESSAGE
         );
         if (result != JOptionPane.OK_OPTION) {
             return;
@@ -160,7 +129,8 @@ public final class SetupScreenViewModel implements AutoCloseable {
             gameRules.set(null);
 
             long accountHash = client.getAccountHash();
-            AccountConfiguration accountConfiguration = new AccountConfiguration(firebaseRealtimeDatabase.getDatabaseURL());
+            AccountConfiguration accountConfiguration = new AccountConfiguration(
+                firebaseRealtimeDatabase.getDatabaseURL());
             accountConfigurationService.setAccountConfiguration(accountConfiguration, accountHash);
 
             try {
@@ -204,5 +174,36 @@ public final class SetupScreenViewModel implements AutoCloseable {
         });
 
         return future;
+    }
+
+    public enum Step {
+        REMOTE,
+        GAME_RULES,
+    }
+
+    @ImplementedBy(FactoryImpl.class)
+    public interface Factory {
+
+        SetupScreenViewModel create();
+    }
+
+    @Singleton
+    private static final class FactoryImpl implements Factory {
+
+        @Inject
+        private Client client;
+        @Inject
+        private BUPanelService buPanelService;
+        @Inject
+        private AccountConfigurationService accountConfigurationService;
+        @Inject
+        private OkHttpClient httpClient;
+        @Inject
+        private Gson gson;
+
+        @Override
+        public SetupScreenViewModel create() {
+            return new SetupScreenViewModel(client, buPanelService, accountConfigurationService, httpClient, gson);
+        }
     }
 }

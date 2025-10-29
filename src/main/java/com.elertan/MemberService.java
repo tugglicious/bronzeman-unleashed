@@ -7,20 +7,20 @@ import com.elertan.models.Member;
 import com.elertan.models.MemberRole;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.time.OffsetDateTime;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.Player;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.chat.ChatMessageBuilder;
 
-import java.time.OffsetDateTime;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Consumer;
-
 @Slf4j
 @Singleton
 public class MemberService implements BUPluginLifecycle {
+
     @Inject
     private Client client;
     @Inject
@@ -29,21 +29,23 @@ public class MemberService implements BUPluginLifecycle {
     private AccountConfigurationService accountConfigurationService;
     @Inject
     private MembersDataProvider membersDataProvider;
+    private final Consumer<AccountConfiguration> currentAccountConfigurationChangeListener = this::currentAccountConfigurationChangeListener;
     @Inject
     private BUChatService buChatService;
     @Inject
     private BUPluginConfig buPluginConfig;
-
     private MembersDataProvider.MemberMapListener memberMapListener;
-
-    private final Consumer<AccountConfiguration> currentAccountConfigurationChangeListener = this::currentAccountConfigurationChangeListener;
 
     @Override
     public void startUp() throws Exception {
         memberMapListener = new MembersDataProvider.MemberMapListener() {
             @Override
             public void onUpdate(Member member, Member old) {
-                log.info("member service -> member update: {} - old: {}", member == null ? null : member.toString(), old == null ? null : old.toString());
+                log.info(
+                    "member service -> member update: {} - old: {}",
+                    member == null ? null : member.toString(),
+                    old == null ? null : old.toString()
+                );
 
                 if (old == null) {
                     // If the updated member is not us, inform of a joi
@@ -85,14 +87,16 @@ public class MemberService implements BUPluginLifecycle {
             }
         };
 
-        accountConfigurationService.addCurrentAccountConfigurationChangeListener(currentAccountConfigurationChangeListener);
+        accountConfigurationService.addCurrentAccountConfigurationChangeListener(
+            currentAccountConfigurationChangeListener);
         membersDataProvider.addMemberMapListener(memberMapListener);
     }
 
     @Override
     public void shutDown() throws Exception {
         membersDataProvider.removeMemberMapListener(memberMapListener);
-        accountConfigurationService.removeCurrentAccountConfigurationChangeListener(currentAccountConfigurationChangeListener);
+        accountConfigurationService.removeCurrentAccountConfigurationChangeListener(
+            currentAccountConfigurationChangeListener);
     }
 
     public Member getMemberByName(String playerName) {
@@ -134,10 +138,7 @@ public class MemberService implements BUPluginLifecycle {
         if (membersMap == null || membersMap.isEmpty()) {
             return true;
         }
-        if (membersMap.size() == 1) {
-            return true;
-        }
-        return false;
+        return membersMap.size() == 1;
     }
 
     private void currentAccountConfigurationChangeListener(AccountConfiguration accountConfiguration) {
@@ -149,14 +150,17 @@ public class MemberService implements BUPluginLifecycle {
         // if we have no members, we add ourselves as the owner
         // if we do have members, but not us, we add ourselves as a member
         membersDataProvider.waitUntilReady(null)
-                .whenComplete((void1, waitUntilReadyThrowable) -> {
-                    if (waitUntilReadyThrowable != null) {
-                        log.error("member service error whilst waiting till members data provider to become ready", waitUntilReadyThrowable);
-                        return;
-                    }
+            .whenComplete((void1, waitUntilReadyThrowable) -> {
+                if (waitUntilReadyThrowable != null) {
+                    log.error(
+                        "member service error whilst waiting till members data provider to become ready",
+                        waitUntilReadyThrowable
+                    );
+                    return;
+                }
 
-                    clientThread.invokeLater(this::whenMembersDataProviderReadyAfterAccountConfigurationSet);
-                });
+                clientThread.invokeLater(this::whenMembersDataProviderReadyAfterAccountConfigurationSet);
+            });
     }
 
     private void whenMembersDataProviderReadyAfterAccountConfigurationSet() {
@@ -182,7 +186,6 @@ public class MemberService implements BUPluginLifecycle {
 
         log.info("member service check if we need to add a member...");
 
-
         boolean shouldUpdateMember = false;
         boolean shouldBeOwner = false;
         if (membersMap.isEmpty()) {
@@ -207,10 +210,10 @@ public class MemberService implements BUPluginLifecycle {
 
             MemberRole memberRole = shouldBeOwner ? MemberRole.Owner : MemberRole.Member;
             Member member = new Member(
-                    accountHash,
-                    name,
-                    now,
-                    memberRole
+                accountHash,
+                name,
+                now,
+                memberRole
             );
 
             membersDataProvider.addMember(member).whenComplete((void2, addMemberThrowable) -> {

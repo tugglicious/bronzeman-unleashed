@@ -8,33 +8,26 @@ import com.elertan.ui.Property;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.ImplementedBy;
 import com.google.inject.Inject;
-import lombok.extern.slf4j.Slf4j;
-import net.runelite.client.ui.ColorScheme;
-import net.runelite.client.ui.components.IconTextField;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import lombok.extern.slf4j.Slf4j;
+import net.runelite.client.ui.ColorScheme;
+import net.runelite.client.ui.components.IconTextField;
 
 @Slf4j
 public class HeaderView extends JPanel implements AutoCloseable {
-    @ImplementedBy(FactoryImpl.class)
-    public interface Factory {
-        HeaderView create(HeaderViewViewModel viewModel);
-    }
-
-    private static final class FactoryImpl implements Factory {
-        @Inject
-        private BUResourceService buResourceService;
-
-        @Override
-        public HeaderView create(HeaderViewViewModel viewModel) {
-            return new HeaderView(viewModel, buResourceService);
-        }
-    }
 
     private final AutoCloseable searchFieldBinding;
     private final AutoCloseable sortedByComboBoxBinding;
@@ -80,17 +73,40 @@ public class HeaderView extends JPanel implements AutoCloseable {
         JComboBox<UnlockedItemsScreenViewModel.SortedBy> sortedByComboBox = new JComboBox<>();
 
         Map<UnlockedItemsScreenViewModel.SortedBy, String> sortedByEnumToStringMap = ImmutableMap.<UnlockedItemsScreenViewModel.SortedBy, String>builder()
-                .put(UnlockedItemsScreenViewModel.SortedBy.UNLOCKED_AT_ASC, "Unlocked at (asc)")
-                .put(UnlockedItemsScreenViewModel.SortedBy.ALPHABETICAL_ASC, "Alphabetical (asc)")
-                .put(UnlockedItemsScreenViewModel.SortedBy.PLAYER_ASC, "Player (asc)")
-                .put(UnlockedItemsScreenViewModel.SortedBy.UNLOCKED_AT_DESC, "Unlocked at (desc)")
-                .put(UnlockedItemsScreenViewModel.SortedBy.ALPHABETICAL_DESC, "Alphabetical (desc)")
-                .put(UnlockedItemsScreenViewModel.SortedBy.PLAYER_DESC, "Player (desc)")
-                .build();
+            .put(
+                UnlockedItemsScreenViewModel.SortedBy.UNLOCKED_AT_ASC,
+                "Unlocked at (asc)"
+            )
+            .put(
+                UnlockedItemsScreenViewModel.SortedBy.ALPHABETICAL_ASC,
+                "Alphabetical (asc)"
+            )
+            .put(
+                UnlockedItemsScreenViewModel.SortedBy.PLAYER_ASC,
+                "Player (asc)"
+            )
+            .put(
+                UnlockedItemsScreenViewModel.SortedBy.UNLOCKED_AT_DESC,
+                "Unlocked at (desc)"
+            )
+            .put(
+                UnlockedItemsScreenViewModel.SortedBy.ALPHABETICAL_DESC,
+                "Alphabetical (desc)"
+            )
+            .put(
+                UnlockedItemsScreenViewModel.SortedBy.PLAYER_DESC,
+                "Player (desc)"
+            )
+            .build();
         Property<List<UnlockedItemsScreenViewModel.SortedBy>> sortedByOptions = new Property<>(
-                new ArrayList<>(sortedByEnumToStringMap.keySet())
+            new ArrayList<>(sortedByEnumToStringMap.keySet())
         );
-        sortedByComboBoxBinding = Bindings.bindComboBox(sortedByComboBox, sortedByOptions, viewModel.sortedBy, new Property<>(sortedByEnumToStringMap));
+        sortedByComboBoxBinding = Bindings.bindComboBox(
+            sortedByComboBox,
+            sortedByOptions,
+            viewModel.sortedBy,
+            new Property<>(sortedByEnumToStringMap)
+        );
 
         sortedByRow.add(sortedByLabel, BorderLayout.WEST);
         sortedByRow.add(sortedByComboBox, BorderLayout.CENTER);
@@ -105,28 +121,28 @@ public class HeaderView extends JPanel implements AutoCloseable {
         JComboBox<Long> unlockedByComboBox = new JComboBox<>();
 
         Property<List<Long>> unlockedByOptions = viewModel
-                .accountHashesFromAllUnlockedItems
-                .derive((list) -> {
-                    List<Long> result = new ArrayList<>(list.size() + 1);
-                    // The "Everyone" option
-                    result.add(null);
-                    result.addAll(list);
-                    return result;
-                });
+            .accountHashesFromAllUnlockedItems
+            .derive((list) -> {
+                List<Long> result = new ArrayList<>(list.size() + 1);
+                // The "Everyone" option
+                result.add(null);
+                result.addAll(list);
+                return result;
+            });
 
         Property<Map<Long, String>> unlockedByValueToStringMapProperty = viewModel
-                .accountHashToMemberNameMap
-                .derive((map) -> {
-                    Map<Long, String> result = new HashMap<>(map);
-                    result.put(null, "Everyone");
-                    return result;
-                });
+            .accountHashToMemberNameMap
+            .derive((map) -> {
+                Map<Long, String> result = new HashMap<>(map);
+                result.put(null, "Everyone");
+                return result;
+            });
 
         unlockedByComboBoxBinding = Bindings.bindComboBox(
-                unlockedByComboBox,
-                unlockedByOptions,
-                viewModel.unlockedByAccountHash,
-                unlockedByValueToStringMapProperty
+            unlockedByComboBox,
+            unlockedByOptions,
+            viewModel.unlockedByAccountHash,
+            unlockedByValueToStringMapProperty
         );
 
         unlockedByRow.add(unlockedByLabel, BorderLayout.WEST);
@@ -142,6 +158,23 @@ public class HeaderView extends JPanel implements AutoCloseable {
         unlockedByComboBoxBinding.close();
         sortedByComboBoxBinding.close();
         searchFieldBinding.close();
+    }
+
+    @ImplementedBy(FactoryImpl.class)
+    public interface Factory {
+
+        HeaderView create(HeaderViewViewModel viewModel);
+    }
+
+    private static final class FactoryImpl implements Factory {
+
+        @Inject
+        private BUResourceService buResourceService;
+
+        @Override
+        public HeaderView create(HeaderViewViewModel viewModel) {
+            return new HeaderView(viewModel, buResourceService);
+        }
     }
 
 }

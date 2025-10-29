@@ -15,38 +15,28 @@ import com.elertan.remote.firebase.storageAdapters.LastEventFirebaseObjectStorag
 import com.elertan.remote.firebase.storageAdapters.MembersFirebaseKeyValueStorageAdapter;
 import com.elertan.remote.firebase.storageAdapters.UnlockedItemsFirebaseKeyValueStorageAdapter;
 import com.google.gson.Gson;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Consumer;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.function.Consumer;
-
 @Slf4j
 @Singleton
 public class RemoteStorageService implements BUPluginLifecycle {
-    public enum State {
-        NotReady,
-        Ready
-    }
 
+    private final ConcurrentLinkedQueue<Consumer<State>> stateListeners = new ConcurrentLinkedQueue<>();
     @Inject
     private OkHttpClient httpClient;
     @Inject
     private Gson gson;
     @Inject
     private AccountConfigurationService accountConfigurationService;
-
-    private final ConcurrentLinkedQueue<Consumer<State>> stateListeners = new ConcurrentLinkedQueue<>();
-    private final Consumer<AccountConfiguration> currentAccountConfigurationChangeListener = this::currentAccountConfigurationChangeListener;
-
     @Getter
     private State state = State.NotReady;
-
     private FirebaseRealtimeDatabase firebaseRealtimeDatabase;
-
     @Getter
     private KeyValueStoragePort<Long, Member> membersStoragePort;
     @Getter
@@ -55,16 +45,19 @@ public class RemoteStorageService implements BUPluginLifecycle {
     private ObjectStoragePort<GameRules> gameRulesStoragePort;
     @Getter
     private ObjectStoragePort<BUEvent> lastEventStoragePort;
+    private final Consumer<AccountConfiguration> currentAccountConfigurationChangeListener = this::currentAccountConfigurationChangeListener;
 
     @Override
     public void startUp() {
-        accountConfigurationService.addCurrentAccountConfigurationChangeListener(currentAccountConfigurationChangeListener);
+        accountConfigurationService.addCurrentAccountConfigurationChangeListener(
+            currentAccountConfigurationChangeListener);
     }
 
     @Override
     public void shutDown() throws Exception {
         clearCurrentDataport();
-        accountConfigurationService.removeCurrentAccountConfigurationChangeListener(currentAccountConfigurationChangeListener);
+        accountConfigurationService.removeCurrentAccountConfigurationChangeListener(
+            currentAccountConfigurationChangeListener);
     }
 
     public void addStateListener(Consumer<State> listener) {
@@ -76,7 +69,9 @@ public class RemoteStorageService implements BUPluginLifecycle {
     }
 
     private void setState(State state) {
-        if (this.state == state) return;
+        if (this.state == state) {
+            return;
+        }
         this.state = state;
         for (Consumer<State> listener : stateListeners) {
             try {
@@ -144,5 +139,10 @@ public class RemoteStorageService implements BUPluginLifecycle {
 
         FirebaseSSEStream stream = firebaseRealtimeDatabase.getStream();
         stream.start();
+    }
+
+    public enum State {
+        NotReady,
+        Ready
     }
 }

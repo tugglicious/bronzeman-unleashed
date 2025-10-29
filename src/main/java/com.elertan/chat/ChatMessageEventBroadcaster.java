@@ -1,29 +1,31 @@
 package com.elertan.chat;
 
-import com.elertan.*;
-import com.elertan.event.*;
+import com.elertan.BUChatService;
+import com.elertan.BUEventService;
+import com.elertan.BUPluginConfig;
+import com.elertan.BUPluginLifecycle;
+import com.elertan.MemberService;
+import com.elertan.event.BUEvent;
+import com.elertan.event.BUEventType;
+import com.elertan.event.CombatTaskAchievementBUEvent;
+import com.elertan.event.DiaryCompletionAchievementBUEvent;
+import com.elertan.event.LevelUpAchievementBUEvent;
+import com.elertan.event.QuestCompletionAchievementBUEvent;
+import com.elertan.event.TotalLevelAchievementBUEvent;
 import com.elertan.models.Member;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.client.chat.ChatMessageBuilder;
 
-import java.util.Map;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
 @Slf4j
 @Singleton
 public class ChatMessageEventBroadcaster implements BUPluginLifecycle {
-    private final Map<BUEventType, Function<BUEvent, String>> eventToChatMessageTransformers = ImmutableMap.of(
-            BUEventType.LevelUpAchievement, this::transformLevelUpAchievementEvent,
-            BUEventType.TotalLevelAchievement, this::transformTotalLevelAchievementEvent,
-            BUEventType.CombatTaskAchievement, this::transformCombatTaskAchievementEvent,
-            BUEventType.QuestCompletionAchievement, this::transformQuestCompletionAchievementEvent,
-            BUEventType.DiaryCompletionAchievement, this::transformDiaryCompletionAchievementEvent
-    );
 
     @Inject
     private Client client;
@@ -35,7 +37,13 @@ public class ChatMessageEventBroadcaster implements BUPluginLifecycle {
     private BUChatService buChatService;
     @Inject
     private MemberService memberService;
-
+    private final Map<BUEventType, Function<BUEvent, String>> eventToChatMessageTransformers = ImmutableMap.of(
+        BUEventType.LevelUpAchievement, this::transformLevelUpAchievementEvent,
+        BUEventType.TotalLevelAchievement, this::transformTotalLevelAchievementEvent,
+        BUEventType.CombatTaskAchievement, this::transformCombatTaskAchievementEvent,
+        BUEventType.QuestCompletionAchievement, this::transformQuestCompletionAchievementEvent,
+        BUEventType.DiaryCompletionAchievement, this::transformDiaryCompletionAchievementEvent
+    );
     private final Consumer<BUEvent> eventListener = this::eventListener;
 
     @Override
@@ -73,7 +81,10 @@ public class ChatMessageEventBroadcaster implements BUPluginLifecycle {
         LevelUpAchievementBUEvent e = (LevelUpAchievementBUEvent) event;
         Member member = memberService.getMemberByAccountHash(e.getDispatchedFromAccountHash());
         if (member == null) {
-            log.error("could not find member by hash {} at transformLevelUpAchievementEvent", e.getDispatchedFromAccountHash());
+            log.error(
+                "could not find member by hash {} at transformLevelUpAchievementEvent",
+                e.getDispatchedFromAccountHash()
+            );
             return null;
         }
 
@@ -100,7 +111,10 @@ public class ChatMessageEventBroadcaster implements BUPluginLifecycle {
         TotalLevelAchievementBUEvent e = (TotalLevelAchievementBUEvent) event;
         Member member = memberService.getMemberByAccountHash(e.getDispatchedFromAccountHash());
         if (member == null) {
-            log.error("could not find member by hash {} at transformTotalLevelAchievementEvent", e.getDispatchedFromAccountHash());
+            log.error(
+                "could not find member by hash {} at transformTotalLevelAchievementEvent",
+                e.getDispatchedFromAccountHash()
+            );
             return null;
         }
 
@@ -117,7 +131,10 @@ public class ChatMessageEventBroadcaster implements BUPluginLifecycle {
         CombatTaskAchievementBUEvent e = (CombatTaskAchievementBUEvent) event;
         Member member = memberService.getMemberByAccountHash(e.getDispatchedFromAccountHash());
         if (member == null) {
-            log.error("could not find member by hash {} at transformCombatTaskAchievementEvent", e.getDispatchedFromAccountHash());
+            log.error(
+                "could not find member by hash {} at transformCombatTaskAchievementEvent",
+                e.getDispatchedFromAccountHash()
+            );
             return null;
         }
 
@@ -135,7 +152,10 @@ public class ChatMessageEventBroadcaster implements BUPluginLifecycle {
         QuestCompletionAchievementBUEvent e = (QuestCompletionAchievementBUEvent) event;
         Member member = memberService.getMemberByAccountHash(e.getDispatchedFromAccountHash());
         if (member == null) {
-            log.error("could not find member by hash {} at transformQuestCompletionAchievementEvent", e.getDispatchedFromAccountHash());
+            log.error(
+                "could not find member by hash {} at transformQuestCompletionAchievementEvent",
+                e.getDispatchedFromAccountHash()
+            );
             return null;
         }
 
@@ -152,7 +172,10 @@ public class ChatMessageEventBroadcaster implements BUPluginLifecycle {
         DiaryCompletionAchievementBUEvent e = (DiaryCompletionAchievementBUEvent) event;
         Member member = memberService.getMemberByAccountHash(e.getDispatchedFromAccountHash());
         if (member == null) {
-            log.error("could not find member by hash {} at transformDiaryCompletionAchievementEvent", e.getDispatchedFromAccountHash());
+            log.error(
+                "could not find member by hash {} at transformDiaryCompletionAchievementEvent",
+                e.getDispatchedFromAccountHash()
+            );
             return null;
         }
 

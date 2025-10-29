@@ -4,41 +4,31 @@ import com.elertan.BUPluginLifecycle;
 import com.elertan.models.GameRules;
 import com.elertan.remote.ObjectStoragePort;
 import com.elertan.remote.RemoteStorageService;
-import com.elertan.remote.KeyValueStoragePort;
 import com.elertan.utils.ListenerUtils;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-
 import java.time.Duration;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Singleton
 public class GameRulesDataProvider implements BUPluginLifecycle {
-    public enum State {
-        NotReady,
-        Ready,
-    }
 
-    @Inject
-    private RemoteStorageService remoteStorageService;
-
-    @Getter
-    private State state = State.NotReady;
     private final ConcurrentLinkedQueue<Consumer<State>> stateListeners = new ConcurrentLinkedQueue<>();
     private final ConcurrentLinkedQueue<Consumer<GameRules>> gameRulesListeners = new ConcurrentLinkedQueue<>();
-    private final Consumer<RemoteStorageService.State> remoteStorageServiceStateListener = this::remoteStorageServiceStateListener;
-
+    @Inject
+    private RemoteStorageService remoteStorageService;
+    @Getter
+    private State state = State.NotReady;
     private ObjectStoragePort<GameRules> storagePort;
     private ObjectStoragePort.Listener<GameRules> storagePortListener;
-
     @Getter
     private GameRules gameRules;
+    private final Consumer<RemoteStorageService.State> remoteStorageServiceStateListener = this::remoteStorageServiceStateListener;
 
     @Override
     public void startUp() {
@@ -174,5 +164,10 @@ public class GameRulesDataProvider implements BUPluginLifecycle {
                 log.error("set gameRules listener unlocked item data provider error", e);
             }
         }
+    }
+
+    public enum State {
+        NotReady,
+        Ready,
     }
 }

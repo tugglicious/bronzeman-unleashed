@@ -16,17 +16,19 @@ import net.runelite.api.widgets.Widget;
 @Slf4j
 @Singleton
 public class GrandExchangePolicy extends PolicyBase implements BUPluginLifecycle {
-    private final static int GE_SEARCH_BUILD_SCRIPT_ID = 751;
 
+    private final static int GE_SEARCH_BUILD_SCRIPT_ID = 751;
+    private final GameRulesService gameRulesService;
     @Inject
     private Client client;
     @Inject
     private ItemUnlockService itemUnlockService;
 
-    private final GameRulesService gameRulesService;
-
     @Inject
-    public GrandExchangePolicy(AccountConfigurationService accountConfigurationService, GameRulesService gameRulesService) {
+    public GrandExchangePolicy(
+        AccountConfigurationService accountConfigurationService,
+        GameRulesService gameRulesService
+    ) {
         super(accountConfigurationService, gameRulesService);
 
         this.gameRulesService = gameRulesService;

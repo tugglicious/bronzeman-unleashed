@@ -7,35 +7,27 @@ import com.elertan.ui.Bindings;
 import com.elertan.utils.OffsetDateTimeUtils;
 import com.google.inject.ImplementedBy;
 import com.google.inject.Inject;
-import net.runelite.client.ui.ColorScheme;
-import net.runelite.client.util.AsyncBufferedImage;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.GridBagLayout;
 import java.beans.PropertyChangeListener;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.function.Consumer;
+import javax.swing.BorderFactory;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.SwingConstants;
+import javax.swing.Timer;
+import net.runelite.client.ui.ColorScheme;
+import net.runelite.client.util.AsyncBufferedImage;
 
 public class MainView extends JPanel implements AutoCloseable {
-    @ImplementedBy(FactoryImpl.class)
-    public interface Factory {
-        MainView create(MainViewViewModel viewModel);
-    }
-
-    private static final class FactoryImpl implements Factory {
-        @Inject
-        private BUResourceService buResourceService;
-
-        @Override
-        public MainView create(MainViewViewModel viewModel) {
-            return new MainView(viewModel, buResourceService);
-        }
-    }
 
     private final MainViewViewModel viewModel;
     private final BUResourceService buResourceService;
-
     private final AutoCloseable cardLayoutBinding;
     private AutoCloseable listBinding;
     private Timer relativeTimeUpdateTimer;
@@ -175,11 +167,30 @@ public class MainView extends JPanel implements AutoCloseable {
         }
 
         // start a new 1-minute timer
-        relativeTimeUpdateTimer = new Timer(60_000, e -> {
+        relativeTimeUpdateTimer = new Timer(
+            60_000, e -> {
             list.repaint();               // update visible relative times
             scheduleRelativeTimeUpdate(list); // restart countdown
-        });
+        }
+        );
         relativeTimeUpdateTimer.setRepeats(false);
         relativeTimeUpdateTimer.start();
+    }
+
+    @ImplementedBy(FactoryImpl.class)
+    public interface Factory {
+
+        MainView create(MainViewViewModel viewModel);
+    }
+
+    private static final class FactoryImpl implements Factory {
+
+        @Inject
+        private BUResourceService buResourceService;
+
+        @Override
+        public MainView create(MainViewViewModel viewModel) {
+            return new MainView(viewModel, buResourceService);
+        }
     }
 }

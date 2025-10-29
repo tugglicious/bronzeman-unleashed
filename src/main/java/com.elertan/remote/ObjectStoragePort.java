@@ -3,11 +3,6 @@ package com.elertan.remote;
 import java.util.concurrent.CompletableFuture;
 
 public interface ObjectStoragePort<T> extends AutoCloseable {
-    interface Listener<T> {
-        void onUpdate(T value);
-
-        void onDelete();
-    }
 
     CompletableFuture<T> read();
 
@@ -18,4 +13,11 @@ public interface ObjectStoragePort<T> extends AutoCloseable {
     void addListener(Listener<T> listener);
 
     void removeListener(Listener<T> listener);
+
+    interface Listener<T> {
+
+        void onUpdate(T value);
+
+        void onDelete();
+    }
 }

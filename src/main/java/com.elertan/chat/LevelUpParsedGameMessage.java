@@ -3,10 +3,6 @@ package com.elertan.chat;
 import lombok.Getter;
 
 public class LevelUpParsedGameMessage implements ParsedGameMessage {
-    @Override
-    public ParsedGameMessageType getType() {
-        return ParsedGameMessageType.LevelUp;
-    }
 
     @Getter
     private final String skill;
@@ -16,5 +12,10 @@ public class LevelUpParsedGameMessage implements ParsedGameMessage {
     public LevelUpParsedGameMessage(String skill, int level) {
         this.skill = skill;
         this.level = level;
+    }
+
+    @Override
+    public ParsedGameMessageType getType() {
+        return ParsedGameMessageType.LevelUp;
     }
 }

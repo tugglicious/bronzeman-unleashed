@@ -11,10 +11,21 @@ import com.elertan.policies.TradePolicy;
 import com.elertan.remote.RemoteStorageService;
 import com.google.inject.Inject;
 import com.google.inject.Provides;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
-import net.runelite.api.events.*;
+import net.runelite.api.events.AccountHashChanged;
+import net.runelite.api.events.ChatMessage;
+import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.ItemContainerChanged;
+import net.runelite.api.events.MenuOptionClicked;
+import net.runelite.api.events.ScriptCallbackEvent;
+import net.runelite.api.events.ScriptPostFired;
+import net.runelite.api.events.VarbitChanged;
+import net.runelite.api.events.WidgetClosed;
+import net.runelite.api.events.WidgetLoaded;
 import net.runelite.client.chat.ChatMessageBuilder;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -23,16 +34,14 @@ import net.runelite.client.events.ServerNpcLoot;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Slf4j
 @PluginDescriptor(
-        name = "Bronzeman Unleashed",
-        description = "Bronzeman Unleashed description",
-        tags = {"bronzeman"}
+    name = "Bronzeman Unleashed",
+    description = "Bronzeman Unleashed description",
+    tags = {"bronzeman"}
 )
 public final class BUPlugin extends Plugin {
+
     @Inject
     private BUResourceService buResourceService;
     @Inject
@@ -79,6 +88,7 @@ public final class BUPlugin extends Plugin {
 
     private boolean started;
     private List<BUPluginLifecycle> lifecycleDependencies;
+    private boolean hasSharedAccountHash = false;
 
     @Inject
     private void initLifecycleDependencies() {
@@ -172,7 +182,6 @@ public final class BUPlugin extends Plugin {
         accountConfigurationService.onAccountHashChanged(event);
     }
 
-    private boolean hasSharedAccountHash = false;
     @Subscribe
     public void onGameStateChanged(GameStateChanged event) {
         buChatService.onGameStateChanged(event);

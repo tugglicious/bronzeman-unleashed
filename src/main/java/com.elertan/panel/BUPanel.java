@@ -1,41 +1,19 @@
 package com.elertan.panel;
 
-import com.elertan.panel.screens.*;
+import com.elertan.panel.screens.MainScreen;
+import com.elertan.panel.screens.MainScreenViewModel;
+import com.elertan.panel.screens.SetupScreen;
+import com.elertan.panel.screens.SetupScreenViewModel;
+import com.elertan.panel.screens.WaitForLoginScreen;
 import com.elertan.ui.Bindings;
 import com.google.inject.ImplementedBy;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.awt.CardLayout;
+import javax.swing.JPanel;
 import net.runelite.client.ui.PluginPanel;
 
-import javax.swing.*;
-import java.awt.*;
-
 public class BUPanel extends PluginPanel implements AutoCloseable {
-    @ImplementedBy(FactoryImpl.class)
-    public interface Factory {
-        BUPanel create(BUPanelViewModel viewModel);
-    }
-
-    @Singleton
-    private static final class FactoryImpl implements Factory {
-        @Inject
-        private WaitForLoginScreen.Factory waitForLoginScreenFactory;
-        @Inject
-        private SetupScreenViewModel.Factory setupScreenViewModelFactory;
-        @Inject
-        private SetupScreen.Factory setupScreenFactory;
-        @Inject
-        private MainScreenViewModel.Factory mainScreenViewModelFactory;
-        @Inject
-        private MainScreen.Factory mainScreenFactory;
-
-        @Override
-        public BUPanel create(BUPanelViewModel viewModel) {
-            SetupScreenViewModel setupScreenViewModel = setupScreenViewModelFactory.create();
-            MainScreenViewModel mainScreenViewModel = mainScreenViewModelFactory.create();
-            return new BUPanel(viewModel, waitForLoginScreenFactory, setupScreenViewModel, setupScreenFactory, mainScreenViewModel, mainScreenFactory);
-        }
-    }
 
     private final BUPanelViewModel viewModel;
     private final WaitForLoginScreen.Factory waitForLoginScreenFactory;
@@ -43,16 +21,15 @@ public class BUPanel extends PluginPanel implements AutoCloseable {
     private final SetupScreen.Factory setupScreenFactory;
     private final MainScreenViewModel mainScreenViewModel;
     private final MainScreen.Factory mainScreenFactory;
-
     private final AutoCloseable cardLayoutBinding;
 
     private BUPanel(
-            BUPanelViewModel viewModel,
-            WaitForLoginScreen.Factory waitForLoginScreenFactory,
-            SetupScreenViewModel setupScreenViewModel,
-            SetupScreen.Factory setupScreenFactory,
-            MainScreenViewModel mainScreenViewModel,
-            MainScreen.Factory mainScreenFactory
+        BUPanelViewModel viewModel,
+        WaitForLoginScreen.Factory waitForLoginScreenFactory,
+        SetupScreenViewModel setupScreenViewModel,
+        SetupScreen.Factory setupScreenFactory,
+        MainScreenViewModel mainScreenViewModel,
+        MainScreen.Factory mainScreenFactory
     ) {
         super(false);
 
@@ -86,5 +63,40 @@ public class BUPanel extends PluginPanel implements AutoCloseable {
         }
 
         throw new IllegalStateException("Unknown screen: " + screen);
+    }
+
+    @ImplementedBy(FactoryImpl.class)
+    public interface Factory {
+
+        BUPanel create(BUPanelViewModel viewModel);
+    }
+
+    @Singleton
+    private static final class FactoryImpl implements Factory {
+
+        @Inject
+        private WaitForLoginScreen.Factory waitForLoginScreenFactory;
+        @Inject
+        private SetupScreenViewModel.Factory setupScreenViewModelFactory;
+        @Inject
+        private SetupScreen.Factory setupScreenFactory;
+        @Inject
+        private MainScreenViewModel.Factory mainScreenViewModelFactory;
+        @Inject
+        private MainScreen.Factory mainScreenFactory;
+
+        @Override
+        public BUPanel create(BUPanelViewModel viewModel) {
+            SetupScreenViewModel setupScreenViewModel = setupScreenViewModelFactory.create();
+            MainScreenViewModel mainScreenViewModel = mainScreenViewModelFactory.create();
+            return new BUPanel(
+                viewModel,
+                waitForLoginScreenFactory,
+                setupScreenViewModel,
+                setupScreenFactory,
+                mainScreenViewModel,
+                mainScreenFactory
+            );
+        }
     }
 }

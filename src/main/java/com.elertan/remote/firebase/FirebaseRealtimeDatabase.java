@@ -2,6 +2,9 @@ package com.elertan.remote.firebase;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.concurrent.CompletableFuture;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
@@ -12,12 +15,9 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.util.concurrent.CompletableFuture;
-
 @Slf4j
 public class FirebaseRealtimeDatabase implements AutoCloseable {
+
     private static final MediaType JSON_MEDIA_TYPE = MediaType.parse("application/json; charset=utf-8");
 
     private final OkHttpClient httpClient;
@@ -35,12 +35,6 @@ public class FirebaseRealtimeDatabase implements AutoCloseable {
         this.stream = new FirebaseSSEStream(httpClient, gson, databaseURL);
     }
 
-    @Override
-    public void close() throws Exception {
-        FirebaseSSEStream stream = getStream();
-        stream.stop();
-    }
-
     public static CompletableFuture<Boolean> canConnectTo(OkHttpClient httpClient, FirebaseRealtimeDatabaseURL url) {
         final String strUrl = url.getBaseUrl() + "/__BRONZEMAN_UNLEASED_CAN_CONNECT_TEST.json";
         Request request = FirebaseRealtimeDatabase.getRequestBuilder(strUrl).get().build();
@@ -56,11 +50,50 @@ public class FirebaseRealtimeDatabase implements AutoCloseable {
         });
     }
 
+    public static Request.Builder getRequestBuilder(String url) {
+        return new Request.Builder().url(url)
+            .header("User-Agent", "BronzemanUnleashedPlugin");
+    }
+
+    private static CompletableFuture<okhttp3.Response> enqueueAsync(OkHttpClient client, Request request) {
+        final okhttp3.Call call = client.newCall(request);
+        final CompletableFuture<okhttp3.Response> future = new CompletableFuture<>();
+        future.whenComplete((r, t) -> {
+            if (future.isCancelled()) {
+                call.cancel();
+            }
+        });
+        call.enqueue(new okhttp3.Callback() {
+            @Override
+            public void onFailure(Call c, IOException e) {
+                if (!future.isDone()) {
+                    future.completeExceptionally(e);
+                }
+            }
+
+            @Override
+            public void onResponse(okhttp3.Call c, okhttp3.Response response) {
+                if (!future.isDone()) {
+                    future.complete(response);
+                } else {
+                    response.close();
+                }
+            }
+        });
+        return future;
+    }
+
+    @Override
+    public void close() throws Exception {
+        FirebaseSSEStream stream = getStream();
+        stream.stop();
+    }
+
     public CompletableFuture<JsonElement> get(String path) {
         String url = getUrlForPath(path);
         Request request = getRequestBuilder(url)
-                .get()
-                .build();
+            .get()
+            .build();
         return executeJsonRequest(request);
     }
 
@@ -75,8 +108,8 @@ public class FirebaseRealtimeDatabase implements AutoCloseable {
     public CompletableFuture<Void> delete(String path) {
         String url = getUrlForPath(path);
         Request request = getRequestBuilder(url)
-                .delete()
-                .build();
+            .delete()
+            .build();
         return executeVoidRequest(request);
     }
 
@@ -95,7 +128,12 @@ public class FirebaseRealtimeDatabase implements AutoCloseable {
             @Override
             public void onFailure(Call c, IOException e) {
                 if (!future.isDone()) {
-                    log.error("{} {} failed after {} ms", request.method(), request.url(), (System.nanoTime() - startNanos) / 1_000_000);
+                    log.error(
+                        "{} {} failed after {} ms",
+                        request.method(),
+                        request.url(),
+                        (System.nanoTime() - startNanos) / 1_000_000
+                    );
                     future.completeExceptionally(e);
                 }
             }
@@ -111,9 +149,11 @@ public class FirebaseRealtimeDatabase implements AutoCloseable {
                                 snippet = errBody.string();
                             } catch (IOException ignore) { /* ignore */ }
                         }
-                        String msg = String.format("%s %s -> HTTP %d %s%s",
-                                request.method(), request.url(), res.code(), res.message(),
-                                snippet != null ? ": " + snippet : "");
+                        String msg = String.format(
+                            "%s %s -> HTTP %d %s%s",
+                            request.method(), request.url(), res.code(), res.message(),
+                            snippet != null ? ": " + snippet : ""
+                        );
                         if (!future.isDone()) {
                             log.error(msg);
                             future.completeExceptionally(new IOException(msg));
@@ -163,7 +203,12 @@ public class FirebaseRealtimeDatabase implements AutoCloseable {
             @Override
             public void onFailure(Call c, IOException e) {
                 if (!future.isDone()) {
-                    log.error("{} {} failed after {} ms", request.method(), request.url(), (System.nanoTime() - startNanos) / 1_000_000);
+                    log.error(
+                        "{} {} failed after {} ms",
+                        request.method(),
+                        request.url(),
+                        (System.nanoTime() - startNanos) / 1_000_000
+                    );
                     future.completeExceptionally(e);
                 }
             }
@@ -179,9 +224,11 @@ public class FirebaseRealtimeDatabase implements AutoCloseable {
                                 snippet = errBody.string();
                             } catch (IOException ignore) { /* ignore */ }
                         }
-                        String msg = String.format("%s %s -> HTTP %d %s%s",
-                                request.method(), request.url(), res.code(), res.message(),
-                                snippet != null ? ": " + snippet : "");
+                        String msg = String.format(
+                            "%s %s -> HTTP %d %s%s",
+                            request.method(), request.url(), res.code(), res.message(),
+                            snippet != null ? ": " + snippet : ""
+                        );
                         if (!future.isDone()) {
                             log.error(msg);
                             future.completeExceptionally(new IOException(msg));
@@ -205,42 +252,9 @@ public class FirebaseRealtimeDatabase implements AutoCloseable {
         String jsonPayload = gson.toJson(data);
         RequestBody body = RequestBody.create(JSON_MEDIA_TYPE, jsonPayload);
         return getRequestBuilder(url)
-                .header("Content-Type", "application/json")
-                .method(method, body)
-                .build();
-    }
-
-    public static Request.Builder getRequestBuilder(String url) {
-        return new Request.Builder().url(url)
-                .header("User-Agent", "BronzemanUnleashedPlugin");
-    }
-
-    private static CompletableFuture<okhttp3.Response> enqueueAsync(OkHttpClient client, Request request) {
-        final okhttp3.Call call = client.newCall(request);
-        final CompletableFuture<okhttp3.Response> future = new CompletableFuture<>();
-        future.whenComplete((r, t) -> {
-            if (future.isCancelled()) {
-                call.cancel();
-            }
-        });
-        call.enqueue(new okhttp3.Callback() {
-            @Override
-            public void onFailure(Call c, IOException e) {
-                if (!future.isDone()) {
-                    future.completeExceptionally(e);
-                }
-            }
-
-            @Override
-            public void onResponse(okhttp3.Call c, okhttp3.Response response) {
-                if (!future.isDone()) {
-                    future.complete(response);
-                } else {
-                    response.close();
-                }
-            }
-        });
-        return future;
+            .header("Content-Type", "application/json")
+            .method(method, body)
+            .build();
     }
 
     private String getUrlForPath(String path) {
@@ -271,7 +285,9 @@ public class FirebaseRealtimeDatabase implements AutoCloseable {
         // add each segment to avoid double slashes
         if (!rawPath.isEmpty()) {
             for (String seg : rawPath.split("/")) {
-                if (!seg.isEmpty()) b.addPathSegment(seg);
+                if (!seg.isEmpty()) {
+                    b.addPathSegment(seg);
+                }
             }
         }
 

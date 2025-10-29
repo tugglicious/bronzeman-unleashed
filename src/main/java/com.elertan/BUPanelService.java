@@ -5,16 +5,16 @@ import com.elertan.panel.BUPanel;
 import com.elertan.panel.BUPanelViewModel;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.util.function.Consumer;
+import javax.swing.SwingUtilities;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 
-import javax.swing.*;
-import java.util.function.Consumer;
-
 @Slf4j
 @Singleton
 public class BUPanelService implements BUPluginLifecycle {
+
     @Inject
     private ClientToolbar clientToolbar;
     @Inject
@@ -36,19 +36,21 @@ public class BUPanelService implements BUPluginLifecycle {
     public void startUp() {
         buPanel = buPanelFactory.create(buPanelViewModelFactory.create());
         panelNavigationButton = NavigationButton.builder()
-                .tooltip("Bronzeman Unleashed")
-                .icon(buResourceService.getIconBufferedImage())
-                .priority(3)
-                .panel(buPanel)
-                .build();
+            .tooltip("Bronzeman Unleashed")
+            .icon(buResourceService.getIconBufferedImage())
+            .priority(3)
+            .panel(buPanel)
+            .build();
         clientToolbar.addNavigation(panelNavigationButton);
 
-        accountConfigurationService.addCurrentAccountConfigurationChangeListener(currentAccountConfigurationChangeListener);
+        accountConfigurationService.addCurrentAccountConfigurationChangeListener(
+            currentAccountConfigurationChangeListener);
     }
 
     @Override
     public void shutDown() throws Exception {
-        accountConfigurationService.removeCurrentAccountConfigurationChangeListener(currentAccountConfigurationChangeListener);
+        accountConfigurationService.removeCurrentAccountConfigurationChangeListener(
+            currentAccountConfigurationChangeListener);
 
         clientToolbar.removeNavigation(panelNavigationButton);
         panelNavigationButton = null;
@@ -64,7 +66,8 @@ public class BUPanelService implements BUPluginLifecycle {
         SwingUtilities.invokeLater(() -> clientToolbar.openPanel(null));
     }
 
-    private void currentAccountConfigurationChangeListener(AccountConfiguration accountConfiguration) {
+    private void currentAccountConfigurationChangeListener(
+        AccountConfiguration accountConfiguration) {
         if (accountConfiguration == null) {
             openPanel();
         }

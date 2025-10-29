@@ -9,6 +9,7 @@ import net.runelite.client.ui.overlay.OverlayManager;
 @Slf4j
 @Singleton
 public class BUOverlayService implements BUPluginLifecycle {
+
     @Inject
     private OverlayManager overlayManager;
 

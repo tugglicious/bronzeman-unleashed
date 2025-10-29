@@ -6,12 +6,10 @@ import com.google.gson.annotations.JsonAdapter;
 import lombok.Getter;
 
 public abstract class BUEvent {
-    public abstract BUEventType getType();
 
     @JsonAdapter(AccountHashJsonAdapter.class)
     @Getter
     long dispatchedFromAccountHash;
-
     @Getter
     ISOOffsetDateTime timestamp;
 
@@ -19,4 +17,6 @@ public abstract class BUEvent {
         this.dispatchedFromAccountHash = dispatchedFromAccountHash;
         this.timestamp = timestamp;
     }
+
+    public abstract BUEventType getType();
 }

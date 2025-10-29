@@ -6,6 +6,7 @@ import com.elertan.remote.firebase.FirebaseRealtimeDatabase;
 import com.google.gson.Gson;
 
 public class GameRulesFirebaseObjectStorageAdapter extends FirebaseObjectStorageAdapterBase<GameRules> {
+
     private final static String PATH = "/GameRules";
 
     public GameRulesFirebaseObjectStorageAdapter(FirebaseRealtimeDatabase db, Gson gson) {

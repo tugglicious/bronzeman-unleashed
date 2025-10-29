@@ -2,16 +2,16 @@ package com.elertan.remote.firebase;
 
 import com.elertan.remote.ObjectStoragePort;
 import com.google.gson.JsonElement;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class FirebaseObjectStorageAdapterBase<T> implements ObjectStoragePort<T> {
+
     private final String path;
     private final FirebaseRealtimeDatabase db;
     private final Function<T, JsonElement> serializer;
@@ -19,7 +19,12 @@ public class FirebaseObjectStorageAdapterBase<T> implements ObjectStoragePort<T>
     private final ConcurrentLinkedQueue<Listener<T>> listeners = new ConcurrentLinkedQueue<>();
     private final Consumer<FirebaseSSE> sseListener = this::sseListener;
 
-    public FirebaseObjectStorageAdapterBase(String path, FirebaseRealtimeDatabase db, Function<T, JsonElement> serializer, Function<JsonElement, T> deserializer) {
+    public FirebaseObjectStorageAdapterBase(
+        String path,
+        FirebaseRealtimeDatabase db,
+        Function<T, JsonElement> serializer,
+        Function<JsonElement, T> deserializer
+    ) {
         // Base key should be of format
         // '/Resource' // NOT -> or '/FirstLevel/SecondLevel'
         if (path == null) {
@@ -51,7 +56,7 @@ public class FirebaseObjectStorageAdapterBase<T> implements ObjectStoragePort<T>
     @Override
     public CompletableFuture<T> read() {
         return db.get(path)
-                .thenApply(this.deserializer);
+            .thenApply(this.deserializer);
     }
 
     @Override
@@ -86,8 +91,8 @@ public class FirebaseObjectStorageAdapterBase<T> implements ObjectStoragePort<T>
             return;
         }
         String[] pathParts = Arrays.stream(path.split("/"))
-                .filter(part -> !part.isEmpty())
-                .toArray(String[]::new);
+            .filter(part -> !part.isEmpty())
+            .toArray(String[]::new);
         int pathPartsLength = pathParts.length;
         if (pathPartsLength != 1) {
             log.warn("put received but at a deeper level than just the object store, ignoring");

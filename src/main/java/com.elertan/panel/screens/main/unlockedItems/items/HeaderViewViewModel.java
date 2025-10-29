@@ -8,11 +8,15 @@ import com.elertan.ui.Property;
 import com.google.inject.ImplementedBy;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class HeaderViewViewModel implements AutoCloseable {
+
     public final Property<String> searchText;
     public final Property<UnlockedItemsScreenViewModel.SortedBy> sortedBy;
     public final Property<Long> unlockedByAccountHash;
@@ -22,11 +26,11 @@ public class HeaderViewViewModel implements AutoCloseable {
     private final MembersDataProvider.MemberMapListener memberMapListener;
 
     private HeaderViewViewModel(
-            Property<List<UnlockedItem>> allUnlockedItems,
-            Property<String> searchText,
-            Property<UnlockedItemsScreenViewModel.SortedBy> sortedBy,
-            Property<Long> unlockedByAccountHash,
-            MembersDataProvider membersDataProvider
+        Property<List<UnlockedItem>> allUnlockedItems,
+        Property<String> searchText,
+        Property<UnlockedItemsScreenViewModel.SortedBy> sortedBy,
+        Property<Long> unlockedByAccountHash,
+        MembersDataProvider membersDataProvider
     ) {
         this.membersDataProvider = membersDataProvider;
 
@@ -89,32 +93,34 @@ public class HeaderViewViewModel implements AutoCloseable {
 
     @ImplementedBy(FactoryImpl.class)
     public interface Factory {
+
         HeaderViewViewModel create(
-                Property<List<UnlockedItem>> allUnlockedItems,
-                Property<String> searchText,
-                Property<UnlockedItemsScreenViewModel.SortedBy> sortedBy,
-                Property<Long> unlockedByAccountHash
+            Property<List<UnlockedItem>> allUnlockedItems,
+            Property<String> searchText,
+            Property<UnlockedItemsScreenViewModel.SortedBy> sortedBy,
+            Property<Long> unlockedByAccountHash
         );
     }
 
     @Singleton
     private static final class FactoryImpl implements Factory {
+
         @Inject
         private MembersDataProvider membersDataProvider;
 
         @Override
         public HeaderViewViewModel create(
-                Property<List<UnlockedItem>> allUnlockedItems,
-                Property<String> searchText,
-                Property<UnlockedItemsScreenViewModel.SortedBy> sortedBy,
-                Property<Long> unlockedByAccountHash
+            Property<List<UnlockedItem>> allUnlockedItems,
+            Property<String> searchText,
+            Property<UnlockedItemsScreenViewModel.SortedBy> sortedBy,
+            Property<Long> unlockedByAccountHash
         ) {
             return new HeaderViewViewModel(
-                    allUnlockedItems,
-                    searchText,
-                    sortedBy,
-                    unlockedByAccountHash,
-                    membersDataProvider
+                allUnlockedItems,
+                searchText,
+                sortedBy,
+                unlockedByAccountHash,
+                membersDataProvider
             );
         }
     }

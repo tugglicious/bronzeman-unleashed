@@ -1,17 +1,19 @@
 package com.elertan.utils;
 
-import lombok.NonNull;
-
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import lombok.NonNull;
 
 public class OffsetDateTimeUtils {
+
     public static String formatRelativeTime(@NonNull OffsetDateTime now, @NonNull OffsetDateTime time) {
         Duration d = Duration.between(time, now);
         long seconds = d.getSeconds();
 
-        if (seconds < 60) return "Just now";
+        if (seconds < 60) {
+            return "Just now";
+        }
         if (seconds < 3600) {
             int minutes = (int) (seconds / 60);
             if (minutes == 1) {
@@ -26,7 +28,9 @@ public class OffsetDateTimeUtils {
             }
             return hours + " hours ago";
         }
-        if (seconds < 172800) return "Yesterday at " + time.format(DateTimeFormatter.ofPattern("HH:mm"));
+        if (seconds < 172800) {
+            return "Yesterday at " + time.format(DateTimeFormatter.ofPattern("HH:mm"));
+        }
         if (seconds < 604800) {
             String dayOfWeek = time.format(DateTimeFormatter.ofPattern("EEEE"));
             return dayOfWeek + " at " + time.format(DateTimeFormatter.ofPattern("HH:mm"));

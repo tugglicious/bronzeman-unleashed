@@ -2,19 +2,28 @@ package com.elertan.remote.firebase;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import okhttp3.*;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.time.Duration;
-import java.util.concurrent.*;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import okhttp3.Call;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 @Slf4j
 public class FirebaseSSEStream {
+
     private static final int READ_TIMEOUT_SECONDS = 90;
 
     private static final String EVENT_PREFIX = "event:";
@@ -27,11 +36,9 @@ public class FirebaseSSEStream {
 
     private final CopyOnWriteArrayList<Consumer<FirebaseSSE>> serverSentEventListeners = new CopyOnWriteArrayList<>();
     private final CopyOnWriteArrayList<Runnable> isRunningListeners = new CopyOnWriteArrayList<>();
-
+    private final OkHttpClient sseClient;
     private ExecutorService streamExecutor;
     private ExecutorService readExecutor;
-
-    private final OkHttpClient sseClient;
     private volatile Call currentCall;
 
     @Getter
@@ -41,9 +48,9 @@ public class FirebaseSSEStream {
         this.gson = gson;
         this.databaseURL = databaseURL;
         this.sseClient = httpClient.newBuilder()
-                .retryOnConnectionFailure(true)
-                .readTimeout(Duration.ZERO)
-                .build();
+            .retryOnConnectionFailure(true)
+            .readTimeout(Duration.ZERO)
+            .build();
     }
 
     private static ExecutorService newSingleThreadExecutor(String threadName) {
@@ -87,7 +94,9 @@ public class FirebaseSSEStream {
     }
 
     public synchronized void start() {
-        if (isRunning) return;
+        if (isRunning) {
+            return;
+        }
         if (streamExecutor == null || streamExecutor.isShutdown()) {
             streamExecutor = newSingleThreadExecutor("firebase-sse-stream");
         }
@@ -99,7 +108,9 @@ public class FirebaseSSEStream {
     }
 
     public synchronized void stop() {
-        if (!isRunning) return;
+        if (!isRunning) {
+            return;
+        }
         Call call = currentCall;
         if (call != null) {
             call.cancel();
@@ -120,7 +131,9 @@ public class FirebaseSSEStream {
     private void setIsRunning(boolean running) {
         boolean changed = this.isRunning != running;
         this.isRunning = running;
-        if (!changed) return;
+        if (!changed) {
+            return;
+        }
         for (Runnable listener : isRunningListeners) {
             try {
                 listener.run();
@@ -139,9 +152,9 @@ public class FirebaseSSEStream {
             final String url = databaseURL.getBaseUrl() + "/.json";
 
             Request request = FirebaseRealtimeDatabase.getRequestBuilder(url)
-                    .header("Accept", "text/event-stream")
-                    .header("Connection", "keep-alive")
-                    .build();
+                .header("Accept", "text/event-stream")
+                .header("Connection", "keep-alive")
+                .build();
 
             try {
                 Call call = sseClient.newCall(request);
@@ -149,7 +162,9 @@ public class FirebaseSSEStream {
                 try (Response response = call.execute()) {
                     if (!response.isSuccessful()) {
                         log.warn("Firebase stream HTTP {}. Will retry.", response.code());
-                        if (!isRunning) break;
+                        if (!isRunning) {
+                            break;
+                        }
                         sleepWithJitterSeconds(backoffSeconds);
                         backoffSeconds = Math.min(backoffSeconds * 2, maxBackoffSeconds);
                         continue;
@@ -163,7 +178,9 @@ public class FirebaseSSEStream {
                     ResponseBody body = response.body();
                     if (body == null) {
                         log.warn("Firebase stream response body is null. Retrying.");
-                        if (!isRunning) break;
+                        if (!isRunning) {
+                            break;
+                        }
                         sleepWithJitterSeconds(backoffSeconds);
                         backoffSeconds = Math.min(backoffSeconds * 2, maxBackoffSeconds);
                         continue;
@@ -178,7 +195,9 @@ public class FirebaseSSEStream {
                     backoffSeconds = 1;
                 }
             } catch (Exception e) {
-                if (!isRunning) break;
+                if (!isRunning) {
+                    break;
+                }
                 log.warn("Firebase stream error. Will retry.", e);
                 sleepWithJitterSeconds(backoffSeconds);
                 backoffSeconds = Math.min(backoffSeconds * 2, maxBackoffSeconds);
@@ -202,7 +221,9 @@ public class FirebaseSSEStream {
 
                 if (line.startsWith(EVENT_PREFIX)) {
                     eventType = parseEventType(line);
-                    if (eventType == null) break;
+                    if (eventType == null) {
+                        break;
+                    }
                     continue;
                 }
 
@@ -234,16 +255,6 @@ public class FirebaseSSEStream {
             log.error("Unknown Firebase event type: {}", eventTypeString);
         }
         return type;
-    }
-
-    private class FirebaseSSEDataLine {
-        private final String path;
-        private final JsonElement data;
-
-        public FirebaseSSEDataLine(String path, JsonElement data) {
-            this.path = path;
-            this.data = data;
-        }
     }
 
     private void handleDataLine(String line, FirebaseSSEType eventType) {
@@ -285,6 +296,17 @@ public class FirebaseSSEStream {
             } catch (Exception e) {
                 log.warn("Firebase listener failed", e);
             }
+        }
+    }
+
+    private class FirebaseSSEDataLine {
+
+        private final String path;
+        private final JsonElement data;
+
+        public FirebaseSSEDataLine(String path, JsonElement data) {
+            this.path = path;
+            this.data = data;
         }
     }
 

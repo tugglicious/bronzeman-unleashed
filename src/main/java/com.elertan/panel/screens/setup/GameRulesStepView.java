@@ -7,49 +7,20 @@ import com.elertan.ui.Property;
 import com.google.inject.ImplementedBy;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.util.function.Supplier;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 
-import javax.swing.*;
-import java.awt.*;
-import java.util.function.Supplier;
-
 public class GameRulesStepView extends JPanel implements AutoCloseable {
-    @ImplementedBy(FactoryImpl.class)
-    public interface Factory {
-        GameRulesStepView create(GameRulesStepViewViewModel viewModel, Property<Boolean> gameRulesAreViewOnly);
-    }
-
-    @Slf4j
-    @Singleton
-    private static final class FactoryImpl implements Factory {
-        @Inject
-        private Client client;
-        @Inject
-        GameRulesEditor.Factory gameRulesEditorFactory;
-        @Inject
-        GameRulesEditorViewModel.Factory gameRulesEditorViewModelFactory;
-
-        @Override
-        public GameRulesStepView create(GameRulesStepViewViewModel viewModel, Property<Boolean> gameRulesAreViewOnly) {
-            Supplier<GameRulesEditorViewModel.Props> makeProps = () -> {
-                Boolean gameRulesAreViewOnlyValue = gameRulesAreViewOnly.get();
-                return new GameRulesEditorViewModel.Props(
-                        client.getAccountHash(),
-                        viewModel.gameRules.get(),
-                        viewModel.gameRules::set,
-                        gameRulesAreViewOnlyValue != null && gameRulesAreViewOnlyValue
-                );
-            };
-            GameRulesEditorViewModel gameRulesEditorViewModel = gameRulesEditorViewModelFactory.create(makeProps.get());
-
-            viewModel.gameRules.addListener((event) -> gameRulesEditorViewModel.setProps(makeProps.get()));
-            gameRulesAreViewOnly.addListener((event) -> gameRulesEditorViewModel.setProps(makeProps.get()));
-
-            GameRulesEditor gameRulesEditor = gameRulesEditorFactory.create(gameRulesEditorViewModel);
-            return new GameRulesStepView(viewModel, gameRulesEditor);
-        }
-    }
 
     private final AutoCloseable backButtonEnabledBinding;
     private final AutoCloseable finishButtonEnabledBinding;
@@ -96,5 +67,43 @@ public class GameRulesStepView extends JPanel implements AutoCloseable {
     public void close() throws Exception {
         finishButtonEnabledBinding.close();
         backButtonEnabledBinding.close();
+    }
+
+    @ImplementedBy(FactoryImpl.class)
+    public interface Factory {
+
+        GameRulesStepView create(GameRulesStepViewViewModel viewModel, Property<Boolean> gameRulesAreViewOnly);
+    }
+
+    @Slf4j
+    @Singleton
+    private static final class FactoryImpl implements Factory {
+
+        @Inject
+        GameRulesEditor.Factory gameRulesEditorFactory;
+        @Inject
+        GameRulesEditorViewModel.Factory gameRulesEditorViewModelFactory;
+        @Inject
+        private Client client;
+
+        @Override
+        public GameRulesStepView create(GameRulesStepViewViewModel viewModel, Property<Boolean> gameRulesAreViewOnly) {
+            Supplier<GameRulesEditorViewModel.Props> makeProps = () -> {
+                Boolean gameRulesAreViewOnlyValue = gameRulesAreViewOnly.get();
+                return new GameRulesEditorViewModel.Props(
+                    client.getAccountHash(),
+                    viewModel.gameRules.get(),
+                    viewModel.gameRules::set,
+                    gameRulesAreViewOnlyValue != null && gameRulesAreViewOnlyValue
+                );
+            };
+            GameRulesEditorViewModel gameRulesEditorViewModel = gameRulesEditorViewModelFactory.create(makeProps.get());
+
+            viewModel.gameRules.addListener((event) -> gameRulesEditorViewModel.setProps(makeProps.get()));
+            gameRulesAreViewOnly.addListener((event) -> gameRulesEditorViewModel.setProps(makeProps.get()));
+
+            GameRulesEditor gameRulesEditor = gameRulesEditorFactory.create(gameRulesEditorViewModel);
+            return new GameRulesStepView(viewModel, gameRulesEditor);
+        }
     }
 }

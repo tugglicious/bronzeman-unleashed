@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class UnlockedItem {
+
     @Getter
     @Setter
     private int id;
@@ -23,7 +24,13 @@ public class UnlockedItem {
     @Setter
     private Integer droppedByNPCId;
 
-    public UnlockedItem(int id, String name, long acquiredByAccountHash, ISOOffsetDateTime acquiredAt, Integer droppedByNPCId) {
+    public UnlockedItem(
+        int id,
+        String name,
+        long acquiredByAccountHash,
+        ISOOffsetDateTime acquiredAt,
+        Integer droppedByNPCId
+    ) {
         this.id = id;
         this.name = name;
         this.acquiredByAccountHash = acquiredByAccountHash;
@@ -33,14 +40,13 @@ public class UnlockedItem {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("UnlockedItem{");
-        sb.append("id=").append(id);
-        sb.append(", name='").append(name).append('\'');
-        sb.append(", acquiredByAccountHash=").append(acquiredByAccountHash);
-        sb.append(", acquiredAt=").append(acquiredAt);
-        sb.append(", droppedByNPCId=").append(droppedByNPCId);
-        sb.append('}');
-        return sb.toString();
+        String sb = "UnlockedItem{" +
+            "id=" + id +
+            ", name='" + name + '\'' +
+            ", acquiredByAccountHash=" + acquiredByAccountHash +
+            ", acquiredAt=" + acquiredAt +
+            ", droppedByNPCId=" + droppedByNPCId +
+            '}';
+        return sb;
     }
 }

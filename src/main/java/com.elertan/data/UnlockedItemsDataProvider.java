@@ -2,14 +2,11 @@ package com.elertan.data;
 
 import com.elertan.BUPluginLifecycle;
 import com.elertan.models.UnlockedItem;
-import com.elertan.remote.RemoteStorageService;
 import com.elertan.remote.KeyValueStoragePort;
+import com.elertan.remote.RemoteStorageService;
 import com.elertan.utils.ListenerUtils;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
@@ -17,33 +14,23 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Singleton
 public class UnlockedItemsDataProvider implements BUPluginLifecycle {
-    public enum State {
-        NotReady,
-        Ready,
-    }
 
-    public interface UnlockedItemsMapListener {
-        void onUpdate(UnlockedItem unlockedItem);
-
-        void onDelete(UnlockedItem unlockedItem);
-    }
-
+    private final ConcurrentLinkedQueue<Consumer<State>> stateListeners = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<UnlockedItemsMapListener> unlockedItemsMapListeners = new ConcurrentLinkedQueue<>();
     @Inject
     private RemoteStorageService remoteStorageService;
 
     @Getter
     private State state = State.NotReady;
-    private final ConcurrentLinkedQueue<Consumer<State>> stateListeners = new ConcurrentLinkedQueue<>();
     private KeyValueStoragePort<Integer, UnlockedItem> keyValueStoragePort;
-
     private KeyValueStoragePort.Listener<Integer, UnlockedItem> unlockedItemsStoragePortListener;
     private ConcurrentHashMap<Integer, UnlockedItem> unlockedItemsMap;
-
-    private final ConcurrentLinkedQueue<UnlockedItemsMapListener> unlockedItemsMapListeners = new ConcurrentLinkedQueue<>();
     private final Consumer<RemoteStorageService.State> remoteStorageServiceStateListener = this::remoteStorageServiceStateListener;
 
     @Override
@@ -86,7 +73,7 @@ public class UnlockedItemsDataProvider implements BUPluginLifecycle {
                 for (UnlockedItemsMapListener listener : unlockedItemsMapListeners) {
                     try {
                         listener.onDelete(unlockedItem);
-                    }  catch (Exception ex) {
+                    } catch (Exception ex) {
                         log.error("unlockedItemDeleteListener: onDelete", ex);
                     }
                 }
@@ -220,5 +207,17 @@ public class UnlockedItemsDataProvider implements BUPluginLifecycle {
                 log.error("set state listener unlocked item data provider error", e);
             }
         }
+    }
+
+    public enum State {
+        NotReady,
+        Ready,
+    }
+
+    public interface UnlockedItemsMapListener {
+
+        void onUpdate(UnlockedItem unlockedItem);
+
+        void onDelete(UnlockedItem unlockedItem);
     }
 }

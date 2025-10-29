@@ -5,23 +5,6 @@ import com.google.inject.ImplementedBy;
 import com.google.inject.Singleton;
 
 public class MainScreenViewModel {
-    @ImplementedBy(FactoryImpl.class)
-    public interface Factory {
-        MainScreenViewModel create();
-    }
-
-    @Singleton
-    private static final class FactoryImpl implements Factory {
-        @Override
-        public MainScreenViewModel create() {
-            return new MainScreenViewModel();
-        }
-    }
-
-    public enum MainScreen {
-        UNLOCKED_ITEMS,
-        CONFIG
-    }
 
     public final Property<MainScreen> mainScreen = new Property<>(MainScreen.UNLOCKED_ITEMS);
 
@@ -34,5 +17,25 @@ public class MainScreenViewModel {
 
     public void onConfigNavigateToUnlockedItems() {
         mainScreen.set(MainScreen.UNLOCKED_ITEMS);
+    }
+
+    public enum MainScreen {
+        UNLOCKED_ITEMS,
+        CONFIG
+    }
+
+    @ImplementedBy(FactoryImpl.class)
+    public interface Factory {
+
+        MainScreenViewModel create();
+    }
+
+    @Singleton
+    private static final class FactoryImpl implements Factory {
+
+        @Override
+        public MainScreenViewModel create() {
+            return new MainScreenViewModel();
+        }
     }
 }

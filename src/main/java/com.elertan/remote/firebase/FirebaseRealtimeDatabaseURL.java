@@ -10,14 +10,14 @@ import java.util.Objects;
 /**
  * Value object for Firebase Realtime Database endpoints.
  * <p>
- * Ensures the host belongs to an allowed Firebase domain and provides a
- * normalized base URL in the form {@code scheme://host[:port]}.
- * Handles IPv6 literals and omits default ports (80 for http, 443 for https).
+ * Ensures the host belongs to an allowed Firebase domain and provides a normalized base URL in the form
+ * {@code scheme://host[:port]}. Handles IPv6 literals and omits default ports (80 for http, 443 for https).
  */
 public final class FirebaseRealtimeDatabaseURL {
+
     private static final List<String> ALLOWED_SUFFIXES = Arrays.asList(
-            ".firebasedatabase.app",
-            ".firebaseio.com"
+        ".firebasedatabase.app",
+        ".firebaseio.com"
     );
 
     private final URL url;
@@ -26,7 +26,8 @@ public final class FirebaseRealtimeDatabaseURL {
      * Construct from a {@link URL}.
      *
      * @param url non-null URL using http or https and pointing to an allowed Firebase host
-     * @throws IllegalArgumentException if the URL is null, uses an unsupported scheme, or the host is not a Firebase host
+     * @throws IllegalArgumentException if the URL is null, uses an unsupported scheme, or the host is not a Firebase
+     *                                  host
      */
     public FirebaseRealtimeDatabaseURL(URL url) throws IllegalArgumentException {
         this.url = Objects.requireNonNull(url, "url");
@@ -49,6 +50,24 @@ public final class FirebaseRealtimeDatabaseURL {
      */
     public FirebaseRealtimeDatabaseURL(String urlString) throws IllegalArgumentException, MalformedURLException {
         this(new URL(urlString));
+    }
+
+    private static boolean isDefaultPort(String protocol, int port) {
+        return ("http".equalsIgnoreCase(protocol) && port == 80)
+            || ("https".equalsIgnoreCase(protocol) && port == 443);
+    }
+
+    private static boolean isFirebaseHost(String host) {
+        if (host == null || host.isEmpty()) {
+            return false;
+        }
+        final String h = host.toLowerCase(Locale.ROOT);
+        for (String suffix : ALLOWED_SUFFIXES) {
+            if (h.endsWith(suffix)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -90,8 +109,12 @@ public final class FirebaseRealtimeDatabaseURL {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         FirebaseRealtimeDatabaseURL that = (FirebaseRealtimeDatabaseURL) o;
         return url.equals(that.url);
     }
@@ -99,21 +122,5 @@ public final class FirebaseRealtimeDatabaseURL {
     @Override
     public int hashCode() {
         return url.hashCode();
-    }
-
-    private static boolean isDefaultPort(String protocol, int port) {
-        return ("http".equalsIgnoreCase(protocol) && port == 80)
-                || ("https".equalsIgnoreCase(protocol) && port == 443);
-    }
-
-    private static boolean isFirebaseHost(String host) {
-        if (host == null || host.isEmpty()) return false;
-        final String h = host.toLowerCase(Locale.ROOT);
-        for (String suffix : ALLOWED_SUFFIXES) {
-            if (h.endsWith(suffix)) {
-                return true;
-            }
-        }
-        return false;
     }
 }

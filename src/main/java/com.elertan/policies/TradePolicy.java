@@ -1,6 +1,12 @@
 package com.elertan.policies;
 
-import com.elertan.*;
+import com.elertan.AccountConfigurationService;
+import com.elertan.BUChatService;
+import com.elertan.BUPluginLifecycle;
+import com.elertan.BUSoundHelper;
+import com.elertan.GameRulesService;
+import com.elertan.ItemUnlockService;
+import com.elertan.MemberService;
 import com.elertan.models.GameRules;
 import com.elertan.models.Member;
 import com.elertan.utils.TextUtils;
@@ -12,11 +18,12 @@ import net.runelite.api.MenuAction;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.widgets.Widget;
-import net.runelite.client.util.Text;
 
 @Slf4j
 @Singleton
 public class TradePolicy extends PolicyBase implements BUPluginLifecycle {
+
+    private final GameRulesService gameRulesService;
     @Inject
     private Client client;
     @Inject
@@ -27,8 +34,6 @@ public class TradePolicy extends PolicyBase implements BUPluginLifecycle {
     private BUSoundHelper buSoundHelper;
     @Inject
     private BUChatService buChatService;
-
-    private final GameRulesService gameRulesService;
 
     @Inject
     public TradePolicy(AccountConfigurationService accountConfigurationService, GameRulesService gameRulesService) {
@@ -50,7 +55,7 @@ public class TradePolicy extends PolicyBase implements BUPluginLifecycle {
     public void onMenuOptionClicked(MenuOptionClicked event) {
         MenuAction action = event.getMenuAction();
         if (action.ordinal() >= MenuAction.PLAYER_FIRST_OPTION.ordinal()
-                && action.ordinal() <= MenuAction.PLAYER_EIGHTH_OPTION.ordinal()) {
+            && action.ordinal() <= MenuAction.PLAYER_EIGHTH_OPTION.ordinal()) {
             String option = event.getMenuOption();
             if (option.equalsIgnoreCase("Trade with")) {
                 onTradeWithClicked(event);
@@ -92,8 +97,8 @@ public class TradePolicy extends PolicyBase implements BUPluginLifecycle {
 
         boolean isPlayingAlone = memberService.isPlayingAlone();
         String message = isPlayingAlone ?
-                "You are a Bronzeman. You (sort of) stand alone."
-                : "You are a Group Bronzeman. You can only trade members of your group.";
+            "You are a Bronzeman. You (sort of) stand alone."
+            : "You are a Group Bronzeman. You can only trade members of your group.";
         buChatService.sendMessage(message);
 
         buSoundHelper.playDisabledSound();

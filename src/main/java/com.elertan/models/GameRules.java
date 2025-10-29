@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class GameRules {
+
     // General
     @JsonAdapter(AccountHashJsonAdapter.class)
     @Getter
@@ -39,7 +40,15 @@ public class GameRules {
     @Setter
     private String partyPassword;
 
-    public GameRules(Long lastUpdatedByAccountHash, ISOOffsetDateTime lastUpdatedAt, boolean preventTradeOutsideGroup, boolean preventTradeLockedItems, boolean preventGrandExchangeBuyOffers, boolean shareAchievementNotifications, String partyPassword) {
+    public GameRules(
+        Long lastUpdatedByAccountHash,
+        ISOOffsetDateTime lastUpdatedAt,
+        boolean preventTradeOutsideGroup,
+        boolean preventTradeLockedItems,
+        boolean preventGrandExchangeBuyOffers,
+        boolean shareAchievementNotifications,
+        String partyPassword
+    ) {
         this.lastUpdatedByAccountHash = lastUpdatedByAccountHash;
         this.lastUpdatedAt = lastUpdatedAt;
         this.preventTradeOutsideGroup = preventTradeOutsideGroup;
@@ -56,13 +65,13 @@ public class GameRules {
     @Override
     public String toString() {
         return "GameRules{" +
-                "lastUpdatedByAccountHash=" + lastUpdatedByAccountHash +
-                ", lastUpdatedAt=" + lastUpdatedAt +
-                ", preventTradeOutsideGroup=" + preventTradeOutsideGroup +
-                ", preventTradeLockedItems=" + preventTradeLockedItems +
-                ", preventGrandExchangeBuyOffers=" + preventGrandExchangeBuyOffers +
-                ", shareAchievementNotifications=" + shareAchievementNotifications +
-                ", partyPassword='" + partyPassword + '\'' +
-                '}';
+            "lastUpdatedByAccountHash=" + lastUpdatedByAccountHash +
+            ", lastUpdatedAt=" + lastUpdatedAt +
+            ", preventTradeOutsideGroup=" + preventTradeOutsideGroup +
+            ", preventTradeLockedItems=" + preventTradeLockedItems +
+            ", preventGrandExchangeBuyOffers=" + preventGrandExchangeBuyOffers +
+            ", shareAchievementNotifications=" + shareAchievementNotifications +
+            ", partyPassword='" + partyPassword + '\'' +
+            '}';
     }
 }

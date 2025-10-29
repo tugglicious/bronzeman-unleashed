@@ -13,17 +13,19 @@ public enum FirebaseSSEType {
         this.raw = raw;
     }
 
-    public String raw() {
-        return raw;
-    }
-
     public static FirebaseSSEType fromRaw(String raw) {
-        if (raw == null) return null;
+        if (raw == null) {
+            return null;
+        }
         for (FirebaseSSEType t : values()) {
             if (t.raw.equalsIgnoreCase(raw)) {
                 return t;
             }
         }
         return null; // or throw IllegalArgumentException
+    }
+
+    public String raw() {
+        return raw;
     }
 }

@@ -6,6 +6,7 @@ import com.elertan.models.AccountConfiguration;
 import com.elertan.models.GameRules;
 
 public class PolicyBase {
+
     private final AccountConfigurationService accountConfigurationService;
     private final GameRulesService gameRulesService;
 
@@ -30,10 +31,6 @@ public class PolicyBase {
             return false;
         }
         GameRules gameRules = gameRulesService.getGameRules();
-        if (gameRules == null) {
-            return false;
-        }
-
-        return true;
+        return gameRules != null;
     }
 }

@@ -1,12 +1,15 @@
 package com.elertan.utils;
 
-import com.google.gson.*;
-
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 public class JsonUtils {
+
     public static Object jsonElementToNative(JsonElement el) throws IllegalArgumentException {
         if (el == null || el.isJsonNull()) {
             return null;

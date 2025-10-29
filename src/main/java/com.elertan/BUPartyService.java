@@ -8,6 +8,7 @@ import net.runelite.client.chat.ChatMessageBuilder;
 import net.runelite.client.party.PartyService;
 
 public class BUPartyService implements BUPluginLifecycle {
+
     @Inject
     private BUPluginConfig buPluginConfig;
     @Inject
@@ -45,7 +46,8 @@ public class BUPartyService implements BUPluginLifecycle {
 
                 if (!buPluginConfig.shouldAutomaticallyJoinPartyOnLogin()) {
                     ChatMessageBuilder builder = new ChatMessageBuilder();
-                    builder.append("The bronzeman game rules configuration has a password set, but the plugin is configured to not automatically join the party on login.");
+                    builder.append(
+                        "The bronzeman game rules configuration has a password set, but the plugin is configured to not automatically join the party on login.");
                     buChatService.sendMessage(builder.build());
                     return;
                 }

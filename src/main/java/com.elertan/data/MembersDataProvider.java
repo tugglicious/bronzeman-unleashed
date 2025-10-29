@@ -2,14 +2,11 @@ package com.elertan.data;
 
 import com.elertan.BUPluginLifecycle;
 import com.elertan.models.Member;
-import com.elertan.remote.RemoteStorageService;
 import com.elertan.remote.KeyValueStoragePort;
+import com.elertan.remote.RemoteStorageService;
 import com.elertan.utils.ListenerUtils;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
@@ -18,35 +15,23 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.Consumer;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Singleton
 public class MembersDataProvider implements BUPluginLifecycle {
-    public enum State {
-        NotReady,
-        Ready,
-    }
-
-    public interface MemberMapListener {
-        void onUpdate(Member newMember, Member oldMember);
-
-        void onDelete(Member member);
-    }
-
-    @Inject
-    private RemoteStorageService remoteStorageService;
-
-    private KeyValueStoragePort<Long, Member> keyValueStoragePort;
-    private KeyValueStoragePort.Listener<Long, Member> storagePortListener;
 
     private final ConcurrentLinkedQueue<MemberMapListener> memberMapListeners = new ConcurrentLinkedQueue<>();
-
+    private final ConcurrentLinkedQueue<Consumer<State>> stateListeners = new ConcurrentLinkedQueue<>();
+    private final ConcurrentSkipListSet<Long> optimisticallyAddedMembers = new ConcurrentSkipListSet<>();
+    @Inject
+    private RemoteStorageService remoteStorageService;
+    private KeyValueStoragePort<Long, Member> keyValueStoragePort;
+    private KeyValueStoragePort.Listener<Long, Member> storagePortListener;
     private ConcurrentHashMap<Long, Member> membersMap = new ConcurrentHashMap<>();
-    private ConcurrentSkipListSet<Long> optimisticallyAddedMembers = new ConcurrentSkipListSet<>();
-
     @Getter
     private State state = State.NotReady;
-    private final ConcurrentLinkedQueue<Consumer<State>> stateListeners = new ConcurrentLinkedQueue<>();
     private final Consumer<RemoteStorageService.State> remoteStorageServiceStateListener = this::remoteStorageServiceStateListener;
 
     @Override
@@ -183,7 +168,6 @@ public class MembersDataProvider implements BUPluginLifecycle {
         return keyValueStoragePort.update(member.getAccountHash(), member);
     }
 
-
     private void remoteStorageServiceStateListener(RemoteStorageService.State state) {
         if (state == RemoteStorageService.State.NotReady) {
             membersMap = null;
@@ -231,5 +215,17 @@ public class MembersDataProvider implements BUPluginLifecycle {
                 log.error("set state listener unlocked item data provider error", e);
             }
         }
+    }
+
+    public enum State {
+        NotReady,
+        Ready,
+    }
+
+    public interface MemberMapListener {
+
+        void onUpdate(Member newMember, Member oldMember);
+
+        void onDelete(Member member);
     }
 }

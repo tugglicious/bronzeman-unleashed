@@ -5,59 +5,24 @@ import com.elertan.models.ISOOffsetDateTime;
 import com.elertan.ui.Property;
 import com.google.inject.ImplementedBy;
 import com.google.inject.Singleton;
-import lombok.Getter;
-
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.time.OffsetDateTime;
 import java.util.function.Consumer;
+import lombok.Getter;
 
 public class GameRulesEditorViewModel implements AutoCloseable {
-    public static class Props {
-        @Getter
-        private final long accountHash;
-        @Getter
-        private final GameRules gameRules;
-        @Getter
-        private final Consumer<GameRules> onGameRulesChanged;
-        @Getter
-        private final boolean isViewOnlyMode;
-
-        public Props(long accountHash, GameRules gameRules, Consumer<GameRules> onGameRulesChanged, boolean isViewOnlyMode) {
-            this.accountHash = accountHash;
-            this.gameRules = gameRules;
-            this.onGameRulesChanged = onGameRulesChanged;
-            this.isViewOnlyMode = isViewOnlyMode;
-        }
-    }
-
-    @ImplementedBy(FactoryImpl.class)
-    public interface Factory {
-        GameRulesEditorViewModel create(Props initialProps);
-    }
-
-    @Singleton
-    private static final class FactoryImpl implements Factory {
-        @Override
-        public GameRulesEditorViewModel create(Props initialProps) {
-            return new GameRulesEditorViewModel(initialProps);
-        }
-    }
 
     public final Property<Boolean> preventTradeOutsideGroup;
     public final Property<Boolean> preventTradeLockedItems;
     public final Property<Boolean> preventGrandExchangeBuyOffers;
     public final Property<Boolean> shareAchievementNotifications;
     public final Property<String> partyPassword;
-
     public final Property<Boolean> isViewOnlyMode;
-//    public final Property<Boolean> isValid;
-
-
     private Props props;
-
     private final PropertyChangeListener preventTradeOutsideGroupListener = this::preventTradeOutsideGroupListener;
     private final PropertyChangeListener preventTradeLockedItemsListener = this::preventTradeLockedItemsListener;
+    //    public final Property<Boolean> isValid;
     private final PropertyChangeListener preventGrandExchangeBuyOffersListener = this::preventGrandExchangeBuyOffersListener;
     private final PropertyChangeListener shareAchievementNotificationsListener = this::shareAchievementNotificationsListener;
     private final PropertyChangeListener partyPasswordListener = this::partyPasswordListener;
@@ -164,14 +129,53 @@ public class GameRulesEditorViewModel implements AutoCloseable {
         }
 
         GameRules newGameRules = new GameRules(
-                props.getAccountHash(),
-                new ISOOffsetDateTime(OffsetDateTime.now()),
-                preventTradeOutsideGroup.get(),
-                preventTradeLockedItems.get(),
-                preventGrandExchangeBuyOffers.get(),
-                shareAchievementNotifications.get(),
-                partyPassword.get()
+            props.getAccountHash(),
+            new ISOOffsetDateTime(OffsetDateTime.now()),
+            preventTradeOutsideGroup.get(),
+            preventTradeLockedItems.get(),
+            preventGrandExchangeBuyOffers.get(),
+            shareAchievementNotifications.get(),
+            partyPassword.get()
         );
         props.onGameRulesChanged.accept(newGameRules);
+    }
+
+    @ImplementedBy(FactoryImpl.class)
+    public interface Factory {
+
+        GameRulesEditorViewModel create(Props initialProps);
+    }
+
+    public static class Props {
+
+        @Getter
+        private final long accountHash;
+        @Getter
+        private final GameRules gameRules;
+        @Getter
+        private final Consumer<GameRules> onGameRulesChanged;
+        @Getter
+        private final boolean isViewOnlyMode;
+
+        public Props(
+            long accountHash,
+            GameRules gameRules,
+            Consumer<GameRules> onGameRulesChanged,
+            boolean isViewOnlyMode
+        ) {
+            this.accountHash = accountHash;
+            this.gameRules = gameRules;
+            this.onGameRulesChanged = onGameRulesChanged;
+            this.isViewOnlyMode = isViewOnlyMode;
+        }
+    }
+
+    @Singleton
+    private static final class FactoryImpl implements Factory {
+
+        @Override
+        public GameRulesEditorViewModel create(Props initialProps) {
+            return new GameRulesEditorViewModel(initialProps);
+        }
     }
 }

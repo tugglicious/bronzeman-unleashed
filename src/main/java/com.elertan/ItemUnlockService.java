@@ -8,8 +8,24 @@ import com.elertan.overlays.ItemUnlockOverlay;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.time.OffsetDateTime;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.*;
+import net.runelite.api.Client;
+import net.runelite.api.Item;
+import net.runelite.api.ItemComposition;
+import net.runelite.api.ItemContainer;
+import net.runelite.api.NPCComposition;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.gameval.ItemID;
@@ -24,59 +40,53 @@ import net.runelite.http.api.worlds.World;
 import net.runelite.http.api.worlds.WorldResult;
 import net.runelite.http.api.worlds.WorldType;
 
-import java.time.OffsetDateTime;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-
 @Slf4j
 @Singleton
 public class ItemUnlockService implements BUPluginLifecycle {
+
     public static final Set<Integer> AUTO_UNLOCKED_ITEMS = ImmutableSet.of(
-            // Bond
-            ItemID.OSRS_BOND,
-            // All variations of coins
-            ItemID.COINS,
-            ItemID.COINS_1,
-            ItemID.COINS_2,
-            ItemID.COINS_3,
-            ItemID.COINS_4,
-            ItemID.COINS_5,
-            ItemID.COINS_25,
-            ItemID.COINS_100,
-            ItemID.COINS_250,
-            ItemID.COINS_1000,
-            ItemID.COINS_10000,
-            // Platinum token
-            ItemID.PLATINUM
+        // Bond
+        ItemID.OSRS_BOND,
+        // All variations of coins
+        ItemID.COINS,
+        ItemID.COINS_1,
+        ItemID.COINS_2,
+        ItemID.COINS_3,
+        ItemID.COINS_4,
+        ItemID.COINS_5,
+        ItemID.COINS_25,
+        ItemID.COINS_100,
+        ItemID.COINS_250,
+        ItemID.COINS_1000,
+        ItemID.COINS_10000,
+        // Platinum token
+        ItemID.PLATINUM
     );
 
     private static final Set<Integer> ITEM_MAPPING_ITEM_IDS = ImmutableSet.of(
-            ItemID.ARCEUUS_CORPSE_GOBLIN_INITIAL,
-            ItemID.ARCEUUS_CORPSE_MONKEY_INITIAL,
-            ItemID.ARCEUUS_CORPSE_IMP_INITIAL,
-            ItemID.ARCEUUS_CORPSE_MINOTAUR_INITIAL,
-            ItemID.ARCEUUS_CORPSE_SCORPION_INITIAL,
-            ItemID.ARCEUUS_CORPSE_BEAR_INITIAL,
-            ItemID.ARCEUUS_CORPSE_UNICORN_INITIAL,
-            ItemID.ARCEUUS_CORPSE_DOG_INITIAL,
-            ItemID.ARCEUUS_CORPSE_CHAOSDRUID_INITIAL,
-            ItemID.ARCEUUS_CORPSE_GIANT_INITIAL,
-            ItemID.ARCEUUS_CORPSE_OGRE_INITIAL,
-            ItemID.ARCEUUS_CORPSE_ELF_INITIAL,
-            ItemID.ARCEUUS_CORPSE_TROLL_INITIAL,
-            ItemID.ARCEUUS_CORPSE_HORROR_INITIAL,
-            ItemID.ARCEUUS_CORPSE_KALPHITE_INITIAL,
-            ItemID.ARCEUUS_CORPSE_DAGANNOTH_INITIAL,
-            ItemID.ARCEUUS_CORPSE_BLOODVELD_INITIAL,
-            ItemID.ARCEUUS_CORPSE_TZHAAR_INITIAL,
-            ItemID.ARCEUUS_CORPSE_DEMON_INITIAL,
-            ItemID.ARCEUUS_CORPSE_HELLHOUND_INITIAL,
-            ItemID.ARCEUUS_CORPSE_AVIANSIE_INITIAL,
-            ItemID.ARCEUUS_CORPSE_ABYSSAL_INITIAL,
-            ItemID.ARCEUUS_CORPSE_DRAGON_INITIAL
+        ItemID.ARCEUUS_CORPSE_GOBLIN_INITIAL,
+        ItemID.ARCEUUS_CORPSE_MONKEY_INITIAL,
+        ItemID.ARCEUUS_CORPSE_IMP_INITIAL,
+        ItemID.ARCEUUS_CORPSE_MINOTAUR_INITIAL,
+        ItemID.ARCEUUS_CORPSE_SCORPION_INITIAL,
+        ItemID.ARCEUUS_CORPSE_BEAR_INITIAL,
+        ItemID.ARCEUUS_CORPSE_UNICORN_INITIAL,
+        ItemID.ARCEUUS_CORPSE_DOG_INITIAL,
+        ItemID.ARCEUUS_CORPSE_CHAOSDRUID_INITIAL,
+        ItemID.ARCEUUS_CORPSE_GIANT_INITIAL,
+        ItemID.ARCEUUS_CORPSE_OGRE_INITIAL,
+        ItemID.ARCEUUS_CORPSE_ELF_INITIAL,
+        ItemID.ARCEUUS_CORPSE_TROLL_INITIAL,
+        ItemID.ARCEUUS_CORPSE_HORROR_INITIAL,
+        ItemID.ARCEUUS_CORPSE_KALPHITE_INITIAL,
+        ItemID.ARCEUUS_CORPSE_DAGANNOTH_INITIAL,
+        ItemID.ARCEUUS_CORPSE_BLOODVELD_INITIAL,
+        ItemID.ARCEUUS_CORPSE_TZHAAR_INITIAL,
+        ItemID.ARCEUUS_CORPSE_DEMON_INITIAL,
+        ItemID.ARCEUUS_CORPSE_HELLHOUND_INITIAL,
+        ItemID.ARCEUUS_CORPSE_AVIANSIE_INITIAL,
+        ItemID.ARCEUUS_CORPSE_ABYSSAL_INITIAL,
+        ItemID.ARCEUUS_CORPSE_DRAGON_INITIAL
     );
 
     private static final Map<String, Integer> MAP_ITEM_NAMES = new HashMap<String, Integer>() {{
@@ -89,32 +99,29 @@ public class ItemUnlockService implements BUPluginLifecycle {
         put("Clue scroll (elite)", ItemID.TRAIL_CLUE_ELITE_MUSIC001);
         put("Clue scroll (master)", ItemID.TRAIL_CLUE_MASTER);
     }};
-
-    private static Set<WorldType> supportedWorldTypes = ImmutableSet.of(
-            WorldType.MEMBERS,
-            WorldType.PVP,
-            WorldType.SKILL_TOTAL,
-            WorldType.HIGH_RISK,
-            WorldType.FRESH_START_WORLD
-    );
-
     private static final Set<Integer> INCLUDED_CONTAINER_IDS = ImmutableSet.of(
-            InventoryID.INV, // inventory
-            InventoryID.WORN, // Worn items
-            InventoryID.BANK, // bank
+        InventoryID.INV, // inventory
+        InventoryID.WORN, // Worn items
+        InventoryID.BANK, // bank
 
-            InventoryID.TRAIL_REWARDINV, // Barrows chest
-            InventoryID.MISC_RESOURCES_COLLECTED, // Miscellania reward
-            // I think we should probably not include these it might ruin the moment
+        InventoryID.TRAIL_REWARDINV, // Barrows chest
+        InventoryID.MISC_RESOURCES_COLLECTED, // Miscellania reward
+        // I think we should probably not include these it might ruin the moment
 //            InventoryID.RAIDS_REWARDS, // Chambers of eric reward
 //            InventoryID.TOB_CHESTS, // Theater of Blood reward
 //            InventoryID.TOA_CHESTS, // Tombs of Amascut reward
-            InventoryID.SEED_VAULT, // Farming Guild seed vault
-            InventoryID.TRAWLER_REWARDINV, // Fishing trawler reward
-            InventoryID.LOOTING_BAG // Looting bag
+        InventoryID.SEED_VAULT, // Farming Guild seed vault
+        InventoryID.TRAWLER_REWARDINV, // Fishing trawler reward
+        InventoryID.LOOTING_BAG // Looting bag
     );
-
-
+    private static final Set<WorldType> supportedWorldTypes = ImmutableSet.of(
+        WorldType.MEMBERS,
+        WorldType.PVP,
+        WorldType.SKILL_TOTAL,
+        WorldType.HIGH_RISK,
+        WorldType.FRESH_START_WORLD
+    );
+    private final ConcurrentLinkedQueue<Consumer<UnlockedItem>> newUnlockedItemListeners = new ConcurrentLinkedQueue<>();
     @Inject
     private Client client;
     @Inject
@@ -133,13 +140,9 @@ public class ItemUnlockService implements BUPluginLifecycle {
     private ItemUnlockOverlay itemUnlockOverlay;
     @Inject
     private MemberService memberService;
-
-    private final ConcurrentLinkedQueue<Consumer<UnlockedItem>> newUnlockedItemListeners = new ConcurrentLinkedQueue<>();
-
-    private final Consumer<UnlockedItemsDataProvider.State> unlockedItemDataProviderStateListener = this::unlockedItemDataProviderStateListener;
-
     private UnlockedItemsDataProvider.UnlockedItemsMapListener unlockedItemsMapListener;
     private boolean hasUnlockedItemDataProviderReadyStateBeenSeen;
+    private final Consumer<UnlockedItemsDataProvider.State> unlockedItemDataProviderStateListener = this::unlockedItemDataProviderStateListener;
 
     @Override
     public void startUp() throws Exception {
@@ -152,9 +155,9 @@ public class ItemUnlockService implements BUPluginLifecycle {
                 // We can consider these to be newly unlocked items
 
                 itemUnlockOverlay.enqueueShowUnlock(
-                        unlockedItem.getId(),
-                        unlockedItem.getAcquiredByAccountHash(),
-                        unlockedItem.getDroppedByNPCId()
+                    unlockedItem.getId(),
+                    unlockedItem.getAcquiredByAccountHash(),
+                    unlockedItem.getDroppedByNPCId()
                 );
 
                 if (buPluginConfig.showItemUnlocksInChat()) {
@@ -164,7 +167,8 @@ public class ItemUnlockService implements BUPluginLifecycle {
                         builder.append(buPluginConfig.chatItemNameColor(), unlockedItem.getName());
 
                         if (client.getAccountHash() != unlockedItem.getAcquiredByAccountHash()) {
-                            Member member = memberService.getMemberByAccountHash(unlockedItem.getAcquiredByAccountHash());
+                            Member member = memberService.getMemberByAccountHash(
+                                unlockedItem.getAcquiredByAccountHash());
 
                             builder.append(" by ");
                             builder.append(buPluginConfig.chatPlayerNameColor(), member.getName());
@@ -336,11 +340,11 @@ public class ItemUnlockService implements BUPluginLifecycle {
         ISOOffsetDateTime acquiredAt = new ISOOffsetDateTime(OffsetDateTime.now());
 
         UnlockedItem unlockedItem = new UnlockedItem(
-                itemId,
-                itemComposition.getName(),
-                acquiredByAccountHash,
-                acquiredAt,
-                droppedByNPCId
+            itemId,
+            itemComposition.getName(),
+            acquiredByAccountHash,
+            acquiredAt,
+            droppedByNPCId
         );
         log.info("Unlocked item ({}) '{}'", itemId, itemComposition.getName());
         unlockedItemsDataProvider.addUnlockedItem(unlockedItem).whenComplete((__, throwable) -> {
@@ -366,7 +370,9 @@ public class ItemUnlockService implements BUPluginLifecycle {
             throw new Exception("Failed to find world with id " + worldNumber);
         }
         EnumSet<WorldType> worldTypes = world.getTypes();
-        boolean hasUnsupportedWorldType = !worldTypes.isEmpty() && worldTypes.stream().anyMatch(t -> !supportedWorldTypes.contains(t));
+        boolean hasUnsupportedWorldType = !worldTypes.isEmpty() && worldTypes.stream()
+            .anyMatch(t -> !supportedWorldTypes.contains(
+                t));
 
         return !hasUnsupportedWorldType;
     }

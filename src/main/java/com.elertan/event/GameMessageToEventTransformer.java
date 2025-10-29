@@ -1,52 +1,54 @@
 package com.elertan.event;
 
-import com.elertan.chat.*;
+import com.elertan.chat.CombatTaskParsedGameMessage;
+import com.elertan.chat.LevelUpParsedGameMessage;
+import com.elertan.chat.ParsedGameMessage;
+import com.elertan.chat.ParsedGameMessageType;
+import com.elertan.chat.QuestCompletionParsedGameMessage;
+import com.elertan.chat.TotalLevelParsedGameMessage;
 import com.elertan.models.ISOOffsetDateTime;
 import com.google.common.collect.ImmutableSet;
-
 import java.time.OffsetDateTime;
 import java.util.EnumMap;
 import java.util.Set;
 
 public class GameMessageToEventTransformer {
-    @FunctionalInterface
-    interface Transformer {
-        BUEvent apply(ParsedGameMessage gameMessage, long dispatchedFromAccountHash);
-    }
 
-    private static final EnumMap<ParsedGameMessageType, Transformer> TRANSFORMERS = new EnumMap<>(ParsedGameMessageType.class);
+    private static final EnumMap<ParsedGameMessageType, Transformer> TRANSFORMERS = new EnumMap<>(
+        ParsedGameMessageType.class);
+    private static final Set<Integer> SHARE_LEVEL_UP_OF_SET = ImmutableSet.of(
+        10,
+        20,
+        30,
+        40,
+        50,
+        60,
+        65,
+        70,
+        75,
+        80,
+        85,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99
+    );
 
     static {
         TRANSFORMERS.put(ParsedGameMessageType.LevelUp, GameMessageToEventTransformer::transformLevelUp);
         TRANSFORMERS.put(ParsedGameMessageType.TotalLevel, GameMessageToEventTransformer::transformTotalLevel);
         TRANSFORMERS.put(ParsedGameMessageType.CombatTask, GameMessageToEventTransformer::transformCombatTask);
-        TRANSFORMERS.put(ParsedGameMessageType.QuestCompletion, GameMessageToEventTransformer::transformQuestCompletion);
+        TRANSFORMERS.put(
+            ParsedGameMessageType.QuestCompletion,
+            GameMessageToEventTransformer::transformQuestCompletion
+        );
     }
-
-    private static final Set<Integer> SHARE_LEVEL_UP_OF_SET = ImmutableSet.of(
-            10,
-            20,
-            30,
-            40,
-            50,
-            60,
-            65,
-            70,
-            75,
-            80,
-            85,
-            90,
-            91,
-            92,
-            93,
-            94,
-            95,
-            96,
-            97,
-            98,
-            99
-    );
-
 
     public static BUEvent transformGameMessage(ParsedGameMessage gameMessage, long dispatchedFromAccountHash) {
         if (gameMessage == null) {
@@ -88,5 +90,11 @@ public class GameMessageToEventTransformer {
         QuestCompletionParsedGameMessage m = (QuestCompletionParsedGameMessage) gameMessage;
         ISOOffsetDateTime now = new ISOOffsetDateTime(OffsetDateTime.now());
         return new QuestCompletionAchievementBUEvent(dispatchedFromAccountHash, now, m.getName());
+    }
+
+    @FunctionalInterface
+    interface Transformer {
+
+        BUEvent apply(ParsedGameMessage gameMessage, long dispatchedFromAccountHash);
     }
 }

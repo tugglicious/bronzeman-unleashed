@@ -1,8 +1,19 @@
 package com.elertan.policies;
 
-import com.elertan.*;
+import com.elertan.AccountConfigurationService;
+import com.elertan.BUPluginConfig;
+import com.elertan.BUPluginLifecycle;
+import com.elertan.BUResourceService;
+import com.elertan.GameRulesService;
+import com.elertan.ItemUnlockService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.awt.AlphaComposite;
+import java.awt.Composite;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.image.BufferedImage;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.events.WidgetClosed;
@@ -11,13 +22,6 @@ import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetID;
 import net.runelite.client.callback.ClientThread;
-
-import java.awt.AlphaComposite;
-import java.awt.Composite;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.awt.image.BufferedImage;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayManager;
@@ -26,6 +30,9 @@ import net.runelite.client.ui.overlay.OverlayPosition;
 @Slf4j
 @Singleton
 public class ShopPolicy extends PolicyBase implements BUPluginLifecycle {
+
+    private final ShopOverlay shopOverlay = new ShopOverlay();
+    private final GameRulesService gameRulesService;
     @Inject
     private Client client;
     @Inject
@@ -36,13 +43,8 @@ public class ShopPolicy extends PolicyBase implements BUPluginLifecycle {
     private BUPluginConfig buPluginConfig;
     @Inject
     private ItemUnlockService itemUnlockService;
-
     @Inject
     private OverlayManager overlayManager;
-
-    private final ShopOverlay shopOverlay = new ShopOverlay();
-
-    private final GameRulesService gameRulesService;
 
 
     @Inject
@@ -85,10 +87,11 @@ public class ShopPolicy extends PolicyBase implements BUPluginLifecycle {
     }
 
     /**
-     * Draws unlocked-item checkmarks over shop items without using sprite IDs or widget children.
-     * Placement, size, and opacity match the previous widget-based approach.
+     * Draws unlocked-item checkmarks over shop items without using sprite IDs or widget children. Placement, size, and
+     * opacity match the previous widget-based approach.
      */
     private class ShopOverlay extends Overlay {
+
         private static final int CHECKMARK_SIZE = 8;
 
         private ShopOverlay() {

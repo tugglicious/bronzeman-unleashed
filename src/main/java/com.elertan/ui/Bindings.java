@@ -1,23 +1,36 @@
 package com.elertan.ui;
 
-import net.runelite.client.ui.components.IconTextField;
-
-import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.text.Document;
-import javax.swing.text.JTextComponent;
-import java.awt.*;
+import java.awt.CardLayout;
+import java.awt.Component;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeListener;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import javax.swing.AbstractButton;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.ListCellRenderer;
+import javax.swing.SwingUtilities;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.Document;
+import net.runelite.client.ui.components.IconTextField;
 
 public final class Bindings {
+
     public static AutoCloseable bindEnabled(JComponent component, Property<Boolean> property) {
         Supplier<Boolean> getter = component::isEnabled;
         Consumer<Boolean> setter = component::setEnabled;
@@ -129,7 +142,12 @@ public final class Bindings {
         };
     }
 
-    public static <T> AutoCloseable bindComboBox(JComboBox<T> comboBox, Property<List<T>> optionsProperty, Property<T> valueProperty, Property<Map<T, String>> valueToStringMapProperty) {
+    public static <T> AutoCloseable bindComboBox(
+        JComboBox<T> comboBox,
+        Property<List<T>> optionsProperty,
+        Property<T> valueProperty,
+        Property<Map<T, String>> valueToStringMapProperty
+    ) {
         if (comboBox == null) {
             throw new IllegalArgumentException("comboBox must not be null");
         }
@@ -147,7 +165,7 @@ public final class Bindings {
             List<T> options = new ArrayList<>(itemCount);
             for (int i = 0; i < itemCount; i++) {
                 @SuppressWarnings("unchecked")
-                T item = (T) comboBox.getItemAt(i);
+                T item = comboBox.getItemAt(i);
                 options.add(item);
             }
             return options;
@@ -180,7 +198,13 @@ public final class Bindings {
         // Use provided mapping for display text, defaulting to enum name
         ListCellRenderer<? super T> renderer = new DefaultListCellRenderer() {
             @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+            public Component getListCellRendererComponent(
+                JList<?> list,
+                Object value,
+                int index,
+                boolean isSelected,
+                boolean cellHasFocus
+            ) {
                 @SuppressWarnings("unchecked")
                 T typedValue = (T) value;
                 Map<T, String> valueToStringMap = valueToStringMapProperty.get();
@@ -218,7 +242,12 @@ public final class Bindings {
         };
     }
 
-    public static <E extends Enum<E>, P extends JPanel> AutoCloseable bindCardLayout(JPanel host, CardLayout cardLayout, Property<E> property, Function<E, P> build) {
+    public static <E extends Enum<E>, P extends JPanel> AutoCloseable bindCardLayout(
+        JPanel host,
+        CardLayout cardLayout,
+        Property<E> property,
+        Function<E, P> build
+    ) {
         AtomicReference<E> lastEnum = new AtomicReference<>(null);
         final Map<E, P> builtPanels = new HashMap<>();
 

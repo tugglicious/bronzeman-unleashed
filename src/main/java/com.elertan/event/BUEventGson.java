@@ -4,10 +4,10 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-
 import java.util.EnumMap;
 
 public class BUEventGson {
+
     private static final EnumMap<BUEventType, Class<? extends BUEvent>> REGISTRY = new EnumMap<>(BUEventType.class);
 
     static {

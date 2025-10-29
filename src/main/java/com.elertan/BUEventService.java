@@ -4,15 +4,15 @@ import com.elertan.data.LastEventDataProvider;
 import com.elertan.event.BUEvent;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Singleton
 public class BUEventService implements BUPluginLifecycle {
+
     private final ConcurrentLinkedQueue<Consumer<BUEvent>> eventListeners = new ConcurrentLinkedQueue<>();
     private final Consumer<BUEvent> lastEventListener = this::lastEventListener;
 

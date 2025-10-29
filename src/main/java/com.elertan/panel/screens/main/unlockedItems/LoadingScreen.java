@@ -4,26 +4,16 @@ import com.elertan.BUResourceService;
 import com.google.inject.ImplementedBy;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Font;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 public class LoadingScreen extends JPanel {
-    @ImplementedBy(FactoryImpl.class)
-    public interface Factory {
-        LoadingScreen create();
-    }
-
-    @Singleton
-    private static final class FactoryImpl implements Factory {
-        @Inject
-        private BUResourceService buResourceService;
-
-        @Override
-        public LoadingScreen create() {
-            return new LoadingScreen(buResourceService);
-        }
-    }
 
     private LoadingScreen(BUResourceService buResourceService) {
         setLayout(new BorderLayout());
@@ -55,5 +45,23 @@ public class LoadingScreen extends JPanel {
 
         add(inner, BorderLayout.NORTH);
 
+    }
+
+    @ImplementedBy(FactoryImpl.class)
+    public interface Factory {
+
+        LoadingScreen create();
+    }
+
+    @Singleton
+    private static final class FactoryImpl implements Factory {
+
+        @Inject
+        private BUResourceService buResourceService;
+
+        @Override
+        public LoadingScreen create() {
+            return new LoadingScreen(buResourceService);
+        }
     }
 }

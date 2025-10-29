@@ -1,6 +1,12 @@
 package com.elertan;
 
 import com.elertan.resource.BUImageUtil;
+import java.awt.image.BufferedImage;
+import java.util.Arrays;
+import java.util.Objects;
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import javax.swing.ImageIcon;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
@@ -8,47 +14,33 @@ import net.runelite.api.IndexedSprite;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.util.ImageUtil;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import javax.swing.*;
-import java.awt.image.BufferedImage;
-import java.util.Arrays;
-import java.util.Objects;
-
 @Slf4j
 @Singleton
 public class BUResourceService implements BUPluginLifecycle {
+
     private static final String ICON_FILE_PATH = "/icon.png";
     private static final String CHECKMARK_ICON_FILE_PATH = "/checkmark-icon.png";
     private static final String CONFIGURE_ICON_FILE_PATH = "/configure-icon.png";
     private static final String LOADING_SPINNER_FILE_PATH = "/loading-spinner.gif";
-
-    public static class BUModIcons {
-        @Getter
-        final private int chatIconId;
-
-        public BUModIcons(int chatIconId) {
-            this.chatIconId = chatIconId;
-        }
-    }
-
+    @Getter
+    private final BufferedImage iconBufferedImage = ImageUtil.loadImageResource(BUPlugin.class, ICON_FILE_PATH);
+    @Getter
+    private final BufferedImage checkmarkIconBufferedImage = ImageUtil.loadImageResource(
+        BUPlugin.class,
+        CHECKMARK_ICON_FILE_PATH
+    );
+    @Getter
+    private final BufferedImage configureIconBufferedImage = ImageUtil.loadImageResource(
+        BUPlugin.class,
+        CONFIGURE_ICON_FILE_PATH
+    );
+    @Getter
+    private final ImageIcon loadingSpinnerImageIcon = new ImageIcon(Objects.requireNonNull(BUPlugin.class.getResource(
+        LOADING_SPINNER_FILE_PATH)));
     @Inject
     private Client client;
     @Inject
     private ClientThread clientThread;
-
-    @Getter
-    private final BufferedImage iconBufferedImage = ImageUtil.loadImageResource(BUPlugin.class, ICON_FILE_PATH);
-
-    @Getter
-    private final BufferedImage checkmarkIconBufferedImage = ImageUtil.loadImageResource(BUPlugin.class, CHECKMARK_ICON_FILE_PATH);
-
-    @Getter
-    private final BufferedImage configureIconBufferedImage = ImageUtil.loadImageResource(BUPlugin.class, CONFIGURE_ICON_FILE_PATH);
-
-    @Getter
-    private final ImageIcon loadingSpinnerImageIcon = new ImageIcon(Objects.requireNonNull(BUPlugin.class.getResource(LOADING_SPINNER_FILE_PATH)));
-
     @Getter
     private BUModIcons buModIcons;
 
@@ -82,5 +74,15 @@ public class BUResourceService implements BUPluginLifecycle {
 
         this.buModIcons = new BUModIcons(chatIconId);
         log.info("BUResourceService: mod icons and sprites initialized");
+    }
+
+    public static class BUModIcons {
+
+        @Getter
+        final private int chatIconId;
+
+        public BUModIcons(int chatIconId) {
+            this.chatIconId = chatIconId;
+        }
     }
 }

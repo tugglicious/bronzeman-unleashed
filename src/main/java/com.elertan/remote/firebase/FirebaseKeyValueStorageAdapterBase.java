@@ -4,8 +4,6 @@ import com.elertan.remote.KeyValueStoragePort;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,9 +12,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class FirebaseKeyValueStorageAdapterBase<K, V> implements KeyValueStoragePort<K, V> {
+
     private final String basePath;
     private final FirebaseRealtimeDatabase db;
     private final Gson gson;
@@ -27,7 +27,14 @@ public class FirebaseKeyValueStorageAdapterBase<K, V> implements KeyValueStorage
 
     private final Consumer<FirebaseSSE> sseListener = this::sseListener;
 
-    public FirebaseKeyValueStorageAdapterBase(String basePath, FirebaseRealtimeDatabase db, Gson gson, Function<String, K> stringToKeyTransformer, Function<K, String> keyToStringTransformer, Function<JsonElement, V> deserializeFromJsonElement) {
+    public FirebaseKeyValueStorageAdapterBase(
+        String basePath,
+        FirebaseRealtimeDatabase db,
+        Gson gson,
+        Function<String, K> stringToKeyTransformer,
+        Function<K, String> keyToStringTransformer,
+        Function<JsonElement, V> deserializeFromJsonElement
+    ) {
         // Base key should be of format
         // '/Resource' // NOT -> or '/FirstLevel/SecondLevel'
         if (basePath == null) {
@@ -63,28 +70,28 @@ public class FirebaseKeyValueStorageAdapterBase<K, V> implements KeyValueStorage
     public CompletableFuture<V> read(K key) {
         String path = basePath + "/" + keyToStringTransformer.apply(key);
         return db.get(path)
-                .thenApply(this.deserializeFromJsonElement);
+            .thenApply(this.deserializeFromJsonElement);
     }
 
     @Override
     public CompletableFuture<Map<K, V>> readAll() {
         return db.get(basePath)
-                .thenApply(jsonElement -> {
-                    if (jsonElement == null || jsonElement.isJsonNull()) {
-                        return Collections.emptyMap();
-                    }
+            .thenApply(jsonElement -> {
+                if (jsonElement == null || jsonElement.isJsonNull()) {
+                    return Collections.emptyMap();
+                }
 
-                    JsonObject obj = jsonElement.getAsJsonObject();
-                    HashMap<K, V> map = new HashMap<>();
+                JsonObject obj = jsonElement.getAsJsonObject();
+                HashMap<K, V> map = new HashMap<>();
 
-                    for (Map.Entry<String, JsonElement> entry : obj.entrySet()) {
-                        K key = stringToKeyTransformer.apply(entry.getKey());
-                        JsonElement entryValue = entry.getValue();
-                        map.put(key, deserializeFromJsonElement.apply(entryValue));
-                    }
+                for (Map.Entry<String, JsonElement> entry : obj.entrySet()) {
+                    K key = stringToKeyTransformer.apply(entry.getKey());
+                    JsonElement entryValue = entry.getValue();
+                    map.put(key, deserializeFromJsonElement.apply(entryValue));
+                }
 
-                    return map;
-                });
+                return map;
+            });
     }
 
     @Override
@@ -132,8 +139,8 @@ public class FirebaseKeyValueStorageAdapterBase<K, V> implements KeyValueStorage
             return;
         }
         String[] pathParts = Arrays.stream(path.split("/"))
-                .filter(part -> !part.isEmpty())
-                .toArray(String[]::new);
+            .filter(part -> !part.isEmpty())
+            .toArray(String[]::new);
         int pathPartsLength = pathParts.length;
         if (pathPartsLength == 1) {
             // Full update
@@ -149,7 +156,13 @@ public class FirebaseKeyValueStorageAdapterBase<K, V> implements KeyValueStorage
                     try {
                         value = deserializeFromJsonElement.apply(entryValue);
                     } catch (Exception e) {
-                        log.error("RepositoryFirebaseStorageAdapterbase ({}): failed to deserialize value in full update for key ({}): {}", basePath, keyToStringTransformer.apply(key), jsonElement, e);
+                        log.error(
+                            "RepositoryFirebaseStorageAdapterbase ({}): failed to deserialize value in full update for key ({}): {}",
+                            basePath,
+                            keyToStringTransformer.apply(key),
+                            jsonElement,
+                            e
+                        );
                         return;
                     }
                     map.put(key, value);
@@ -165,7 +178,13 @@ public class FirebaseKeyValueStorageAdapterBase<K, V> implements KeyValueStorage
             try {
                 value = deserializeFromJsonElement.apply(jsonElement);
             } catch (Exception e) {
-                log.error("RepositoryFirebaseStorageAdapterbase ({}): failed to deserialize value for key ({}): {}", basePath, strKey, jsonElement, e);
+                log.error(
+                    "RepositoryFirebaseStorageAdapterbase ({}): failed to deserialize value for key ({}): {}",
+                    basePath,
+                    strKey,
+                    jsonElement,
+                    e
+                );
                 return;
             }
 
@@ -177,7 +196,11 @@ public class FirebaseKeyValueStorageAdapterBase<K, V> implements KeyValueStorage
                 notifyListenersOnUpdate(key, value);
             }
         } else {
-            log.info("RepositoryFirebaseStorageAdapterbase ({}): too many path parts for unlocked items sse event, will ignored: {}", basePath, path);
+            log.info(
+                "RepositoryFirebaseStorageAdapterbase ({}): too many path parts for unlocked items sse event, will ignored: {}",
+                basePath,
+                path
+            );
         }
     }
 

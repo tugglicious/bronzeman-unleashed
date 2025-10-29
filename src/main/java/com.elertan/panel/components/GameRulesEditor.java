@@ -3,26 +3,29 @@ package com.elertan.panel.components;
 import com.elertan.ui.Bindings;
 import com.google.inject.ImplementedBy;
 import com.google.inject.Singleton;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.JTextField;
+import javax.swing.JToggleButton;
+import javax.swing.SwingConstants;
 import net.runelite.client.ui.ColorScheme;
 
-import javax.swing.*;
-import java.awt.*;
-
 public class GameRulesEditor extends JPanel {
+
     private final GameRulesEditorViewModel viewModel;
-
-    @ImplementedBy(FactoryImpl.class)
-    public interface Factory {
-        GameRulesEditor create(GameRulesEditorViewModel viewModel);
-    }
-
-    @Singleton
-    private static final class FactoryImpl implements Factory {
-        @Override
-        public GameRulesEditor create(GameRulesEditorViewModel viewModel) {
-            return new GameRulesEditor(viewModel);
-        }
-    }
 
     private GameRulesEditor(GameRulesEditorViewModel viewModel) {
         this.viewModel = viewModel;
@@ -36,7 +39,8 @@ public class GameRulesEditor extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.NORTH;
 
-        JLabel viewOnlyModeLabel = new JLabel("<html><div style=\"text-align:center;color:gray;\">The game rules are in view-only mode. Only the group owner can modify the rules.</div></html>");
+        JLabel viewOnlyModeLabel = new JLabel(
+            "<html><div style=\"text-align:center;color:gray;\">The game rules are in view-only mode. Only the group owner can modify the rules.</div></html>");
         viewOnlyModeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         Bindings.bindVisible(viewOnlyModeLabel, viewModel.isViewOnlyMode);
@@ -126,14 +130,32 @@ public class GameRulesEditor extends JPanel {
 
         JCheckBox preventTradeOutsideGroupCheckBox = new JCheckBox();
         Bindings.bindSelected(preventTradeOutsideGroupCheckBox, viewModel.preventTradeOutsideGroup);
-        Bindings.bindEnabled(preventTradeOutsideGroupCheckBox, viewModel.isViewOnlyMode.derive(isViewOnlyMode -> !isViewOnlyMode));
-        panel.add(createCheckboxInput("Prevent outside group", "Whether to prevent trading other players that do not belong to the group", preventTradeOutsideGroupCheckBox), gbc);
+        Bindings.bindEnabled(
+            preventTradeOutsideGroupCheckBox,
+            viewModel.isViewOnlyMode.derive(isViewOnlyMode -> !isViewOnlyMode)
+        );
+        panel.add(
+            createCheckboxInput(
+                "Prevent outside group",
+                "Whether to prevent trading other players that do not belong to the group",
+                preventTradeOutsideGroupCheckBox
+            ), gbc
+        );
         gbc.gridy++;
 
         JCheckBox preventTradeLockedItemsCheckBox = new JCheckBox();
         Bindings.bindSelected(preventTradeLockedItemsCheckBox, viewModel.preventTradeLockedItems);
-        Bindings.bindEnabled(preventTradeLockedItemsCheckBox, viewModel.isViewOnlyMode.derive(isViewOnlyMode -> !isViewOnlyMode));
-        panel.add(createCheckboxInput("Prevent locked items", "Whether to prevent trading when the other player offers item(s) that are still locked", preventTradeLockedItemsCheckBox), gbc);
+        Bindings.bindEnabled(
+            preventTradeLockedItemsCheckBox,
+            viewModel.isViewOnlyMode.derive(isViewOnlyMode -> !isViewOnlyMode)
+        );
+        panel.add(
+            createCheckboxInput(
+                "Prevent locked items",
+                "Whether to prevent trading when the other player offers item(s) that are still locked",
+                preventTradeLockedItemsCheckBox
+            ), gbc
+        );
 
         return panel;
     }
@@ -152,8 +174,17 @@ public class GameRulesEditor extends JPanel {
 
         JCheckBox preventGrandExchangeBuyOffersCheckbox = new JCheckBox();
         Bindings.bindSelected(preventGrandExchangeBuyOffersCheckbox, viewModel.preventGrandExchangeBuyOffers);
-        Bindings.bindEnabled(preventGrandExchangeBuyOffersCheckbox, viewModel.isViewOnlyMode.derive(isViewOnlyMode -> !isViewOnlyMode));
-        panel.add(createCheckboxInput("Prevent buy offers", "Whether to prevent buying items on the Grand Exchange that are still locked", preventGrandExchangeBuyOffersCheckbox), gbc);
+        Bindings.bindEnabled(
+            preventGrandExchangeBuyOffersCheckbox,
+            viewModel.isViewOnlyMode.derive(isViewOnlyMode -> !isViewOnlyMode)
+        );
+        panel.add(
+            createCheckboxInput(
+                "Prevent buy offers",
+                "Whether to prevent buying items on the Grand Exchange that are still locked",
+                preventGrandExchangeBuyOffersCheckbox
+            ), gbc
+        );
 
         return panel;
     }
@@ -172,12 +203,20 @@ public class GameRulesEditor extends JPanel {
 
         JCheckBox shareAchievementsCheckbox = new JCheckBox();
         Bindings.bindSelected(shareAchievementsCheckbox, viewModel.shareAchievementNotifications);
-        Bindings.bindEnabled(shareAchievementsCheckbox, viewModel.isViewOnlyMode.derive(isViewOnlyMode -> !isViewOnlyMode));
-        panel.add(createCheckboxInput("Share achievements", "Whether to share achievements in the chat to other members (level ups, quest completions, combat tasks and more...)", shareAchievementsCheckbox), gbc);
+        Bindings.bindEnabled(
+            shareAchievementsCheckbox,
+            viewModel.isViewOnlyMode.derive(isViewOnlyMode -> !isViewOnlyMode)
+        );
+        panel.add(
+            createCheckboxInput(
+                "Share achievements",
+                "Whether to share achievements in the chat to other members (level ups, quest completions, combat tasks and more...)",
+                shareAchievementsCheckbox
+            ), gbc
+        );
 
         return panel;
     }
-
 
     private JPanel createPartyPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
@@ -193,8 +232,17 @@ public class GameRulesEditor extends JPanel {
 
         JTextField partyPasswordTextField = new JTextField();
         Bindings.bindTextFieldText(partyPasswordTextField, viewModel.partyPassword);
-        Bindings.bindEnabled(partyPasswordTextField, viewModel.isViewOnlyMode.derive(isViewOnlyMode -> !isViewOnlyMode));
-        panel.add(createTextFieldInput("Party password", "When auto-join is enabled in the plugin configuration, use this password to join the group's party", partyPasswordTextField), gbc);
+        Bindings.bindEnabled(
+            partyPasswordTextField,
+            viewModel.isViewOnlyMode.derive(isViewOnlyMode -> !isViewOnlyMode)
+        );
+        panel.add(
+            createTextFieldInput(
+                "Party password",
+                "When auto-join is enabled in the plugin configuration, use this password to join the group's party",
+                partyPasswordTextField
+            ), gbc
+        );
 
         return panel;
     }
@@ -239,5 +287,20 @@ public class GameRulesEditor extends JPanel {
         panel.add(checkBox);
 
         return panel;
+    }
+
+    @ImplementedBy(FactoryImpl.class)
+    public interface Factory {
+
+        GameRulesEditor create(GameRulesEditorViewModel viewModel);
+    }
+
+    @Singleton
+    private static final class FactoryImpl implements Factory {
+
+        @Override
+        public GameRulesEditor create(GameRulesEditorViewModel viewModel) {
+            return new GameRulesEditor(viewModel);
+        }
     }
 }

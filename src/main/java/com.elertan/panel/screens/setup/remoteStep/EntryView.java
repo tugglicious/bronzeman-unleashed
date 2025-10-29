@@ -2,14 +2,26 @@ package com.elertan.panel.screens.setup.remoteStep;
 
 import com.elertan.ui.Bindings;
 import com.elertan.ui.Property;
+import java.awt.Component;
+import java.awt.Desktop;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.util.Arrays;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JEditorPane;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.event.HyperlinkEvent;
 import lombok.Getter;
 
-import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-import java.awt.*;
-import java.util.Arrays;
-
 public class EntryView extends JPanel implements AutoCloseable {
+
     @Getter
     private final EntryViewViewModel viewModel;
 
@@ -44,7 +56,10 @@ public class EntryView extends JPanel implements AutoCloseable {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridy++;
         JTextField firebaseRealtimeDatabaseURLTextField = new JTextField(22);
-        firebaseRealtimeDatabaseURLTextFieldTextBinding = Bindings.bindTextFieldText(firebaseRealtimeDatabaseURLTextField, viewModel.firebaseRealtimeDatabaseURL);
+        firebaseRealtimeDatabaseURLTextFieldTextBinding = Bindings.bindTextFieldText(
+            firebaseRealtimeDatabaseURLTextField,
+            viewModel.firebaseRealtimeDatabaseURL
+        );
         add(firebaseRealtimeDatabaseURLTextField, gbc);
 
         gbc.weightx = 1.0;
@@ -53,10 +68,10 @@ public class EntryView extends JPanel implements AutoCloseable {
 
         final String guideUrl = "https://github.com/elertan/bronzeman-unleashed/blob/main/firebase-guide.md";
         JEditorPane explanationPane = createHtmlInfoPane("<html><div style=\"text-align:left;color:gray;\">"
-                + "Either use the URL your group owner has given you or set up a Firebase Realtime DB using the guide."
-                + "<br><br>"
-                + "<a href=\"" + guideUrl + "\">You can view the guide here</a>."
-                + "</div></html>");
+            + "Either use the URL your group owner has given you or set up a Firebase Realtime DB using the guide."
+            + "<br><br>"
+            + "<a href=\"" + guideUrl + "\">You can view the guide here</a>."
+            + "</div></html>");
         add(explanationPane, gbc);
 
         gbc.gridy++;
@@ -65,7 +80,8 @@ public class EntryView extends JPanel implements AutoCloseable {
 
         // Add disclaimer pane
         gbc.gridy++;
-        JEditorPane disclaimerPane = createHtmlInfoPane("<html><div style=\"text-align:left;color:gray;\"><b>Disclaimer:</b> We are not responsible for any data loss, security issues, or charges incurred through Firebase usage. Use Firebase at your own risk.</div></html>");
+        JEditorPane disclaimerPane = createHtmlInfoPane(
+            "<html><div style=\"text-align:left;color:gray;\"><b>Disclaimer:</b> We are not responsible for any data loss, security issues, or charges incurred through Firebase usage. Use Firebase at your own risk.</div></html>");
         add(disclaimerPane, gbc);
 
         // spacing before buttons
@@ -79,19 +95,23 @@ public class EntryView extends JPanel implements AutoCloseable {
 
         JLabel errorMessageLabel = new JLabel();
         errorMessageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        errorMessageLabelVisibleBinding = Bindings.bindVisible(errorMessageLabel, viewModel.errorMessage.derive(errorMessage -> errorMessage != null && !errorMessage.isEmpty()));
-        errorMessageLabelTextBinding = Bindings.bindLabelText(errorMessageLabel, viewModel.errorMessage.derive(errorMessage -> {
-            if (errorMessage == null || errorMessage.isEmpty()) {
-                return "";
-            }
+        errorMessageLabelVisibleBinding = Bindings.bindVisible(
+            errorMessageLabel,
+            viewModel.errorMessage.derive(errorMessage -> errorMessage != null && !errorMessage.isEmpty())
+        );
+        errorMessageLabelTextBinding = Bindings.bindLabelText(
+            errorMessageLabel, viewModel.errorMessage.derive(errorMessage -> {
+                if (errorMessage == null || errorMessage.isEmpty()) {
+                    return "";
+                }
 
-            StringBuilder sb = new StringBuilder();
-            sb.append("<html><div style=\"text-align:center;color:red;\">");
-            sb.append(errorMessage);
-            sb.append("</div></html>");
+                String sb = "<html><div style=\"text-align:center;color:red;\">" +
+                    errorMessage +
+                    "</div></html>";
 
-            return sb.toString();
-        }));
+                return sb;
+            })
+        );
         add(errorMessageLabel, gbc);
 
         gbc.gridy++;
@@ -113,14 +133,14 @@ public class EntryView extends JPanel implements AutoCloseable {
 
         JButton continueButton = new JButton("Continue");
         continueButtonEnabledBinding = Bindings.bindEnabled(
-                continueButton,
-                Property.deriveMany(
-                        Arrays.asList(
-                                viewModel.isLoading.derive(isLoading -> !isLoading),
-                                viewModel.isValid
-                        ),
-                        values -> values.stream().allMatch(value -> (Boolean) value)
-                )
+            continueButton,
+            Property.deriveMany(
+                Arrays.asList(
+                    viewModel.isLoading.derive(isLoading -> !isLoading),
+                    viewModel.isValid
+                ),
+                values -> values.stream().allMatch(value -> (Boolean) value)
+            )
         );
         continueButton.addActionListener(e -> viewModel.onContinueClick());
         buttonRow.add(continueButton);
@@ -160,10 +180,10 @@ public class EntryView extends JPanel implements AutoCloseable {
                         Desktop.getDesktop().browse(e.getURL().toURI());
                     } catch (Exception ex) {
                         JOptionPane.showMessageDialog(
-                                this,
-                                "Could not open link: " + e.getURL(),
-                                "Error opening link",
-                                JOptionPane.ERROR_MESSAGE
+                            this,
+                            "Could not open link: " + e.getURL(),
+                            "Error opening link",
+                            JOptionPane.ERROR_MESSAGE
                         );
                     }
                 }

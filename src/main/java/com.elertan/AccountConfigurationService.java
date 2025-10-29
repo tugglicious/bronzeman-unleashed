@@ -3,15 +3,6 @@ package com.elertan;
 import com.elertan.models.AccountConfiguration;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.Client;
-import net.runelite.api.events.AccountHashChanged;
-import net.runelite.client.config.ConfigManager;
-import net.runelite.client.events.ConfigChanged;
-import net.runelite.client.eventbus.Subscribe;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,12 +11,25 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.Client;
+import net.runelite.api.events.AccountHashChanged;
+import net.runelite.client.config.ConfigManager;
+import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
 
 @Slf4j
 @Singleton
 public class AccountConfigurationService implements BUPluginLifecycle {
-    private static final long INVALID_ACCOUNT_HASH = -1L;
 
+    private static final long INVALID_ACCOUNT_HASH = -1L;
+    private static final Type AUTO_OPEN_ACCOUNT_CONFIGURATION_DISABLED_FOR_ACCOUNT_HASHES_TYPE = new TypeToken<List<Long>>() {
+    }.getType();
+    private static final Type ACCOUNT_CONFIGURATION_MAP_TYPE = new TypeToken<Map<Long, AccountConfiguration>>() {
+    }.getType();
+    private final ConcurrentLinkedQueue<Consumer<AccountConfiguration>> currentAccountConfigurationChangeListeners = new ConcurrentLinkedQueue<>();
     @Inject
     private Client client;
     @Inject
@@ -34,20 +38,11 @@ public class AccountConfigurationService implements BUPluginLifecycle {
     private BUPluginConfig buPluginConfig;
     @Inject
     private ConfigManager configManager;
-
-    private static final Type AUTO_OPEN_ACCOUNT_CONFIGURATION_DISABLED_FOR_ACCOUNT_HASHES_TYPE = new TypeToken<List<Long>>() {
-    }.getType();
-    private static final Type ACCOUNT_CONFIGURATION_MAP_TYPE = new TypeToken<Map<Long, AccountConfiguration>>() {
-    }.getType();
-
     private List<Long> autoOpenAccountConfigurationDisabledForAccountHashes;
-
     private Map<Long, AccountConfiguration> accountConfigurationMap;
     private String lastStoredAccountConfigurationMapJson;
-
     private boolean isInitialCurrentAccountConfigurationDeterminedAfterAccountHash = true;
     private AccountConfiguration lastCurrentAccountConfiguration;
-    private final ConcurrentLinkedQueue<Consumer<AccountConfiguration>> currentAccountConfigurationChangeListeners = new ConcurrentLinkedQueue<>();
 
     @Override
     public void startUp() {
@@ -89,6 +84,10 @@ public class AccountConfigurationService implements BUPluginLifecycle {
         return getAccountConfiguration(client.getAccountHash());
     }
 
+    public void setCurrentAccountConfiguration(AccountConfiguration accountConfiguration) {
+        setAccountConfiguration(accountConfiguration, client.getAccountHash());
+    }
+
     public void setAccountConfiguration(AccountConfiguration accountConfiguration, long accountHash) {
         ensureInitialized();
         if (accountHash == INVALID_ACCOUNT_HASH) {
@@ -102,13 +101,12 @@ public class AccountConfigurationService implements BUPluginLifecycle {
         storeAccountConfigurationMap();
     }
 
-    public void setCurrentAccountConfiguration(AccountConfiguration accountConfiguration) {
-        setAccountConfiguration(accountConfiguration, client.getAccountHash());
-    }
-
     public void onAccountHashChanged(AccountHashChanged event) {
         AccountConfiguration accountConfiguration = getCurrentAccountConfiguration();
-        if (!isInitialCurrentAccountConfigurationDeterminedAfterAccountHash && Objects.equals(accountConfiguration, lastCurrentAccountConfiguration)) {
+        if (!isInitialCurrentAccountConfigurationDeterminedAfterAccountHash && Objects.equals(
+            accountConfiguration,
+            lastCurrentAccountConfiguration
+        )) {
             return;
         }
         isInitialCurrentAccountConfigurationDeterminedAfterAccountHash = false;
@@ -116,11 +114,13 @@ public class AccountConfigurationService implements BUPluginLifecycle {
         notifyCurrentAccountConfigurationChange(accountConfiguration);
     }
 
-    public void addCurrentAccountConfigurationChangeListener(Consumer<AccountConfiguration> listener) {
+    public void addCurrentAccountConfigurationChangeListener(
+        Consumer<AccountConfiguration> listener) {
         currentAccountConfigurationChangeListeners.add(listener);
     }
 
-    public void removeCurrentAccountConfigurationChangeListener(Consumer<AccountConfiguration> listener) {
+    public void removeCurrentAccountConfigurationChangeListener(
+        Consumer<AccountConfiguration> listener) {
         currentAccountConfigurationChangeListeners.remove(listener);
     }
 
@@ -130,19 +130,22 @@ public class AccountConfigurationService implements BUPluginLifecycle {
             throw new IllegalStateException("accountHash is invalid");
         }
         if (autoOpenAccountConfigurationDisabledForAccountHashes == null) {
-            throw new IllegalStateException("autoOpenAccountConfigurationDisabledForAccountHashes is null");
+            throw new IllegalStateException(
+                "autoOpenAccountConfigurationDisabledForAccountHashes is null");
         }
         autoOpenAccountConfigurationDisabledForAccountHashes.add(accountHash);
         storeAutoOpenAccountConfigurationDisabledForAccountHashes();
     }
 
-    public boolean isCurrentAccountAutoOpenAccountConfigurationEnabled() throws IllegalStateException {
+    public boolean isCurrentAccountAutoOpenAccountConfigurationEnabled()
+        throws IllegalStateException {
         long accountHash = client.getAccountHash();
         if (accountHash == INVALID_ACCOUNT_HASH) {
             throw new IllegalStateException("accountHash is invalid");
         }
         if (autoOpenAccountConfigurationDisabledForAccountHashes == null) {
-            throw new IllegalStateException("autoOpenAccountConfigurationDisabledForAccountHashes is null");
+            throw new IllegalStateException(
+                "autoOpenAccountConfigurationDisabledForAccountHashes is null");
         }
         return !autoOpenAccountConfigurationDisabledForAccountHashes.contains(accountHash);
     }
@@ -190,14 +193,16 @@ public class AccountConfigurationService implements BUPluginLifecycle {
             return;
         }
 
-        List<Long> parsed = gson.fromJson(json, AUTO_OPEN_ACCOUNT_CONFIGURATION_DISABLED_FOR_ACCOUNT_HASHES_TYPE);
+        List<Long> parsed = gson.fromJson(json,
+            AUTO_OPEN_ACCOUNT_CONFIGURATION_DISABLED_FOR_ACCOUNT_HASHES_TYPE);
         if (parsed == null) {
             parsed = new ArrayList<>();
         }
         autoOpenAccountConfigurationDisabledForAccountHashes = parsed;
     }
 
-    private synchronized void setAccountConfigurationMap(ConcurrentHashMap<Long, AccountConfiguration> accountConfigurationMap) {
+    private synchronized void setAccountConfigurationMap(
+        ConcurrentHashMap<Long, AccountConfiguration> accountConfigurationMap) {
         this.accountConfigurationMap = accountConfigurationMap;
 
         AccountConfiguration accountConfiguration = getCurrentAccountConfiguration();
@@ -213,7 +218,8 @@ public class AccountConfigurationService implements BUPluginLifecycle {
         final String json = gson.toJson(accountConfigurationMap);
         // Only write if changed to avoid redundant config writes
         if (!Objects.equals(json, lastStoredAccountConfigurationMapJson)) {
-            configManager.setConfiguration(BUPluginConfig.GROUP, BUPluginConfig.ACCOUNT_CONFIG_MAP_JSON_KEY, json);
+            configManager.setConfiguration(BUPluginConfig.GROUP,
+                BUPluginConfig.ACCOUNT_CONFIG_MAP_JSON_KEY, json);
             lastStoredAccountConfigurationMapJson = json;
         }
     }
@@ -221,12 +227,17 @@ public class AccountConfigurationService implements BUPluginLifecycle {
     private synchronized void storeAutoOpenAccountConfigurationDisabledForAccountHashes() {
         ensureInitialized();
         String json = gson.toJson(autoOpenAccountConfigurationDisabledForAccountHashes);
-        configManager.setConfiguration(BUPluginConfig.GROUP, BUPluginConfig.AUTO_OPEN_ACCOUNT_CONFIGURATION_DISABLED_FOR_ACCOUNT_HASHES_JSON_KEY, json);
+        configManager.setConfiguration(
+            BUPluginConfig.GROUP,
+            BUPluginConfig.AUTO_OPEN_ACCOUNT_CONFIGURATION_DISABLED_FOR_ACCOUNT_HASHES_JSON_KEY,
+            json
+        );
     }
 
     private void ensureInitialized() {
         if (accountConfigurationMap == null) {
-            throw new IllegalStateException("accountConfigurationMap is not initialized. Call startUp() first.");
+            throw new IllegalStateException(
+                "accountConfigurationMap is not initialized. Call startUp() first.");
         }
     }
 }

@@ -8,35 +8,10 @@ import com.elertan.ui.Bindings;
 import com.google.inject.ImplementedBy;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.CardLayout;
+import javax.swing.JPanel;
 
 public class MainScreen extends JPanel implements AutoCloseable {
-    @ImplementedBy(FactoryImpl.class)
-    public interface Factory {
-        MainScreen create(MainScreenViewModel viewModel);
-    }
-
-    @Singleton
-    private static final class FactoryImpl implements Factory {
-        @Inject
-        private UnlockedItemsScreenViewModel.Factory unlockedItemsScreenViewModelFactory;
-        @Inject
-        private UnlockedItemsScreen.Factory unlockedItemsScreenFactory;
-        @Inject
-        private ConfigScreenViewModel.Factory configScreenViewModelFactory;
-        @Inject
-        private ConfigScreen.Factory configScreenFactory;
-
-        @Override
-        public MainScreen create(MainScreenViewModel viewModel) {
-            UnlockedItemsScreenViewModel unlockedItemsScreenViewModel = unlockedItemsScreenViewModelFactory.create();
-            ConfigScreenViewModel configScreenViewModel = configScreenViewModelFactory.create();
-
-            return new MainScreen(viewModel, unlockedItemsScreenViewModel, unlockedItemsScreenFactory, configScreenViewModel, configScreenFactory);
-        }
-    }
 
     private final UnlockedItemsScreenViewModel unlockedItemsScreenViewModel;
     private final UnlockedItemsScreen.Factory unlockedItemsScreenFactory;
@@ -45,11 +20,11 @@ public class MainScreen extends JPanel implements AutoCloseable {
     private final AutoCloseable cardLayoutBinding;
 
     private MainScreen(
-            MainScreenViewModel viewModel,
-            UnlockedItemsScreenViewModel unlockedItemsScreenViewModel,
-            UnlockedItemsScreen.Factory unlockedItemsScreenFactory,
-            ConfigScreenViewModel configScreenViewModel,
-            ConfigScreen.Factory configScreenFactory
+        MainScreenViewModel viewModel,
+        UnlockedItemsScreenViewModel unlockedItemsScreenViewModel,
+        UnlockedItemsScreen.Factory unlockedItemsScreenFactory,
+        ConfigScreenViewModel configScreenViewModel,
+        ConfigScreen.Factory configScreenFactory
     ) {
         this.unlockedItemsScreenViewModel = unlockedItemsScreenViewModel;
         this.unlockedItemsScreenFactory = unlockedItemsScreenFactory;
@@ -67,7 +42,6 @@ public class MainScreen extends JPanel implements AutoCloseable {
         cardLayoutBinding.close();
     }
 
-
     private JPanel buildScreen(MainScreenViewModel.MainScreen screen) {
         switch (screen) {
             case UNLOCKED_ITEMS:
@@ -77,5 +51,38 @@ public class MainScreen extends JPanel implements AutoCloseable {
         }
 
         throw new IllegalStateException("Unknown main screen: " + screen);
+    }
+
+    @ImplementedBy(FactoryImpl.class)
+    public interface Factory {
+
+        MainScreen create(MainScreenViewModel viewModel);
+    }
+
+    @Singleton
+    private static final class FactoryImpl implements Factory {
+
+        @Inject
+        private UnlockedItemsScreenViewModel.Factory unlockedItemsScreenViewModelFactory;
+        @Inject
+        private UnlockedItemsScreen.Factory unlockedItemsScreenFactory;
+        @Inject
+        private ConfigScreenViewModel.Factory configScreenViewModelFactory;
+        @Inject
+        private ConfigScreen.Factory configScreenFactory;
+
+        @Override
+        public MainScreen create(MainScreenViewModel viewModel) {
+            UnlockedItemsScreenViewModel unlockedItemsScreenViewModel = unlockedItemsScreenViewModelFactory.create();
+            ConfigScreenViewModel configScreenViewModel = configScreenViewModelFactory.create();
+
+            return new MainScreen(
+                viewModel,
+                unlockedItemsScreenViewModel,
+                unlockedItemsScreenFactory,
+                configScreenViewModel,
+                configScreenFactory
+            );
+        }
     }
 }

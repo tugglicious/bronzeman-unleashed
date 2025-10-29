@@ -8,43 +8,28 @@ import com.elertan.ui.Bindings;
 import com.google.inject.ImplementedBy;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Component;
+import java.awt.Font;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 public class RemoteStepView extends JPanel implements AutoCloseable {
-    @ImplementedBy(FactoryImpl.class)
-    public interface Factory {
-        RemoteStepView create(RemoteStepViewViewModel viewModel);
-    }
-
-    @Singleton
-    private static final class FactoryImpl implements Factory {
-        private final EntryViewViewModel.Factory entryViewViewModelFactory;
-        private final CheckingViewViewModel.Factory checkingViewViewModelFactory;
-
-        @Inject
-        public FactoryImpl(EntryViewViewModel.Factory entryViewViewModelFactory, CheckingViewViewModel.Factory checkingViewViewModelFactory) {
-            this.entryViewViewModelFactory = entryViewViewModelFactory;
-            this.checkingViewViewModelFactory = checkingViewViewModelFactory;
-        }
-
-        @Override
-        public RemoteStepView create(RemoteStepViewViewModel viewModel) {
-            EntryViewViewModel entryViewViewModel = entryViewViewModelFactory.create(viewModel::onEntryViewTrySubmit);
-            CheckingViewViewModel checkingViewViewModel = checkingViewViewModelFactory.create(viewModel::onCancelChecking);
-
-            return new RemoteStepView(viewModel, entryViewViewModel, checkingViewViewModel);
-        }
-    }
 
     private final RemoteStepViewViewModel viewModel;
     private final EntryViewViewModel entryViewViewModel;
     private final CheckingViewViewModel checkingViewViewModel;
-
     private final AutoCloseable stateViewCardLayoutBinding;
 
-    private RemoteStepView(RemoteStepViewViewModel viewModel, EntryViewViewModel entryViewViewModel, CheckingViewViewModel checkingViewViewModel) {
+    private RemoteStepView(
+        RemoteStepViewViewModel viewModel,
+        EntryViewViewModel entryViewViewModel,
+        CheckingViewViewModel checkingViewViewModel
+    ) {
         this.viewModel = viewModel;
         this.entryViewViewModel = entryViewViewModel;
         this.checkingViewViewModel = checkingViewViewModel;
@@ -65,7 +50,12 @@ public class RemoteStepView extends JPanel implements AutoCloseable {
 
         CardLayout stateViewCardLayout = new CardLayout();
         JPanel stateViewPanel = new JPanel(stateViewCardLayout);
-        stateViewCardLayoutBinding = Bindings.bindCardLayout(stateViewPanel, stateViewCardLayout, viewModel.stateView, this::buildStateView);
+        stateViewCardLayoutBinding = Bindings.bindCardLayout(
+            stateViewPanel,
+            stateViewCardLayout,
+            viewModel.stateView,
+            this::buildStateView
+        );
 
         add(stateViewPanel, BorderLayout.CENTER);
     }
@@ -87,5 +77,36 @@ public class RemoteStepView extends JPanel implements AutoCloseable {
         }
 
         throw new IllegalArgumentException("Unknown state view: " + stateView);
+    }
+
+    @ImplementedBy(FactoryImpl.class)
+    public interface Factory {
+
+        RemoteStepView create(RemoteStepViewViewModel viewModel);
+    }
+
+    @Singleton
+    private static final class FactoryImpl implements Factory {
+
+        private final EntryViewViewModel.Factory entryViewViewModelFactory;
+        private final CheckingViewViewModel.Factory checkingViewViewModelFactory;
+
+        @Inject
+        public FactoryImpl(
+            EntryViewViewModel.Factory entryViewViewModelFactory,
+            CheckingViewViewModel.Factory checkingViewViewModelFactory
+        ) {
+            this.entryViewViewModelFactory = entryViewViewModelFactory;
+            this.checkingViewViewModelFactory = checkingViewViewModelFactory;
+        }
+
+        @Override
+        public RemoteStepView create(RemoteStepViewViewModel viewModel) {
+            EntryViewViewModel entryViewViewModel = entryViewViewModelFactory.create(viewModel::onEntryViewTrySubmit);
+            CheckingViewViewModel checkingViewViewModel = checkingViewViewModelFactory.create(
+                viewModel::onCancelChecking);
+
+            return new RemoteStepView(viewModel, entryViewViewModel, checkingViewViewModel);
+        }
     }
 }

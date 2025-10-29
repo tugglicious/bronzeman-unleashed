@@ -6,27 +6,19 @@ import com.elertan.models.ISOOffsetDateTime;
 import com.elertan.models.Member;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import net.runelite.client.chat.ChatMessageBuilder;
-
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import net.runelite.client.chat.ChatMessageBuilder;
 
 @Slf4j
 @Singleton
 public class GameRulesService implements BUPluginLifecycle {
-    public enum State {
-        NotReady,
-        Ready,
-    }
 
-    public interface Listener {
-        void onGameRulesUpdate(GameRules newGameRules, GameRules oldGameRules);
-    }
-
+    private final ConcurrentLinkedQueue<Listener> listeners = new ConcurrentLinkedQueue<>();
     @Inject
     private GameRulesDataProvider gameRulesDataProvider;
     @Inject
@@ -35,15 +27,11 @@ public class GameRulesService implements BUPluginLifecycle {
     private BUPluginConfig buPluginConfig;
     @Inject
     private MemberService memberService;
-
-    private final ConcurrentLinkedQueue<Listener> listeners = new ConcurrentLinkedQueue<>();
-    private final Consumer<GameRules> gameRulesListener = this::gameRulesListener;
-
     @Getter
     private State state = State.NotReady;
-
     @Getter
     private GameRules gameRules;
+    private final Consumer<GameRules> gameRulesListener = this::gameRulesListener;
 
     @Override
     public void startUp() throws Exception {
@@ -94,7 +82,8 @@ public class GameRulesService implements BUPluginLifecycle {
             if (gameRules.getLastUpdatedAt() != null) {
                 builder.append(" at ");
                 ISOOffsetDateTime lastUpdatedAt = gameRules.getLastUpdatedAt();
-                String formattedMoment = lastUpdatedAt.getValue().format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM));
+                String formattedMoment = lastUpdatedAt.getValue().format(DateTimeFormatter.ofLocalizedDateTime(
+                    FormatStyle.MEDIUM));
                 builder.append(buPluginConfig.chatHighlightColor(), formattedMoment);
             }
             builder.append(".");
@@ -116,5 +105,15 @@ public class GameRulesService implements BUPluginLifecycle {
             return;
         }
         this.state = state;
+    }
+
+    public enum State {
+        NotReady,
+        Ready,
+    }
+
+    public interface Listener {
+
+        void onGameRulesUpdate(GameRules newGameRules, GameRules oldGameRules);
     }
 }

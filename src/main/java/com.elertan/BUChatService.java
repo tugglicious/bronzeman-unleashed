@@ -11,12 +11,22 @@ import com.elertan.utils.TextUtils;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.awt.Color;
+import java.time.Duration;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.MessageNode;
-import net.runelite.api.events.*;
+import net.runelite.api.events.ChatMessage;
+import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.ScriptCallbackEvent;
+import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.gameval.VarbitID;
 import net.runelite.api.widgets.ComponentID;
 import net.runelite.api.widgets.Widget;
@@ -26,24 +36,17 @@ import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.util.ColorUtil;
 
-import java.awt.*;
-import java.time.Duration;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.function.Consumer;
-
 @Slf4j
 @Singleton
 public class BUChatService implements BUPluginLifecycle {
-    private static Set<ChatMessageType> CHAT_MESSAGE_TYPES_TO_APPLY_ICON_TO = ImmutableSet.of(
-            ChatMessageType.PUBLICCHAT,
-            ChatMessageType.CLAN_CHAT,
-            ChatMessageType.FRIENDSCHAT,
-            ChatMessageType.PRIVATECHAT
-    );
 
+    private static final Set<ChatMessageType> CHAT_MESSAGE_TYPES_TO_APPLY_ICON_TO = ImmutableSet.of(
+        ChatMessageType.PUBLICCHAT,
+        ChatMessageType.CLAN_CHAT,
+        ChatMessageType.FRIENDSCHAT,
+        ChatMessageType.PRIVATECHAT
+    );
+    private final ConcurrentLinkedQueue<Consumer<Boolean>> isChatboxTransparentListeners = new ConcurrentLinkedQueue<>();
     @Inject
     private Client client;
     @Inject
@@ -56,19 +59,17 @@ public class BUChatService implements BUPluginLifecycle {
     private AccountConfigurationService accountConfigurationService;
     @Inject
     private BUResourceService buResourceService;
+    private final Consumer<AccountConfiguration> currentAccountConfigurationChangeListener = this::currentAccountConfigurationChangeListener;
     @Inject
     private MemberService memberService;
     @Inject
     private BUEventService buEventService;
-
-    private final Consumer<AccountConfiguration> currentAccountConfigurationChangeListener = this::currentAccountConfigurationChangeListener;
-
     private Boolean isChatboxTransparent = null;
-    private ConcurrentLinkedQueue<Consumer<Boolean>> isChatboxTransparentListeners = new ConcurrentLinkedQueue<>();
 
     @Override
     public void startUp() throws Exception {
-        accountConfigurationService.addCurrentAccountConfigurationChangeListener(currentAccountConfigurationChangeListener);
+        accountConfigurationService.addCurrentAccountConfigurationChangeListener(
+            currentAccountConfigurationChangeListener);
 
         manageIconOnChatbox(false);
     }
@@ -76,7 +77,8 @@ public class BUChatService implements BUPluginLifecycle {
     @Override
     public void shutDown() throws Exception {
         manageIconOnChatbox(true);
-        accountConfigurationService.removeCurrentAccountConfigurationChangeListener(currentAccountConfigurationChangeListener);
+        accountConfigurationService.removeCurrentAccountConfigurationChangeListener(
+            currentAccountConfigurationChangeListener);
     }
 
     public void onChatMessage(ChatMessage chatMessage) {
@@ -98,7 +100,10 @@ public class BUChatService implements BUPluginLifecycle {
             String message = chatMessage.getMessage();
             ParsedGameMessage parsedGameMessage = GameMessageParser.tryParseGameMessage(message);
             if (parsedGameMessage != null) {
-                BUEvent event = GameMessageToEventTransformer.transformGameMessage(parsedGameMessage, client.getAccountHash());
+                BUEvent event = GameMessageToEventTransformer.transformGameMessage(
+                    parsedGameMessage,
+                    client.getAccountHash()
+                );
                 if (event != null) {
                     buEventService.publishEvent(event).whenComplete((__, throwable) -> {
                         if (throwable != null) {
@@ -137,40 +142,40 @@ public class BUChatService implements BUPluginLifecycle {
         log.debug("Sending chat message: {}", message);
 
         waitForIsChatboxTransparentSet(null)
-                .whenComplete((__, throwable) -> {
-                    if (throwable != null) {
-                        log.error("error waiting for isChatboxTransparent to become ready", throwable);
-                        return;
+            .whenComplete((__, throwable) -> {
+                if (throwable != null) {
+                    log.error("error waiting for isChatboxTransparent to become ready", throwable);
+                    return;
+                }
+
+                clientThread.invokeLater(() -> {
+                    String messageChatIcon = getMessageChatIcon();
+
+                    if (messageChatIcon == null) {
+                        throw new IllegalStateException("Chat icon has not been set");
+                    }
+                    Color chatColor = isChatboxTransparent ? config.chatColorTransparent() : config.chatColorOpaque();
+
+                    ChatMessageBuilder builder = new ChatMessageBuilder();
+                    // We need to supply a color here, otherwise the image does not work...
+                    builder.append(chatColor, messageChatIcon);
+                    // Replacing all closing cols with our chat color to reset it back to our default
+                    if (config.useChatColor()) {
+                        String pluginChatColorTag = ColorUtil.colorTag(chatColor);
+                        String chatColorFixedMessage = message.replaceAll("</col>", pluginChatColorTag);
+                        builder.append(chatColor, " " + chatColorFixedMessage);
+                    } else {
+                        builder.append(" " + message);
                     }
 
-                    clientThread.invokeLater(() -> {
-                        String messageChatIcon = getMessageChatIcon();
-
-                        if (messageChatIcon == null) {
-                            throw new IllegalStateException("Chat icon has not been set");
-                        }
-                        Color chatColor = isChatboxTransparent ? config.chatColorTransparent() : config.chatColorOpaque();
-
-                        ChatMessageBuilder builder = new ChatMessageBuilder();
-                        // We need to supply a color here, otherwise the image does not work...
-                        builder.append(chatColor, messageChatIcon);
-                        // Replacing all closing cols with our chat color to reset it back to our default
-                        if (config.useChatColor()) {
-                            String pluginChatColorTag = ColorUtil.colorTag(chatColor);
-                            String chatColorFixedMessage = message.replaceAll("</col>", pluginChatColorTag);
-                            builder.append(chatColor, " " + chatColorFixedMessage);
-                        } else {
-                            builder.append(" " + message);
-                        }
-
-                        String formattedMessage = builder.build();
-                        QueuedMessage queuedMessage = QueuedMessage.builder()
-                                .type(ChatMessageType.GAMEMESSAGE)
-                                .runeLiteFormattedMessage(formattedMessage)
-                                .build();
-                        chatMessageManager.queue(queuedMessage);
-                    });
+                    String formattedMessage = builder.build();
+                    QueuedMessage queuedMessage = QueuedMessage.builder()
+                        .type(ChatMessageType.GAMEMESSAGE)
+                        .runeLiteFormattedMessage(formattedMessage)
+                        .build();
+                    chatMessageManager.queue(queuedMessage);
                 });
+            });
     }
 
     public void addIsChatboxTransparentListener(Consumer<Boolean> listener) {
