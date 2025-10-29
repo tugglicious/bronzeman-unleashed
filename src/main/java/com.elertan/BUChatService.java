@@ -131,7 +131,7 @@ public class BUChatService implements BUPluginLifecycle {
 //            log.info("isTransparent after logged in: {}", isTransparent);
 //            setIsChatboxTransparent(isTransparent);
         } else if (event.getGameState() == GameState.LOGIN_SCREEN) {
-            setIsChatboxTransparent(null);
+//            setIsChatboxTransparent(null);
         }
     }
 
