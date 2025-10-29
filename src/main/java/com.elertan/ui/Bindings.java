@@ -184,10 +184,7 @@ public final class Bindings {
                 @SuppressWarnings("unchecked")
                 T typedValue = (T) value;
                 Map<T, String> valueToStringMap = valueToStringMapProperty.get();
-                String text = valueToStringMap.get(typedValue);
-                if (text == null) {
-                    throw new IllegalStateException("valueToStringMap must contain a mapping for " + typedValue);
-                }
+                String text = valueToStringMap.getOrDefault(typedValue, "null");
                 return super.getListCellRendererComponent(list, text, index, isSelected, cellHasFocus);
             }
         };
