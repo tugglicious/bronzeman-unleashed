@@ -327,7 +327,7 @@ public class ChatMessageEventBroadcaster implements BUPluginLifecycle {
             builder.append(" has completed the ");
             builder.append(tierText);
             builder.append(" tier of the ");
-            builder.append(areaText);
+            builder.append(config.chatHighlightColor(), areaText);
             builder.append(" diary.");
 
             return builder.build();
