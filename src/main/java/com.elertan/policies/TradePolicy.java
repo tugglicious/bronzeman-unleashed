@@ -1,5 +1,6 @@
 package com.elertan.policies;
 
+import com.elertan.AccountConfigurationService;
 import com.elertan.BUChatService;
 import com.elertan.BUPluginLifecycle;
 import com.elertan.BUSoundHelper;
@@ -35,8 +36,9 @@ public class TradePolicy extends PolicyBase implements BUPluginLifecycle {
     private BUChatService buChatService;
 
     @Inject
-    public TradePolicy(GameRulesService gameRulesService, PolicyService policyService) {
-        super(gameRulesService, policyService);
+    public TradePolicy(AccountConfigurationService accountConfigurationService,
+        GameRulesService gameRulesService, PolicyService policyService) {
+        super(accountConfigurationService, gameRulesService, policyService);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.elertan.policies;
 
+import com.elertan.AccountConfigurationService;
 import com.elertan.BUPluginConfig;
 import com.elertan.BUPluginLifecycle;
 import com.elertan.BUResourceService;
@@ -48,8 +49,9 @@ public class ShopPolicy extends PolicyBase implements BUPluginLifecycle {
 
 
     @Inject
-    public ShopPolicy(GameRulesService gameRulesService, PolicyService policyService) {
-        super(gameRulesService, policyService);
+    public ShopPolicy(AccountConfigurationService accountConfigurationService,
+        GameRulesService gameRulesService, PolicyService policyService) {
+        super(accountConfigurationService, gameRulesService, policyService);
     }
 
     @Override

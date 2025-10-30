@@ -1,5 +1,6 @@
 package com.elertan.policies;
 
+import com.elertan.AccountConfigurationService;
 import com.elertan.BUPluginLifecycle;
 import com.elertan.GameRulesService;
 import com.elertan.ItemUnlockService;
@@ -25,9 +26,10 @@ public class GrandExchangePolicy extends PolicyBase implements BUPluginLifecycle
 
     @Inject
     public GrandExchangePolicy(
+        AccountConfigurationService accountConfigurationService,
         GameRulesService gameRulesService, PolicyService policyService
     ) {
-        super(gameRulesService, policyService);
+        super(accountConfigurationService, gameRulesService, policyService);
     }
 
     @Override
