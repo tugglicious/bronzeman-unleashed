@@ -15,10 +15,12 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
+import net.runelite.api.TileItem;
 import net.runelite.api.events.AccountHashChanged;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.ItemContainerChanged;
+import net.runelite.api.events.ItemSpawned;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.ScriptCallbackEvent;
 import net.runelite.api.events.ScriptPostFired;
@@ -237,5 +239,12 @@ public final class BUPlugin extends Plugin {
     @Subscribe
     public void onWidgetClosed(WidgetClosed event) {
         shopPolicy.onWidgetClosed(event);
+    }
+
+    @Subscribe
+    public void onItemSpawned(ItemSpawned event) {
+        TileItem tileItem = event.getItem();
+        // We can use
+        tileItem.getOwnership();
     }
 }

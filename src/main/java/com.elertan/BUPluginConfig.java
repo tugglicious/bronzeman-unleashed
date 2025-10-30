@@ -128,7 +128,7 @@ public interface BUPluginConfig extends Config {
         return true;
     }
 
-    @ConfigItem(keyName = SHOULD_CHANGE_TO_PARTY_EVEN_IF_ALREADY_IN_PARTY, name = "Auto-join even if already in party", description = "Whether to change to the party even if you are already in a party", section = partySection)
+    @ConfigItem(keyName = SHOULD_CHANGE_TO_PARTY_EVEN_IF_ALREADY_IN_PARTY, name = "Auto-join even if already in party", description = "Whether to change to the party even if you are already in a party", section = partySection, hidden = true)
     default boolean shouldChangeToPartyEvenIfAlreadyInParty() {
         return false;
     }
