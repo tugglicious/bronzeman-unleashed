@@ -1,37 +1,46 @@
 package com.elertan.policies;
 
-import com.elertan.AccountConfigurationService;
 import com.elertan.GameRulesService;
-import com.elertan.models.AccountConfiguration;
+import com.elertan.PolicyService;
 import com.elertan.models.GameRules;
+import javax.annotation.Nullable;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class PolicyBase {
 
-    private final AccountConfigurationService accountConfigurationService;
     private final GameRulesService gameRulesService;
+    private final PolicyService policyService;
 
-    public PolicyBase(AccountConfigurationService accountConfigurationService,
-        GameRulesService gameRulesService) {
-        this.accountConfigurationService = accountConfigurationService;
+    public PolicyBase(GameRulesService gameRulesService, PolicyService policyService) {
         this.gameRulesService = gameRulesService;
+        this.policyService = policyService;
     }
 
-    protected boolean shouldEnforcePolicies() {
-        try {
-            AccountConfiguration accountConfiguration = accountConfigurationService.getCurrentAccountConfiguration();
-            if (accountConfiguration == null) {
-                return false;
-            }
-        } catch (Exception ignored) {
-            // Can fail when account configuration is not yet initialized
-            return false;
+    @NonNull
+    protected PolicyContext createContext() {
+        log.info("creating context from class: {}", this.getClass().getName());
+
+        GameRules gameRules = gameRulesService.getGameRules();
+        boolean gameRulesNotLoaded = gameRules == null;
+
+        if (gameRulesNotLoaded) {
+            policyService.notifyGameRulesNotLoaded();
         }
 
-        GameRulesService.State gameRulesServiceState = gameRulesService.getState();
-        if (gameRulesServiceState != GameRulesService.State.Ready) {
-            return false;
-        }
-        GameRules gameRules = gameRulesService.getGameRules();
-        return gameRules != null;
+        return new PolicyContext(gameRules, gameRulesNotLoaded);
+    }
+
+    @AllArgsConstructor
+    public static class PolicyContext {
+
+        @Getter
+        @Nullable
+        private final GameRules gameRules;
+        @Getter
+        private final boolean mustEnforceStrictPolicies;
     }
 }

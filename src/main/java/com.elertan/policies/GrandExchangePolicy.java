@@ -1,9 +1,9 @@
 package com.elertan.policies;
 
-import com.elertan.AccountConfigurationService;
 import com.elertan.BUPluginLifecycle;
 import com.elertan.GameRulesService;
 import com.elertan.ItemUnlockService;
+import com.elertan.PolicyService;
 import com.elertan.models.GameRules;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -18,7 +18,6 @@ import net.runelite.api.widgets.Widget;
 public class GrandExchangePolicy extends PolicyBase implements BUPluginLifecycle {
 
     private final static int GE_SEARCH_BUILD_SCRIPT_ID = 751;
-    private final GameRulesService gameRulesService;
     @Inject
     private Client client;
     @Inject
@@ -26,12 +25,9 @@ public class GrandExchangePolicy extends PolicyBase implements BUPluginLifecycle
 
     @Inject
     public GrandExchangePolicy(
-        AccountConfigurationService accountConfigurationService,
-        GameRulesService gameRulesService
+        GameRulesService gameRulesService, PolicyService policyService
     ) {
-        super(accountConfigurationService, gameRulesService);
-
-        this.gameRulesService = gameRulesService;
+        super(gameRulesService, policyService);
     }
 
     @Override
@@ -52,14 +48,19 @@ public class GrandExchangePolicy extends PolicyBase implements BUPluginLifecycle
     }
 
     private void onSearchBuild() {
-        if (!shouldEnforcePolicies()) {
+        PolicyContext context = createContext();
+        if (context.isMustEnforceStrictPolicies()) {
+            lockGrandExchangeSearchResults();
             return;
         }
-        GameRules gameRules = gameRulesService.getGameRules();
-        if (!gameRules.isPreventGrandExchangeBuyOffers()) {
+        GameRules gameRules = context.getGameRules();
+        if (gameRules == null || !gameRules.isPreventGrandExchangeBuyOffers()) {
             return;
         }
+        lockGrandExchangeSearchResults();
+    }
 
+    private void lockGrandExchangeSearchResults() {
         Widget searchResultsWidget = client.getWidget(InterfaceID.Chatbox.MES_LAYER_SCROLLCONTENTS);
         if (searchResultsWidget == null) {
             log.error("Search results widget is null onGrandExchangeSearchBuild");
@@ -95,6 +96,5 @@ public class GrandExchangePolicy extends PolicyBase implements BUPluginLifecycle
                 children[i + 2].setOpacity(120);
             }
         }
-
     }
 }

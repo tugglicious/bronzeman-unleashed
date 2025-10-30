@@ -1,12 +1,12 @@
 package com.elertan.policies;
 
-import com.elertan.AccountConfigurationService;
 import com.elertan.BUChatService;
 import com.elertan.BUPluginLifecycle;
 import com.elertan.BUSoundHelper;
 import com.elertan.GameRulesService;
 import com.elertan.ItemUnlockService;
 import com.elertan.MemberService;
+import com.elertan.PolicyService;
 import com.elertan.models.GameRules;
 import com.elertan.models.Member;
 import com.elertan.utils.TextUtils;
@@ -23,7 +23,6 @@ import net.runelite.api.widgets.Widget;
 @Singleton
 public class TradePolicy extends PolicyBase implements BUPluginLifecycle {
 
-    private final GameRulesService gameRulesService;
     @Inject
     private Client client;
     @Inject
@@ -36,11 +35,8 @@ public class TradePolicy extends PolicyBase implements BUPluginLifecycle {
     private BUChatService buChatService;
 
     @Inject
-    public TradePolicy(AccountConfigurationService accountConfigurationService,
-        GameRulesService gameRulesService) {
-        super(accountConfigurationService, gameRulesService);
-
-        this.gameRulesService = gameRulesService;
+    public TradePolicy(GameRulesService gameRulesService, PolicyService policyService) {
+        super(gameRulesService, policyService);
     }
 
     @Override
@@ -75,15 +71,18 @@ public class TradePolicy extends PolicyBase implements BUPluginLifecycle {
 
     private void onTradeWithClicked(MenuOptionClicked event) {
         log.info("Trade with clicked");
-        if (!shouldEnforcePolicies()) {
+
+        PolicyContext context = createContext();
+        GameRules gameRules = context.getGameRules();
+        boolean enforcePolicy =
+            context.isMustEnforceStrictPolicies() || (gameRules != null
+                && gameRules.isPreventTradeOutsideGroup());
+
+        if (!enforcePolicy) {
             log.info("...but not enforcing policies");
             return;
         }
-        GameRules gameRules = gameRulesService.getGameRules();
-        if (!gameRules.isPreventTradeOutsideGroup()) {
-            log.info("...but not preventing trade outside group");
-            return;
-        }
+
         String menuTarget = event.getMenuTarget();
         String sanitizedTargetName = TextUtils.sanitizePlayerName(menuTarget);
 

@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 public class GameRulesEditorViewModel implements AutoCloseable {
 
     public final Property<Boolean> onlyForTradeableItemsProperty;
+    public final Property<Boolean> restrictGroundItemsProperty;
     public final Property<Boolean> preventTradeOutsideGroupProperty;
     public final Property<Boolean> preventTradeLockedItemsProperty;
     public final Property<Boolean> preventGrandExchangeBuyOffersProperty;
@@ -25,6 +26,7 @@ public class GameRulesEditorViewModel implements AutoCloseable {
     public final Property<Boolean> isViewOnlyModeProperty;
     private Props props;
     private final PropertyChangeListener onlyForTradeableItemsListener = this::onlyForTradeableItemsListener;
+    private final PropertyChangeListener restrictGroundItemsListener = this::restrictGroundItemsListener;
     private final PropertyChangeListener preventTradeOutsideGroupListener = this::preventTradeOutsideGroupListener;
     private final PropertyChangeListener preventTradeLockedItemsListener = this::preventTradeLockedItemsListener;
     //    public final Property<Boolean> isValid;
@@ -43,6 +45,7 @@ public class GameRulesEditorViewModel implements AutoCloseable {
         }
 
         onlyForTradeableItemsProperty = new Property<>(gameRules.isOnlyForTradeableItems());
+        restrictGroundItemsProperty = new Property<>(gameRules.isRestrictGroundItems());
         preventTradeOutsideGroupProperty = new Property<>(gameRules.isPreventTradeOutsideGroup());
         preventTradeLockedItemsProperty = new Property<>(gameRules.isPreventTradeLockedItems());
         preventGrandExchangeBuyOffersProperty = new Property<>(gameRules.isPreventGrandExchangeBuyOffers());
@@ -72,6 +75,7 @@ public class GameRulesEditorViewModel implements AutoCloseable {
 //        isValid = partyPassword.derive((partyPasswordValue) -> partyPasswordValue == null || partyPasswordValue.length() <= 20);
 
         onlyForTradeableItemsProperty.addListener(onlyForTradeableItemsListener);
+        restrictGroundItemsProperty.addListener(restrictGroundItemsListener);
         preventTradeOutsideGroupProperty.addListener(preventTradeOutsideGroupListener);
         preventTradeLockedItemsProperty.addListener(preventTradeLockedItemsListener);
         preventGrandExchangeBuyOffersProperty.addListener(preventGrandExchangeBuyOffersListener);
@@ -90,6 +94,7 @@ public class GameRulesEditorViewModel implements AutoCloseable {
         preventGrandExchangeBuyOffersProperty.removeListener(preventGrandExchangeBuyOffersListener);
         preventTradeLockedItemsProperty.removeListener(preventTradeLockedItemsListener);
         preventTradeOutsideGroupProperty.removeListener(preventTradeOutsideGroupListener);
+        restrictGroundItemsProperty.removeListener(restrictGroundItemsListener);
         onlyForTradeableItemsProperty.removeListener(onlyForTradeableItemsListener);
     }
 
@@ -103,6 +108,7 @@ public class GameRulesEditorViewModel implements AutoCloseable {
         }
 
         onlyForTradeableItemsProperty.set(gameRules.isOnlyForTradeableItems());
+        restrictGroundItemsProperty.set(gameRules.isRestrictGroundItems());
         preventTradeOutsideGroupProperty.set(gameRules.isPreventTradeOutsideGroup());
         preventTradeLockedItemsProperty.set(gameRules.isPreventTradeLockedItems());
         preventGrandExchangeBuyOffersProperty.set(gameRules.isPreventGrandExchangeBuyOffers());
@@ -115,6 +121,11 @@ public class GameRulesEditorViewModel implements AutoCloseable {
 
     private void onlyForTradeableItemsListener(PropertyChangeEvent event) {
         log.debug("onlyForTradeableItems changed to: {}", event.getNewValue());
+        tryUpdateGameRules();
+    }
+
+    private void restrictGroundItemsListener(PropertyChangeEvent event) {
+        log.debug("restrictGroundItems changed to: {}", event.getNewValue());
         tryUpdateGameRules();
     }
 
@@ -167,6 +178,7 @@ public class GameRulesEditorViewModel implements AutoCloseable {
             props.getAccountHash(),
             new ISOOffsetDateTime(OffsetDateTime.now()),
             onlyForTradeableItemsProperty.get(),
+            restrictGroundItemsProperty.get(),
             preventTradeOutsideGroupProperty.get(),
             preventTradeLockedItemsProperty.get(),
             preventGrandExchangeBuyOffersProperty.get(),

@@ -60,6 +60,12 @@ public class GameRulesEditor extends JPanel {
         add(createSection("General", "General", createGeneralPanel(), true), gbc);
         gbc.gridy++;
 
+        add(
+            createSection("Ground items", "Ground items settings", createGroundItemsPanel(), true),
+            gbc
+        );
+        gbc.gridy++;
+
         add(createSection("Trade", "Trade settings", createTradePanel(), true), gbc);
         gbc.gridy++;
 
@@ -173,6 +179,39 @@ public class GameRulesEditor extends JPanel {
                 "Only for tradable items",
                 "Whether to only unlock items that are tradable (reduces a lot of clutter for e.g. quest items)",
                 onlyForTradableItemsCheckBox
+            ), gbc
+        );
+        gbc.gridy++;
+
+        return panel;
+    }
+
+    private JPanel createGroundItemsPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setOpaque(false);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        gbc.insets = new Insets(0, 0, 5, 0);
+
+        JCheckBox restrictGroundItemsCheckBox = new JCheckBox();
+        Bindings.bindSelected(
+            restrictGroundItemsCheckBox,
+            viewModel.restrictGroundItemsProperty
+        );
+        Bindings.bindEnabled(
+            restrictGroundItemsCheckBox,
+            viewModel.isViewOnlyModeProperty.derive(isViewOnlyMode -> !isViewOnlyMode)
+        );
+        panel.add(
+            createCheckboxInput(
+                "Restrict ground items",
+                "Whether to only allow taking items that are spawns, belong to you, or your bronzeman group members.",
+                restrictGroundItemsCheckBox
             ), gbc
         );
         gbc.gridy++;

@@ -1,10 +1,11 @@
 package com.elertan.policies;
 
-import com.elertan.AccountConfigurationService;
 import com.elertan.BUChatService;
 import com.elertan.BUPluginLifecycle;
 import com.elertan.BUSoundHelper;
 import com.elertan.GameRulesService;
+import com.elertan.PolicyService;
+import com.elertan.models.GameRules;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
@@ -28,9 +29,8 @@ public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
     private BUChatService buChatService;
 
     @Inject
-    public GroundItemsPolicy(AccountConfigurationService accountConfigurationService,
-        GameRulesService gameRulesService) {
-        super(accountConfigurationService, gameRulesService);
+    public GroundItemsPolicy(GameRulesService gameRulesService, PolicyService policyService) {
+        super(gameRulesService, policyService);
     }
 
     @Override
@@ -44,26 +44,27 @@ public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
     }
 
     public void onItemSpawned(ItemSpawned event) {
-        if (!shouldEnforcePolicies()) {
-            return;
-        }
-
         TileItem tileItem = event.getItem();
     }
 
     public void onItemDespawned(ItemDespawned event) {
-        if (!shouldEnforcePolicies()) {
-            return;
-        }
-
         TileItem tileItem = event.getItem();
     }
 
     public void onMenuOptionClicked(MenuOptionClicked event) {
-        if (!shouldEnforcePolicies()) {
+        PolicyContext context = createContext();
+        if (context.isMustEnforceStrictPolicies()) {
+            enforceItemTakePolicy(event);
             return;
         }
+        GameRules gameRules = context.getGameRules();
+        if (gameRules == null || !gameRules.isRestrictGroundItems()) {
+            return;
+        }
+        enforceItemTakePolicy(event);
+    }
 
+    private void enforceItemTakePolicy(MenuOptionClicked event) {
         MenuAction menuAction = event.getMenuAction();
         boolean isGroundItemMenuAction =
             menuAction.ordinal() >= MenuAction.GROUND_ITEM_FIRST_OPTION.ordinal()

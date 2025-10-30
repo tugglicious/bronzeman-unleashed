@@ -1,15 +1,16 @@
 package com.elertan.policies;
 
-import com.elertan.AccountConfigurationService;
 import com.elertan.BUPluginConfig;
 import com.elertan.BUPluginLifecycle;
 import com.elertan.BUResourceService;
 import com.elertan.GameRulesService;
 import com.elertan.ItemUnlockService;
+import com.elertan.PolicyService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.awt.AlphaComposite;
 import java.awt.Composite;
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -32,7 +33,6 @@ import net.runelite.client.ui.overlay.OverlayPosition;
 public class ShopPolicy extends PolicyBase implements BUPluginLifecycle {
 
     private final ShopOverlay shopOverlay = new ShopOverlay();
-    private final GameRulesService gameRulesService;
     @Inject
     private Client client;
     @Inject
@@ -48,11 +48,8 @@ public class ShopPolicy extends PolicyBase implements BUPluginLifecycle {
 
 
     @Inject
-    public ShopPolicy(AccountConfigurationService accountConfigurationService,
-        GameRulesService gameRulesService) {
-        super(accountConfigurationService, gameRulesService);
-
-        this.gameRulesService = gameRulesService;
+    public ShopPolicy(GameRulesService gameRulesService, PolicyService policyService) {
+        super(gameRulesService, policyService);
     }
 
     @Override
@@ -102,11 +99,7 @@ public class ShopPolicy extends PolicyBase implements BUPluginLifecycle {
         }
 
         @Override
-        public java.awt.Dimension render(Graphics2D g) {
-            // Gate by policy, shop visibility, and user config
-            if (!shouldEnforcePolicies()) {
-                return null;
-            }
+        public Dimension render(Graphics2D g) {
             if (!buPluginConfig.showUnlockedItemsIndicatorInShops()) {
                 return null;
             }

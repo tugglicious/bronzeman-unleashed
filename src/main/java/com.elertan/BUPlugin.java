@@ -72,6 +72,8 @@ public final class BUPlugin extends Plugin {
     @Inject
     private ItemUnlockService itemUnlockService;
     @Inject
+    private PolicyService policyService;
+    @Inject
     private GrandExchangePolicy grandExchangePolicy;
     @Inject
     private TradePolicy tradePolicy;
@@ -121,6 +123,7 @@ public final class BUPlugin extends Plugin {
         lifecycleDependencies.add(buPartyService);
         lifecycleDependencies.add(buEventService);
         lifecycleDependencies.add(lootValuationService);
+        lifecycleDependencies.add(policyService);
         // Policies
         lifecycleDependencies.add(grandExchangePolicy);
         lifecycleDependencies.add(tradePolicy);
