@@ -372,7 +372,7 @@ public class GameRulesEditor extends JPanel {
         panel.add(
             createSpinnerInput(
                 "Valuable loot threshold",
-                "Set the coins value threshold for valuable loot to be shared in the chat",
+                "Set the coins value threshold for valuable loot to be shared in the chat (set to 0 to disable)",
                 valuableLootThresholdSpinner
             ), gbc
         );
