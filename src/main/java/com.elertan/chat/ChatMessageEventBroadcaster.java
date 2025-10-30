@@ -294,7 +294,14 @@ public class ChatMessageEventBroadcaster implements BUPluginLifecycle {
         NPCComposition npcComposition = client.getNpcDefinition(e.getNpcId());
         String formattedCoins = String.format("%,d", totalCoins);
 
-        buChatService.getItemIconTag(e.getItemId()).whenComplete((itemIconTag, throwable) -> {
+        CompletableFuture<String> itemIconTagFuture;
+        if (config.useItemIconsInChat()) {
+            itemIconTagFuture = buChatService.getItemIconTag(e.getItemId());
+        } else {
+            itemIconTagFuture = CompletableFuture.completedFuture(null);
+        }
+
+        itemIconTagFuture.whenComplete((itemIconTag, throwable) -> {
             if (throwable != null) {
                 log.error("Failed to get item icon tag", throwable);
                 future.completeExceptionally(throwable);
@@ -308,8 +315,10 @@ public class ChatMessageEventBroadcaster implements BUPluginLifecycle {
                 builder.append(config.chatHighlightColor(), String.format("%d", e.getQuantity()));
                 builder.append(" x ");
             }
-            builder.append(config.chatHighlightColor(), itemIconTag);
-            builder.append(" ");
+            if (itemIconTag != null) {
+                builder.append(config.chatHighlightColor(), itemIconTag);
+                builder.append(" ");
+            }
             builder.append(config.chatItemNameColor(), itemComposition.getName());
             builder.append(" (");
             builder.append(formattedCoins);

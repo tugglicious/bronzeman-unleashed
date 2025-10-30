@@ -37,7 +37,7 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 
 @Slf4j
-@PluginDescriptor(name = "Bronzeman Unleashed", description = "Bronzeman Unleashed description", tags = {
+@PluginDescriptor(name = "Bronzeman Unleashed (BETA)", description = "Bronzeman Unleashed description", tags = {
     "bronzeman"})
 public final class BUPlugin extends Plugin {
 
@@ -151,13 +151,14 @@ public final class BUPlugin extends Plugin {
 
             started = true;
             log.info("BU: startup ok");
+
+            buChatService.sendMessage(
+                "Bronzeman Unleashed is in BETA. Report bugs or feedback on our GitHub.");
         } catch (Exception e) {
             started = false;
             log.error("BU: startup failed", e);
             throw e;
         }
-
-        log.info("{}", accountConfigurationService.getCurrentAccountConfiguration());
     }
 
     @Override

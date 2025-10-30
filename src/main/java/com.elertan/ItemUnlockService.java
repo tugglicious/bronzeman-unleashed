@@ -165,8 +165,15 @@ public class ItemUnlockService implements BUPluginLifecycle {
                 );
 
                 if (buPluginConfig.showItemUnlocksInChat()) {
-                    buChatService.getItemIconTag(
-                        unlockedItem.getId()).whenComplete((itemIconTag, throwable) -> {
+                    CompletableFuture<String> itemIconTagFuture;
+                    if (buPluginConfig.useItemIconsInChat()) {
+                        itemIconTagFuture = buChatService.getItemIconTag(
+                            unlockedItem.getId());
+                    } else {
+                        itemIconTagFuture = CompletableFuture.completedFuture(null);
+                    }
+
+                    itemIconTagFuture.whenComplete((itemIconTag, throwable) -> {
                             if (throwable != null) {
                                 log.error("Failed to get item icon tag", throwable);
                                 return;
@@ -175,8 +182,10 @@ public class ItemUnlockService implements BUPluginLifecycle {
                             clientThread.invokeLater(() -> {
                                 ChatMessageBuilder builder = new ChatMessageBuilder();
                                 builder.append("Unlocked item ");
-                                builder.append(buPluginConfig.chatHighlightColor(), itemIconTag);
-                                builder.append(" ");
+                                if (itemIconTag != null) {
+                                    builder.append(buPluginConfig.chatHighlightColor(), itemIconTag);
+                                    builder.append(" ");
+                                }
                                 builder.append(
                                     buPluginConfig.chatItemNameColor(),
                                     unlockedItem.getName()
@@ -224,16 +233,24 @@ public class ItemUnlockService implements BUPluginLifecycle {
             public void onDelete(UnlockedItem unlockedItem) {
                 // We can consider this re-locking items
 
-                buChatService.getItemIconTag(
-                    unlockedItem.getId()).whenComplete((itemIconTag, throwable) -> {
+                CompletableFuture<String> itemIconTagFuture;
+                if (buPluginConfig.useItemIconsInChat()) {
+                    itemIconTagFuture = buChatService.getItemIconTag(unlockedItem.getId());
+                } else {
+                    itemIconTagFuture = CompletableFuture.completedFuture(null);
+                }
+
+                itemIconTagFuture.whenComplete((itemIconTag, throwable) -> {
                     if (throwable != null) {
                         log.error("Failed to get item icon tag", throwable);
                         return;
                     }
 
                     ChatMessageBuilder builder = new ChatMessageBuilder();
-                    builder.append(buPluginConfig.chatHighlightColor(), itemIconTag);
-                    builder.append(" ");
+                    if (itemIconTag != null) {
+                        builder.append(buPluginConfig.chatHighlightColor(), itemIconTag);
+                        builder.append(" ");
+                    }
                     builder.append(buPluginConfig.chatItemNameColor(), unlockedItem.getName());
                     builder.append(" has been removed from unlocked items.");
                     buChatService.sendMessage(builder.build());

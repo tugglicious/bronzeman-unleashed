@@ -123,6 +123,11 @@ public interface BUPluginConfig extends Config {
         return new Color(13, 172, 242);
     }
 
+    @ConfigItem(keyName = "useItemIconsInChat", name = "Use item icons", description = "Whether to prepend item icons before the item name in the chat", section = chatSection)
+    default boolean useItemIconsInChat() {
+        return true;
+    }
+
     @ConfigItem(keyName = SHOULD_AUTOMATICALLY_JOIN_PARTY_KEY, name = "Auto-join party on login", description = "Whether to automatically join the party when you login on a Bronzeman character (when a party password is set)", section = partySection)
     default boolean shouldAutomaticallyJoinPartyOnLogin() {
         return true;

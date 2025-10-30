@@ -100,7 +100,7 @@ public class BUResourceService implements BUPluginLifecycle {
         clientThread.invokeLater(() -> {
             AsyncBufferedImage asyncBufferedImage = itemManager.getImage(itemId);
             asyncBufferedImage.onLoaded(() -> {
-                int size = 16;
+                int size = 14;
                 BufferedImage resized = BUImageUtil.resizeNearest(
                     asyncBufferedImage,
                     size,
@@ -110,7 +110,7 @@ public class BUResourceService implements BUPluginLifecycle {
                 );
                 IndexedSprite sprite = ImageUtil.getImageIndexedSprite(resized, client);
                 sprite.setOffsetX(1);
-                sprite.setOffsetY(4);
+                sprite.setOffsetY(3);
                 IndexedSprite[] modIcons = client.getModIcons();
                 int lastIdx = modIcons.length;
                 IndexedSprite[] newModIcons = Arrays.copyOf(
