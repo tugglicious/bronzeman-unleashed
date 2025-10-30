@@ -22,7 +22,7 @@ public class PolicyBase {
 
     @NonNull
     protected PolicyContext createContext() {
-        log.info("creating context from class: {}", this.getClass().getName());
+        log.debug("creating context from class: {}", this.getClass().getName());
 
         GameRules gameRules = gameRulesService.getGameRules();
         boolean gameRulesNotLoaded = gameRules == null;
