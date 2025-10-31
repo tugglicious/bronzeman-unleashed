@@ -7,6 +7,7 @@ import com.elertan.BUSoundHelper;
 import com.elertan.GameRulesService;
 import com.elertan.PolicyService;
 import com.elertan.models.GameRules;
+import com.elertan.models.GroundItemOwnedByKey;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
@@ -15,6 +16,8 @@ import net.runelite.api.MenuAction;
 import net.runelite.api.Scene;
 import net.runelite.api.Tile;
 import net.runelite.api.TileItem;
+import net.runelite.api.WorldView;
+import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ItemDespawned;
 import net.runelite.api.events.ItemSpawned;
 import net.runelite.api.events.MenuOptionClicked;
@@ -47,10 +50,33 @@ public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
 
     public void onItemSpawned(ItemSpawned event) {
         TileItem tileItem = event.getItem();
+        if (tileItem.getOwnership() != TileItem.OWNERSHIP_SELF
+            && tileItem.getOwnership() != TileItem.OWNERSHIP_GROUP) {
+            // item does not belong to me, ignore it
+            return;
+        }
+        Tile tile = event.getTile();
+
+        WorldPoint worldPoint = WorldPoint.fromLocalInstance(client, tile.getLocalLocation());
+        WorldView worldView = client.findWorldViewFromWorldPoint(worldPoint);
+
+        int itemId = tileItem.getId();
+        int world = client.getWorld();
+        int plane = worldPoint.getPlane();
+
+        GroundItemOwnedByKey key = GroundItemOwnedByKey.builder()
+            .itemId(itemId)
+            .world(world)
+            .worldViewId(worldView.getId())
+            .plane(plane)
+            .worldX(worldPoint.getX())
+            .worldY(worldPoint.getY())
+            .build();
+
+        log.info("Item spawned owned by me: {}", key);
     }
 
     public void onItemDespawned(ItemDespawned event) {
-        TileItem tileItem = event.getItem();
     }
 
     public void onMenuOptionClicked(MenuOptionClicked event) {
