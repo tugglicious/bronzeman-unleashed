@@ -1,6 +1,6 @@
 package com.elertan.remote.firebase.storageAdapters;
 
-import com.elertan.models.AccountHash;
+import com.elertan.models.GroundItemOwnedByData;
 import com.elertan.models.GroundItemOwnedByKey;
 import com.elertan.remote.firebase.FirebaseKeyValueStorageAdapterBase;
 import com.elertan.remote.firebase.FirebaseRealtimeDatabase;
@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class GroundItemOwnedByKeyValueStorageAdapter
-    extends FirebaseKeyValueStorageAdapterBase<GroundItemOwnedByKey, AccountHash> {
+    extends FirebaseKeyValueStorageAdapterBase<GroundItemOwnedByKey, GroundItemOwnedByData> {
 
     private final static String BASE_PATH = "/GroundItemOwnedBy";
     private final static Function<String, GroundItemOwnedByKey> stringToKey = GroundItemOwnedByKey::fromKey;
@@ -24,7 +24,7 @@ public class GroundItemOwnedByKeyValueStorageAdapter
                     return null;
                 }
 
-                return gson.fromJson(jsonElement, AccountHash.class);
+                return gson.fromJson(jsonElement, GroundItemOwnedByData.class);
             }
         );
     }

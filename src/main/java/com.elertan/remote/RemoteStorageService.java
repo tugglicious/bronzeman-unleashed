@@ -4,8 +4,8 @@ import com.elertan.AccountConfigurationService;
 import com.elertan.BUPluginLifecycle;
 import com.elertan.event.BUEvent;
 import com.elertan.models.AccountConfiguration;
-import com.elertan.models.AccountHash;
 import com.elertan.models.GameRules;
+import com.elertan.models.GroundItemOwnedByData;
 import com.elertan.models.GroundItemOwnedByKey;
 import com.elertan.models.Member;
 import com.elertan.models.UnlockedItem;
@@ -49,7 +49,7 @@ public class RemoteStorageService implements BUPluginLifecycle {
     @Getter
     private ObjectStoragePort<BUEvent> lastEventStoragePort;
     @Getter
-    private KeyValueStoragePort<GroundItemOwnedByKey, AccountHash> groundItemOwnedByStoragePort;
+    private KeyValueStoragePort<GroundItemOwnedByKey, GroundItemOwnedByData> groundItemOwnedByStoragePort;
     private final Consumer<AccountConfiguration> currentAccountConfigurationChangeListener = this::currentAccountConfigurationChangeListener;
 
     @Override

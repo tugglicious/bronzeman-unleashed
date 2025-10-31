@@ -1,7 +1,7 @@
 package com.elertan.data;
 
 import com.elertan.BUPluginLifecycle;
-import com.elertan.models.AccountHash;
+import com.elertan.models.GroundItemOwnedByData;
 import com.elertan.models.GroundItemOwnedByKey;
 import com.elertan.remote.KeyValueStoragePort;
 import com.elertan.remote.RemoteStorageService;
@@ -24,22 +24,22 @@ public class GroundItemOwnedByDataProvider implements BUPluginLifecycle {
     private final ConcurrentLinkedQueue<Listener> listeners = new ConcurrentLinkedQueue<>();
     @Inject
     private RemoteStorageService remoteStorageService;
-    private KeyValueStoragePort<GroundItemOwnedByKey, AccountHash> storagePort;
-    private KeyValueStoragePort.Listener<GroundItemOwnedByKey, AccountHash> storagePortListener;
+    private KeyValueStoragePort<GroundItemOwnedByKey, GroundItemOwnedByData> storagePort;
+    private KeyValueStoragePort.Listener<GroundItemOwnedByKey, GroundItemOwnedByData> storagePortListener;
     @Getter
-    private ConcurrentHashMap<GroundItemOwnedByKey, AccountHash> groundItemOwnedByMap;
+    private ConcurrentHashMap<GroundItemOwnedByKey, GroundItemOwnedByData> groundItemOwnedByMap;
     private final Consumer<State> remoteStorageServiceStateListener = this::remoteStorageServiceStateListener;
 
     @Override
     public void startUp() throws Exception {
         remoteStorageService.addStateListener(remoteStorageServiceStateListener);
 
-        storagePortListener = new KeyValueStoragePort.Listener<GroundItemOwnedByKey, AccountHash>() {
+        storagePortListener = new KeyValueStoragePort.Listener<GroundItemOwnedByKey, GroundItemOwnedByData>() {
             @Override
-            public void onFullUpdate(Map<GroundItemOwnedByKey, AccountHash> map) {
+            public void onFullUpdate(Map<GroundItemOwnedByKey, GroundItemOwnedByData> map) {
                 groundItemOwnedByMap = new ConcurrentHashMap<>(map);
 
-                Map<GroundItemOwnedByKey, AccountHash> unmodifiableMap = Collections.unmodifiableMap(
+                Map<GroundItemOwnedByKey, GroundItemOwnedByData> unmodifiableMap = Collections.unmodifiableMap(
                     map);
                 for (Listener listener : listeners) {
                     try {
@@ -54,7 +54,7 @@ public class GroundItemOwnedByDataProvider implements BUPluginLifecycle {
             }
 
             @Override
-            public void onUpdate(GroundItemOwnedByKey key, AccountHash value) {
+            public void onUpdate(GroundItemOwnedByKey key, GroundItemOwnedByData value) {
                 if (groundItemOwnedByMap == null) {
                     return;
                 }
@@ -149,7 +149,8 @@ public class GroundItemOwnedByDataProvider implements BUPluginLifecycle {
         groundItemOwnedByMap = null;
     }
 
-    public CompletableFuture<Void> update(GroundItemOwnedByKey key, AccountHash newAccountHash) {
+    public CompletableFuture<Void> update(GroundItemOwnedByKey key,
+        GroundItemOwnedByData newGroundItemOwnedByData) {
         if (storagePort == null) {
             CompletableFuture<Void> future = new CompletableFuture<>();
             Exception ex = new IllegalStateException("storagePort is null");
@@ -158,10 +159,10 @@ public class GroundItemOwnedByDataProvider implements BUPluginLifecycle {
         }
 
         if (groundItemOwnedByMap != null) {
-            groundItemOwnedByMap.put(key, newAccountHash);
+            groundItemOwnedByMap.put(key, newGroundItemOwnedByData);
         }
 
-        return storagePort.update(key, newAccountHash);
+        return storagePort.update(key, newGroundItemOwnedByData);
     }
 
     public CompletableFuture<Void> delete(GroundItemOwnedByKey key) {
@@ -181,9 +182,9 @@ public class GroundItemOwnedByDataProvider implements BUPluginLifecycle {
 
     public interface Listener {
 
-        void onReadAll(Map<GroundItemOwnedByKey, AccountHash> map);
+        void onReadAll(Map<GroundItemOwnedByKey, GroundItemOwnedByData> map);
 
-        void onUpdate(GroundItemOwnedByKey key, AccountHash value);
+        void onUpdate(GroundItemOwnedByKey key, GroundItemOwnedByData value);
 
         void onDelete(GroundItemOwnedByKey key);
     }

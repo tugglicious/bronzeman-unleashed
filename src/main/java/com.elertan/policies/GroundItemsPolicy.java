@@ -7,10 +7,14 @@ import com.elertan.BUSoundHelper;
 import com.elertan.GameRulesService;
 import com.elertan.PolicyService;
 import com.elertan.data.GroundItemOwnedByDataProvider;
-import com.elertan.models.AccountHash;
 import com.elertan.models.GameRules;
+import com.elertan.models.GroundItemOwnedByData;
 import com.elertan.models.GroundItemOwnedByKey;
+import com.elertan.models.ISOOffsetDateTime;
+import com.elertan.utils.TickUtils;
 import com.google.inject.Inject;
+import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
@@ -50,12 +54,12 @@ public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
     public void startUp() throws Exception {
         groundItemOwnedByDataProviderListener = new GroundItemOwnedByDataProvider.Listener() {
             @Override
-            public void onReadAll(Map<GroundItemOwnedByKey, AccountHash> map) {
+            public void onReadAll(Map<GroundItemOwnedByKey, GroundItemOwnedByData> map) {
 
             }
 
             @Override
-            public void onUpdate(GroundItemOwnedByKey key, AccountHash value) {
+            public void onUpdate(GroundItemOwnedByKey key, GroundItemOwnedByData value) {
 
             }
 
@@ -97,20 +101,27 @@ public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
             .worldY(worldPoint.getY())
             .build();
 
-        ConcurrentHashMap<GroundItemOwnedByKey, AccountHash> groundItemOwnedByMap = groundItemOwnedByDataProvider.getGroundItemOwnedByMap();
+        ConcurrentHashMap<GroundItemOwnedByKey, GroundItemOwnedByData> groundItemOwnedByMap = groundItemOwnedByDataProvider.getGroundItemOwnedByMap();
         if (groundItemOwnedByMap == null) {
             log.warn("Ground item spawned for me but groundItemOwnedByMap is null");
             return;
         }
 
-        AccountHash accountHash = groundItemOwnedByMap.get(key);
-        if (accountHash != null && accountHash.getValue() == client.getAccountHash()) {
+        GroundItemOwnedByData groundItemOwnedByData = groundItemOwnedByMap.get(key);
+        if (groundItemOwnedByData != null
+            && groundItemOwnedByData.getAccountHash() == client.getAccountHash()) {
             log.info("gi {} already in groundItemOwnedByMap for me, ignore", key);
             return;
         }
-        AccountHash newAccountHash = new AccountHash(client.getAccountHash());
+        long despawnTimeTicks = tileItem.getDespawnTime() - client.getTickCount();
+        Duration despawnDuration = TickUtils.ticksToDuration(despawnTimeTicks);
+        OffsetDateTime despawnsAt = OffsetDateTime.now().plus(despawnDuration);
+        GroundItemOwnedByData newGroundItemOwnedByData = new GroundItemOwnedByData(
+            client.getAccountHash(),
+            new ISOOffsetDateTime(despawnsAt)
+        );
 
-        groundItemOwnedByDataProvider.update(key, newAccountHash)
+        groundItemOwnedByDataProvider.update(key, newGroundItemOwnedByData)
             .whenComplete((result, throwable) -> {
                 if (throwable != null) {
                     log.error("GroundItemOwnedByDataProvider update failed", throwable);
@@ -143,14 +154,14 @@ public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
             .worldY(worldPoint.getY())
             .build();
 
-        ConcurrentHashMap<GroundItemOwnedByKey, AccountHash> groundItemOwnedByMap = groundItemOwnedByDataProvider.getGroundItemOwnedByMap();
+        ConcurrentHashMap<GroundItemOwnedByKey, GroundItemOwnedByData> groundItemOwnedByMap = groundItemOwnedByDataProvider.getGroundItemOwnedByMap();
         if (groundItemOwnedByMap == null) {
             log.warn("Ground item despawned for me but groundItemOwnedByMap is null");
             return;
         }
 
-        AccountHash accountHash = groundItemOwnedByMap.get(key);
-        if (accountHash == null) {
+        GroundItemOwnedByData groundItemOwnedByData = groundItemOwnedByMap.get(key);
+        if (groundItemOwnedByData == null) {
             log.info("gi {} already deleted, ignore", key);
             return;
         }
