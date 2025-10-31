@@ -22,28 +22,29 @@ import net.runelite.client.util.ImageUtil;
 @Singleton
 public class BUResourceService implements BUPluginLifecycle {
 
-    private static final String ICON_FILE_PATH = "/icon.png";
+    private static final String ICON_FILE_PATH = "/bu-icon.png";
     private static final String CHECKMARK_ICON_FILE_PATH = "/checkmark-icon.png";
     private static final String CONFIGURE_ICON_FILE_PATH = "/configure-icon.png";
     private static final String LOADING_SPINNER_FILE_PATH = "/loading-spinner.gif";
     @Getter
     private final BufferedImage iconBufferedImage = ImageUtil.loadImageResource(
-        BUPlugin.class,
+        BUResourceService.class,
         ICON_FILE_PATH
     );
     @Getter
     private final BufferedImage checkmarkIconBufferedImage = ImageUtil.loadImageResource(
-        BUPlugin.class,
+        BUResourceService.class,
         CHECKMARK_ICON_FILE_PATH
     );
     @Getter
     private final BufferedImage configureIconBufferedImage = ImageUtil.loadImageResource(
-        BUPlugin.class,
+        BUResourceService.class,
         CONFIGURE_ICON_FILE_PATH
     );
     @Getter
-    private final ImageIcon loadingSpinnerImageIcon = new ImageIcon(Objects.requireNonNull(BUPlugin.class.getResource(
-        LOADING_SPINNER_FILE_PATH)));
+    private final ImageIcon loadingSpinnerImageIcon = new ImageIcon(Objects.requireNonNull(
+        BUResourceService.class.getResource(
+            LOADING_SPINNER_FILE_PATH)));
     private final ConcurrentHashMap<Integer, Integer> itemImageModIconIdCache = new ConcurrentHashMap<>();
     @Inject
     private Client client;
