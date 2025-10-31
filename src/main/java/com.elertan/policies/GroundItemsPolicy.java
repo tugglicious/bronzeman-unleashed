@@ -277,7 +277,7 @@ public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
         GroundItemOwnedByData groundItemOwnedByData = groundItemOwnedByMap.get(key);
         if (groundItemOwnedByData != null) {
             // Our group owns the item
-            takeItemOwnedByGroupMember(key);
+//            takeItemOwnedByGroupMember(key);
             return;
         }
 
@@ -321,14 +321,14 @@ public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
         return null;
     }
 
-    private void takeItemOwnedByGroupMember(GroundItemOwnedByKey key) {
-        groundItemOwnedByDataProvider.delete(key).whenComplete((__, throwable) -> {
-            if (throwable != null) {
-                log.error("Failed to delte ground item {} from group member", key, throwable);
-                return;
-            }
-        });
-    }
+//    private void takeItemOwnedByGroupMember(GroundItemOwnedByKey key) {
+//        groundItemOwnedByDataProvider.delete(key).whenComplete((__, throwable) -> {
+//            if (throwable != null) {
+//                log.error("Failed to delte ground item {} from group member", key, throwable);
+//                return;
+//            }
+//        });
+//    }
 
     private void cleanupExpiredGroundItems() {
         ConcurrentHashMap<GroundItemOwnedByKey, GroundItemOwnedByData> map = groundItemOwnedByDataProvider.getGroundItemOwnedByMap();
