@@ -17,6 +17,9 @@ import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.ItemComposition;
@@ -33,6 +36,7 @@ import net.runelite.api.events.MenuOptionClicked;
 @Slf4j
 public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
 
+    private ScheduledExecutorService scheduler;
     @Inject
     private Client client;
     @Inject
@@ -41,7 +45,6 @@ public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
     private BUChatService buChatService;
     @Inject
     private GroundItemOwnedByDataProvider groundItemOwnedByDataProvider;
-
     private GroundItemOwnedByDataProvider.Listener groundItemOwnedByDataProviderListener;
 
     @Inject
@@ -69,11 +72,16 @@ public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
             }
         };
         groundItemOwnedByDataProvider.addListener(groundItemOwnedByDataProviderListener);
+
+        scheduler = Executors.newSingleThreadScheduledExecutor();
+        scheduler.scheduleAtFixedRate(this::cleanupExpiredGroundItems, 0, 10, TimeUnit.SECONDS);
     }
 
     @Override
     public void shutDown() throws Exception {
         groundItemOwnedByDataProvider.removeListener(groundItemOwnedByDataProviderListener);
+
+        scheduler.shutdownNow();
     }
 
     public void onItemSpawned(ItemSpawned event) {
@@ -166,12 +174,11 @@ public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
             return;
         }
 
-        groundItemOwnedByDataProvider.delete(key)
-            .whenComplete((result, throwable) -> {
-                if (throwable != null) {
-                    log.error("GroundItemOwnedByDataProvider delete failed", throwable);
-                }
-            });
+        groundItemOwnedByDataProvider.delete(key).whenComplete((result, throwable) -> {
+            if (throwable != null) {
+                log.error("GroundItemOwnedByDataProvider delete failed", throwable);
+            }
+        });
     }
 
     public void onMenuOptionClicked(MenuOptionClicked event) {
@@ -277,5 +284,34 @@ public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
             }
         }
         return null;
+    }
+
+    private void cleanupExpiredGroundItems() {
+        ConcurrentHashMap<GroundItemOwnedByKey, GroundItemOwnedByData> map = groundItemOwnedByDataProvider.getGroundItemOwnedByMap();
+        if (map == null || map.isEmpty()) {
+            return;
+        }
+
+        OffsetDateTime now = OffsetDateTime.now();
+        long accountHash = client.getAccountHash();
+
+        for (Map.Entry<GroundItemOwnedByKey, GroundItemOwnedByData> entry : map.entrySet()) {
+            GroundItemOwnedByKey key = entry.getKey();
+            GroundItemOwnedByData data = entry.getValue();
+            if (data.getAccountHash() != accountHash) {
+                continue;
+            }
+            if (data.getDespawnsAt().getValue().isAfter(now)) {
+                continue;
+            }
+
+            log.info("Cleaning up expired ground item {}", key);
+
+            groundItemOwnedByDataProvider.delete(key).whenComplete((result, throwable) -> {
+                if (throwable != null) {
+                    log.error("Failed to clean up expired ground item {}", key, throwable);
+                }
+            });
+        }
     }
 }
