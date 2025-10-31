@@ -20,6 +20,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.ItemComposition;
@@ -224,8 +227,8 @@ public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
             return;
         }
 
-        TileItem tileItem = getClickedTileItem(event);
-        if (tileItem == null) {
+        GetClickedTileItemOutput output = getClickedTileItem(event);
+        if (output == null) {
             log.warn(
                 "Ground item not found at scene ({}, {}) for id {}",
                 event.getParam0(),
@@ -234,6 +237,8 @@ public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
             );
             return;
         }
+        Tile tile = output.getTile();
+        TileItem tileItem = output.getTileItem();
 
         ItemComposition itemComposition = client.getItemDefinition(itemId);
 
@@ -247,23 +252,41 @@ public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
             return;
         }
 
-        event.consume();
-//        buSoundHelper.playDisabledSound();
+        WorldPoint worldPoint = WorldPoint.fromLocalInstance(client, tile.getLocalLocation());
+        WorldView worldView = client.findWorldViewFromWorldPoint(worldPoint);
 
+        int world = client.getWorld();
+        int plane = worldPoint.getPlane();
+
+        GroundItemOwnedByKey key = GroundItemOwnedByKey.builder()
+            .itemId(itemId)
+            .world(world)
+            .worldViewId(worldView.getId())
+            .plane(plane)
+            .worldX(worldPoint.getX())
+            .worldY(worldPoint.getY())
+            .build();
+
+        ConcurrentHashMap<GroundItemOwnedByKey, GroundItemOwnedByData> groundItemOwnedByMap = groundItemOwnedByDataProvider.getGroundItemOwnedByMap();
+        if (groundItemOwnedByMap == null) {
+            event.consume();
+            buChatService.sendMessage(
+                "Ground item data not loaded yet, can't take to ensure integrity. Please wait and try again.");
+            return;
+        }
+        GroundItemOwnedByData groundItemOwnedByData = groundItemOwnedByMap.get(key);
+        if (groundItemOwnedByData != null) {
+            // Our group owns the item
+            takeItemOwnedByGroupMember(key);
+            return;
+        }
+
+        event.consume();
         buChatService.sendMessage(
             "You're a Bronzeman with ground item restrictions, so you can't take that.");
-
-//        log.info(
-//            "Taking '{}' x{} at scene ({}, {}) plane {}",
-//            itemComposition.getName(),
-//            tileItem.getQuantity(),
-//            event.getParam0(),
-//            event.getParam1(),
-//            client.getPlane()
-//        );
     }
 
-    private TileItem getClickedTileItem(MenuOptionClicked event) {
+    private GetClickedTileItemOutput getClickedTileItem(MenuOptionClicked event) {
         // For ground item menu actions, param0 = scene X, param1 = scene Y, id = item ID
         final int sceneX = event.getParam0();
         final int sceneY = event.getParam1();
@@ -292,10 +315,19 @@ public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
 
         for (TileItem ti : tile.getGroundItems()) {
             if (ti.getId() == itemId) {
-                return ti;
+                return new GetClickedTileItemOutput(tile, ti);
             }
         }
         return null;
+    }
+
+    private void takeItemOwnedByGroupMember(GroundItemOwnedByKey key) {
+        groundItemOwnedByDataProvider.delete(key).whenComplete((__, throwable) -> {
+            if (throwable != null) {
+                log.error("Failed to delte ground item {} from group member", key, throwable);
+                return;
+            }
+        });
     }
 
     private void cleanupExpiredGroundItems() {
@@ -327,7 +359,6 @@ public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
         }
     }
 
-
     private void cleanupExpiredGroundItemsForEveryone() {
         log.info("Cleaning up expired ground items for everyone");
 
@@ -358,5 +389,16 @@ public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
                 }
             });
         }
+    }
+
+    @AllArgsConstructor
+    private static class GetClickedTileItemOutput {
+
+        @Getter
+        @NonNull
+        private Tile tile;
+        @Getter
+        @NonNull
+        private TileItem tileItem;
     }
 }
