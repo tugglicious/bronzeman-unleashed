@@ -208,7 +208,7 @@ public class MemberService implements BUPluginLifecycle {
             Member member = membersMap.get(accountHash);
             String memberName = member.getName();
             if (memberName == null || !memberName.equals(name)) {
-                log.log(
+                log.info(
                     "member service -> name changed from '{}' to '{}' issue-ing member update",
                     memberName,
                     name
