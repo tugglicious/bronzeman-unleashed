@@ -102,6 +102,16 @@ public class SetupScreen extends JPanel implements AutoCloseable {
         scrollPane.setBorder(null);
         scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+        // Dynamically add right padding only when vertical scrollbar is visible
+        scrollPane.getVerticalScrollBar().addAdjustmentListener(e -> {
+            boolean visible = scrollPane.getVerticalScrollBar().isVisible();
+            if (visible) {
+                widthLimiter.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
+            } else {
+                widthLimiter.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+            }
+            widthLimiter.revalidate();
+        });
 
         JPanel wrappedPanel = new JPanel();
         wrappedPanel.setLayout(new BorderLayout());
@@ -112,6 +122,8 @@ public class SetupScreen extends JPanel implements AutoCloseable {
         inner.add(wrappedPanel);
 
         inner.add(Box.createVerticalGlue());
+
+        inner.add(Box.createVerticalStrut(15));
 
         JButton dontAskMeAgainButton = new JButton("Don't ask me again for this account");
         dontAskMeAgainButton.setAlignmentX(Component.CENTER_ALIGNMENT);

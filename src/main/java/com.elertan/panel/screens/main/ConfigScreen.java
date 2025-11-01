@@ -74,11 +74,24 @@ public class ConfigScreen extends JPanel implements AutoCloseable {
         scrollPane.setBorder(null);
         scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+        // Dynamically add right padding only when vertical scrollbar is visible
+        scrollPane.getVerticalScrollBar().addAdjustmentListener(e -> {
+            boolean visible = scrollPane.getVerticalScrollBar().isVisible();
+            if (visible) {
+                viewportWrapper.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
+            } else {
+                viewportWrapper.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+            }
+            viewportWrapper.revalidate();
+        });
 
         add(scrollPane, gbc);
 
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weighty = 0.0;
+        gbc.gridy++;
+
+        add(Box.createVerticalStrut(10), gbc);
         gbc.gridy++;
 
         JLabel errorMessageLabel = new JLabel();
@@ -102,6 +115,9 @@ public class ConfigScreen extends JPanel implements AutoCloseable {
             })
         );
         add(errorMessageLabel, gbc);
+        gbc.gridy++;
+
+        add(Box.createVerticalStrut(10), gbc);
         gbc.gridy++;
 
         gbc.weightx = 0.0;
