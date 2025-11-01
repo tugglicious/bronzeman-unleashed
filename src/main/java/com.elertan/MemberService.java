@@ -195,7 +195,7 @@ public class MemberService implements BUPluginLifecycle {
             return;
         }
 
-        log.info("member service check if we need to add a member...");
+        log.debug("member service check if we need to add a member...");
 
         boolean shouldUpdateMember = false;
         boolean shouldBeOwner = false;
@@ -208,7 +208,7 @@ public class MemberService implements BUPluginLifecycle {
             Member member = membersMap.get(accountHash);
             String memberName = member.getName();
             if (memberName == null || !memberName.equals(name)) {
-                log.info(
+                log.log(
                     "member service -> name changed from '{}' to '{}' issue-ing member update",
                     memberName,
                     name
@@ -217,7 +217,7 @@ public class MemberService implements BUPluginLifecycle {
             }
         }
 
-        log.info(
+        log.debug(
             "should update member: {} - should be owner: {}",
             shouldUpdateMember,
             shouldBeOwner

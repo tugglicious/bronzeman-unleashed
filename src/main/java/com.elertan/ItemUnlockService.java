@@ -507,7 +507,7 @@ public class ItemUnlockService implements BUPluginLifecycle {
             ));
 
             // This is the first time the unlocked items are ready
-            log.info(
+            log.debug(
                 "Unlocked items data provider ready for item unlock service first time, checking inventory");
             for (Integer containerId : INCLUDED_CONTAINER_IDS) {
                 ItemContainer itemContainer = client.getItemContainer(containerId);
