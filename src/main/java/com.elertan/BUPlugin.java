@@ -8,6 +8,7 @@ import com.elertan.data.MembersDataProvider;
 import com.elertan.data.UnlockedItemsDataProvider;
 import com.elertan.policies.GrandExchangePolicy;
 import com.elertan.policies.GroundItemsPolicy;
+import com.elertan.policies.PlayerOwnedHousePolicy;
 import com.elertan.policies.ShopPolicy;
 import com.elertan.policies.TradePolicy;
 import com.elertan.remote.RemoteStorageService;
@@ -26,6 +27,7 @@ import net.runelite.api.events.ItemSpawned;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.ScriptCallbackEvent;
 import net.runelite.api.events.ScriptPostFired;
+import net.runelite.api.events.ScriptPreFired;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.events.WidgetClosed;
 import net.runelite.api.events.WidgetLoaded;
@@ -90,6 +92,8 @@ public final class BUPlugin extends Plugin {
     private ChatMessageEventBroadcaster chatMessageEventBroadcaster;
     @Inject
     private LootValuationService lootValuationService;
+    @Inject
+    private PlayerOwnedHousePolicy playerOwnedHousePolicy;
 
     @Inject
     private Client client;
@@ -136,6 +140,7 @@ public final class BUPlugin extends Plugin {
         lifecycleDependencies.add(tradePolicy);
         lifecycleDependencies.add(shopPolicy);
         lifecycleDependencies.add(groundItemsPolicy);
+        lifecycleDependencies.add(playerOwnedHousePolicy);
 
         lifecycleDependencies.add(chatMessageEventBroadcaster);
     }
@@ -241,6 +246,7 @@ public final class BUPlugin extends Plugin {
     public void onMenuOptionClicked(MenuOptionClicked event) {
         tradePolicy.onMenuOptionClicked(event);
         groundItemsPolicy.onMenuOptionClicked(event);
+        playerOwnedHousePolicy.onMenuOptionClicked(event);
     }
 
     @Subscribe
@@ -267,5 +273,10 @@ public final class BUPlugin extends Plugin {
     @Subscribe
     public void onItemDespawned(ItemDespawned event) {
         groundItemsPolicy.onItemDespawned(event);
+    }
+
+    @Subscribe
+    public void onScriptPreFired(ScriptPreFired event) {
+        playerOwnedHousePolicy.onScriptPreFired(event);
     }
 }
