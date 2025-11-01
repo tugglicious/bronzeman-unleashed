@@ -21,6 +21,7 @@ import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JSeparator;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
@@ -435,7 +436,7 @@ public class GameRulesEditor extends JPanel {
         gbc.weightx = 1.0;
         gbc.insets = new Insets(0, 0, 5, 0);
 
-        JTextField partyPasswordTextField = new JTextField();
+        JPasswordField partyPasswordTextField = new JPasswordField();
         Bindings.bindTextFieldText(partyPasswordTextField, viewModel.partyPasswordProperty);
         Bindings.bindEnabled(
             partyPasswordTextField,
@@ -534,5 +535,16 @@ public class GameRulesEditor extends JPanel {
         public GameRulesEditor create(GameRulesEditorViewModel viewModel) {
             return new GameRulesEditor(viewModel);
         }
+    }
+
+    // Utility: update password field font based on echo char
+    @SuppressWarnings("unused")
+    private static void updatePasswordFieldFont(JPasswordField field, Font maskedFont,
+        Font visibleFont) {
+        if (field == null) {
+            return;
+        }
+        char ch = field.getEchoChar();
+        field.setFont(ch == 0 ? visibleFont : maskedFont);
     }
 }
