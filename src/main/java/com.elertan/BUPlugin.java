@@ -6,6 +6,7 @@ import com.elertan.data.GroundItemOwnedByDataProvider;
 import com.elertan.data.LastEventDataProvider;
 import com.elertan.data.MembersDataProvider;
 import com.elertan.data.UnlockedItemsDataProvider;
+import com.elertan.models.AccountConfiguration;
 import com.elertan.policies.GrandExchangePolicy;
 import com.elertan.policies.GroundItemsPolicy;
 import com.elertan.policies.PlayerOwnedHousePolicy;
@@ -17,6 +18,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provides;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.events.AccountHashChanged;
@@ -109,6 +111,7 @@ public final class BUPlugin extends Plugin {
 
     private boolean started;
     private List<BUPluginLifecycle> lifecycleDependencies;
+    private Consumer<AccountConfiguration> currentAccountConfigurationChangeListener = this::currentAccountConfigurationChangeListener;
 
     @Inject
     private void initLifecycleDependencies() {
@@ -167,11 +170,11 @@ public final class BUPlugin extends Plugin {
                 lifecycleDependency.startUp();
             }
 
+            accountConfigurationService.addCurrentAccountConfigurationChangeListener(
+                currentAccountConfigurationChangeListener);
+
             started = true;
             log.info("BU: startup ok");
-
-            buChatService.sendMessage(
-                "Bronzeman Unleashed is in BETA. Report bugs or feedback on our GitHub.");
         } catch (Exception e) {
             started = false;
             log.error("BU: startup failed", e);
@@ -185,6 +188,10 @@ public final class BUPlugin extends Plugin {
         Exception failure = null;
         try {
             if (started) {
+                accountConfigurationService.removeCurrentAccountConfigurationChangeListener(
+                    currentAccountConfigurationChangeListener
+                );
+
                 for (int i = lifecycleDependencies.size() - 1; i >= 0; i--) {
                     lifecycleDependencies.get(i).shutDown();
                 }
@@ -204,6 +211,18 @@ public final class BUPlugin extends Plugin {
             throw failure;
         }
     }
+
+    private void currentAccountConfigurationChangeListener(
+        AccountConfiguration accountConfiguration) {
+        if (accountConfiguration == null) {
+            return;
+        }
+
+        buChatService.sendMessage(
+            "Bronzeman Unleashed is in BETA. Report bugs or feedback on our GitHub."
+        );
+    }
+
 
     @Subscribe
     public void onAccountHashChanged(AccountHashChanged event) {
