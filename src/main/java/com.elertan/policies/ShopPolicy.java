@@ -32,7 +32,7 @@ import net.runelite.client.ui.overlay.OverlayPosition;
 @Singleton
 public class ShopPolicy extends PolicyBase implements BUPluginLifecycle {
 
-    private final ShopOverlay shopOverlay = new ShopOverlay();
+    private final ShopmainOverlay shopmainOverlay = new ShopmainOverlay();
     @Inject
     private Client client;
     @Inject
@@ -66,7 +66,7 @@ public class ShopPolicy extends PolicyBase implements BUPluginLifecycle {
         if (groupId != InterfaceID.SHOPMAIN) {
             return;
         }
-        onShopOpened();
+        onShopmainOpened();
     }
 
     public void onWidgetClosed(WidgetClosed event) {
@@ -74,26 +74,26 @@ public class ShopPolicy extends PolicyBase implements BUPluginLifecycle {
         if (groupId != InterfaceID.SHOPMAIN) {
             return;
         }
-        onShopClosed();
+        onShopmainClosed();
     }
 
-    private void onShopOpened() {
-        overlayManager.add(shopOverlay);
+    private void onShopmainOpened() {
+        overlayManager.add(shopmainOverlay);
     }
 
-    private void onShopClosed() {
-        overlayManager.remove(shopOverlay);
+    private void onShopmainClosed() {
+        overlayManager.remove(shopmainOverlay);
     }
 
     /**
      * Draws unlocked-item checkmarks over shop items without using sprite IDs or widget children.
      * Placement, size, and opacity match the previous widget-based approach.
      */
-    private class ShopOverlay extends Overlay {
+    private class ShopmainOverlay extends Overlay {
 
         private static final int CHECKMARK_SIZE = 8;
 
-        private ShopOverlay() {
+        private ShopmainOverlay() {
             setPosition(OverlayPosition.DYNAMIC);
             setLayer(OverlayLayer.ABOVE_WIDGETS);
 //            setPriority(0);
