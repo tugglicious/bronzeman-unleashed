@@ -54,6 +54,7 @@ public class PlayerOwnedHousePolicy extends PolicyBase implements BUPluginLifecy
     private volatile boolean isStarted = false;
     private volatile boolean isReadFriendsHouseChatboxInputLoopRunning = false;
     private String lastFriendsHouseEnteredName = null;
+    private KeyListener keyListener;
 
     @Inject
     public PlayerOwnedHousePolicy(AccountConfigurationService accountConfigurationService,
@@ -65,7 +66,7 @@ public class PlayerOwnedHousePolicy extends PolicyBase implements BUPluginLifecy
     public void startUp() throws Exception {
         isStarted = true;
 
-        keyManager.registerKeyListener(new KeyListener() {
+        keyListener = new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {
                 if (e.getKeyChar() == '\n') {
@@ -104,11 +105,15 @@ public class PlayerOwnedHousePolicy extends PolicyBase implements BUPluginLifecy
                     }
                 }
             }
-        });
+        };
+        keyManager.registerKeyListener(keyListener);
     }
 
     @Override
     public void shutDown() throws Exception {
+        keyManager.unregisterKeyListener(keyListener);
+        keyListener = null;
+
         isStarted = false;
     }
 
@@ -158,14 +163,15 @@ public class PlayerOwnedHousePolicy extends PolicyBase implements BUPluginLifecy
             return;
         }
 
-        boolean couldEnter = tryEnterHouseForPlayer(pohNameWidgetText);
+        boolean couldEnter = validateHouseEntryForPlayer(pohNameWidgetText);
         if (!couldEnter) {
             event.consume();
         }
     }
 
     private void enforcePolicyViewHouseMenuOptionClicked(MenuOptionClicked event) {
-        log.info("Friend's house menu option clicked, waiting for friends house chatbox input ready");
+        log.debug(
+            "Friend's house menu option clicked, waiting for friends house chatbox input ready");
         waitForFriendsHouseChatboxInputReady()
             .whenComplete((__, throwable) -> {
                 if (throwable != null) {
@@ -173,7 +179,7 @@ public class PlayerOwnedHousePolicy extends PolicyBase implements BUPluginLifecy
                     return;
                 }
 
-                log.info("Friends house chatbox input ready, starting checker");
+                log.debug("Friends house chatbox input ready, starting checker");
                 startReadFriendsHouseChatboxInputLoop();
             });
     }
@@ -233,7 +239,7 @@ public class PlayerOwnedHousePolicy extends PolicyBase implements BUPluginLifecy
             }
 
             if (!isFriendsHouseChatboxInputReady()) {
-                log.info(
+                log.debug(
                     "reading friends house chatbox input halted because chatbox is not ready anymore");
                 isReadFriendsHouseChatboxInputLoopRunning = false;
                 return;
@@ -246,8 +252,6 @@ public class PlayerOwnedHousePolicy extends PolicyBase implements BUPluginLifecy
 
     public void onScriptPreFired(ScriptPreFired event) {
         if (event.getScriptId() == CHATBOX_INPUT_SCRIPT_ID) {
-            // 112 is chatbox enter text
-
             ScriptEvent scriptEvent = event.getScriptEvent();
             int typedChar = scriptEvent.getTypedKeyChar();
             if (typedChar == 0) {
@@ -268,11 +272,6 @@ public class PlayerOwnedHousePolicy extends PolicyBase implements BUPluginLifecy
                 return;
             }
             if (typedChar == 10) {
-                // 'Enter'
-                if (lastFriendsHouseEnteredName == null || lastFriendsHouseEnteredName.isEmpty()) {
-                    return;
-                }
-                log.info("submitted name: {}", lastFriendsHouseEnteredName);
                 return;
             }
             char typedCharChar = (char) typedChar;
@@ -283,7 +282,6 @@ public class PlayerOwnedHousePolicy extends PolicyBase implements BUPluginLifecy
         } else if (event.getScriptId() == CHATBOX_INPUT_CLOSE_SCRIPT_ID) {
             isReadFriendsHouseChatboxInputLoopRunning = false;
 
-            log.info("chatbox close");
             lastFriendsHouseEnteredName = null;
         }
     }
@@ -296,7 +294,7 @@ public class PlayerOwnedHousePolicy extends PolicyBase implements BUPluginLifecy
     }
 
     private void enforcePolicyEnterKeyPressedOnFriendsHouseName(KeyEvent e) {
-        boolean couldEnter = tryEnterHouseForPlayer(lastFriendsHouseEnteredName);
+        boolean couldEnter = validateHouseEntryForPlayer(lastFriendsHouseEnteredName);
         if (!couldEnter) {
             e.consume();
             clientThread.invoke(() -> client.runScript(
@@ -304,7 +302,7 @@ public class PlayerOwnedHousePolicy extends PolicyBase implements BUPluginLifecy
         }
     }
 
-    private boolean tryEnterHouseForPlayer(String inputName) {
+    private boolean validateHouseEntryForPlayer(String inputName) {
         String playerName = TextUtils.sanitizePlayerName(inputName);
         Member member;
         try {
