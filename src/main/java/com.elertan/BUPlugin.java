@@ -166,12 +166,12 @@ public final class BUPlugin extends Plugin {
         initLifecycleDependencies();
 
         try {
+            accountConfigurationService.addCurrentAccountConfigurationChangeListener(
+                currentAccountConfigurationChangeListener);
+
             for (BUPluginLifecycle lifecycleDependency : lifecycleDependencies) {
                 lifecycleDependency.startUp();
             }
-
-            accountConfigurationService.addCurrentAccountConfigurationChangeListener(
-                currentAccountConfigurationChangeListener);
 
             started = true;
             log.info("BU: startup ok");
@@ -188,13 +188,13 @@ public final class BUPlugin extends Plugin {
         Exception failure = null;
         try {
             if (started) {
-                accountConfigurationService.removeCurrentAccountConfigurationChangeListener(
-                    currentAccountConfigurationChangeListener
-                );
-
                 for (int i = lifecycleDependencies.size() - 1; i >= 0; i--) {
                     lifecycleDependencies.get(i).shutDown();
                 }
+
+                accountConfigurationService.removeCurrentAccountConfigurationChangeListener(
+                    currentAccountConfigurationChangeListener
+                );
 
                 log.info("BU: shutdown ok");
             } else {
