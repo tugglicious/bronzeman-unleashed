@@ -147,7 +147,7 @@ public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
         GroundItemOwnedByData groundItemOwnedByData = groundItemOwnedByMap.get(key);
         if (groundItemOwnedByData != null
             && groundItemOwnedByData.getAccountHash() == client.getAccountHash()) {
-            log.info("gi {} already in groundItemOwnedByMap for me, ignore", key);
+            log.debug("gi {} already in groundItemOwnedByMap for me, ignore", key);
             return;
         }
         long despawnTimeTicks = tileItem.getDespawnTime() - client.getTickCount();
@@ -198,7 +198,7 @@ public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
 
         GroundItemOwnedByData groundItemOwnedByData = groundItemOwnedByMap.get(key);
         if (groundItemOwnedByData == null) {
-            log.info("gi {} already deleted, ignore", key);
+            log.debug("gi {} already deleted, ignore", key);
             return;
         }
 
