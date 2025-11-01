@@ -20,6 +20,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
+import net.runelite.api.MenuAction;
 import net.runelite.api.ScriptEvent;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.ScriptPreFired;
@@ -131,12 +132,27 @@ public class PlayerOwnedHousePolicy extends PolicyBase implements BUPluginLifecy
     }
 
     private void enforcePolicyMenuOptionClicked(MenuOptionClicked event) {
+        MenuAction menuAction = event.getMenuAction();
         String menuOption = event.getMenuOption();
+        // Enter house via POH board
         if (menuOption.equalsIgnoreCase("enter house")) {
             enforcePolicyEnterHouseMenuOptionClicked(event);
         }
+        // Enter house via menu option right click on portal
         if (menuOption.equalsIgnoreCase("friend's house")) {
             enforcePolicyViewHouseMenuOptionClicked(event);
+        }
+        // Potentially continue'ing
+
+        if (menuAction.ordinal() == MenuAction.WIDGET_CONTINUE.ordinal()) {
+            Widget widget = event.getWidget();
+            if (widget == null) {
+                return;
+            }
+            String text = widget.getText();
+            if (text.equalsIgnoreCase("go to a friend's house")) {
+                enforcePolicyGoToAFriendsHouseMenuOptionClicked(event);
+            }
         }
     }
 
@@ -183,6 +199,22 @@ public class PlayerOwnedHousePolicy extends PolicyBase implements BUPluginLifecy
                 startReadFriendsHouseChatboxInputLoop();
             });
     }
+
+    private void enforcePolicyGoToAFriendsHouseMenuOptionClicked(MenuOptionClicked event) {
+        log.debug(
+            "Go to a friend's house menu option clicked, waiting for friends house chatbox input ready");
+        waitForFriendsHouseChatboxInputReady()
+            .whenComplete((__, throwable) -> {
+                if (throwable != null) {
+                    log.error("Error waiting for friends house chatbox input ready", throwable);
+                    return;
+                }
+
+                log.debug("Friends house chatbox input ready, starting checker");
+                startReadFriendsHouseChatboxInputLoop();
+            });
+    }
+
 
     private CompletableFuture<Void> waitForFriendsHouseChatboxInputReady() {
         CompletableFuture<Void> future = new CompletableFuture<>();
