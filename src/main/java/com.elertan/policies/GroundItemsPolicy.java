@@ -6,6 +6,8 @@ import com.elertan.BUPluginLifecycle;
 import com.elertan.BUSoundHelper;
 import com.elertan.GameRulesService;
 import com.elertan.PolicyService;
+import com.elertan.chat.ChatMessageProvider;
+import com.elertan.chat.ChatMessageProvider.MessageKey;
 import com.elertan.data.GroundItemOwnedByDataProvider;
 import com.elertan.models.GameRules;
 import com.elertan.models.GroundItemOwnedByData;
@@ -45,6 +47,8 @@ public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
     private BUSoundHelper buSoundHelper;
     @Inject
     private BUChatService buChatService;
+    @Inject
+    private ChatMessageProvider chatMessageProvider;
     @Inject
     private AccountConfigurationService accountConfigurationService;
     @Inject
@@ -277,8 +281,7 @@ public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
         ConcurrentHashMap<GroundItemOwnedByKey, GroundItemOwnedByData> groundItemOwnedByMap = groundItemOwnedByDataProvider.getGroundItemOwnedByMap();
         if (groundItemOwnedByMap == null) {
             event.consume();
-            buChatService.sendMessage(
-                "Ground item data not loaded yet, can't take to ensure integrity. Please wait and try again.");
+            buChatService.sendMessage(chatMessageProvider.messageFor(MessageKey.STILL_LOADING_PLEASE_WAIT_ERROR));
             return;
         }
         GroundItemOwnedByData groundItemOwnedByData = groundItemOwnedByMap.get(key);
@@ -288,14 +291,11 @@ public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
             return;
         }
 
-        log.info(">>>>>>>>>>>>10");
         event.consume();
         if (isWidgetTargetOnGroundItemAction) {
-            buChatService.sendMessage(
-                "You're a Bronzeman with ground item restrictions, so you can't cast that spell on that.");
+            buChatService.sendMessage(chatMessageProvider.messageFor(MessageKey.GROUND_ITEM_CAST_RESTRICTION_ERROR));
         } else {
-            buChatService.sendMessage(
-                "You're a Bronzeman with ground item restrictions, so you can't take that.");
+            buChatService.sendMessage(chatMessageProvider.messageFor(MessageKey.GROUND_ITEM_TAKE_RESTRICTION_ERROR));
         }
     }
 

@@ -8,6 +8,8 @@ import com.elertan.GameRulesService;
 import com.elertan.ItemUnlockService;
 import com.elertan.MemberService;
 import com.elertan.PolicyService;
+import com.elertan.chat.ChatMessageProvider;
+import com.elertan.chat.ChatMessageProvider.MessageKey;
 import com.elertan.models.GameRules;
 import com.elertan.models.Member;
 import com.elertan.utils.TextUtils;
@@ -34,6 +36,8 @@ public class TradePolicy extends PolicyBase implements BUPluginLifecycle {
     private BUSoundHelper buSoundHelper;
     @Inject
     private BUChatService buChatService;
+    @Inject
+    private ChatMessageProvider chatMessageProvider;
 
     @Inject
     public TradePolicy(AccountConfigurationService accountConfigurationService,
@@ -53,12 +57,17 @@ public class TradePolicy extends PolicyBase implements BUPluginLifecycle {
 
     public void onMenuOptionClicked(MenuOptionClicked event) {
         MenuAction action = event.getMenuAction();
+        String menuOption = event.getMenuOption();
+
         if (action.ordinal() >= MenuAction.PLAYER_FIRST_OPTION.ordinal()
             && action.ordinal() <= MenuAction.PLAYER_EIGHTH_OPTION.ordinal()) {
-            String option = event.getMenuOption();
-            if (option.equalsIgnoreCase("Trade with")) {
+            if (menuOption.equalsIgnoreCase("Trade with")) {
                 onTradeWithClicked(event);
             }
+        }
+
+        if (menuOption.equalsIgnoreCase("Accept trade")) {
+            onChatAcceptTradeClicked(event);
         }
 
         Widget widget = event.getWidget();
@@ -67,13 +76,33 @@ public class TradePolicy extends PolicyBase implements BUPluginLifecycle {
         }
 
         if (widget.getId() == InterfaceID.Trademain.ACCEPT) {
-            onTradeAcceptClicked();
+            onTradeWindowAcceptClicked();
         }
     }
 
-    private void onTradeWithClicked(MenuOptionClicked event) {
-        log.info("Trade with clicked");
+    private void onChatAcceptTradeClicked(MenuOptionClicked event) {
+        PolicyContext context = createContext();
+        GameRules gameRules = context.getGameRules();
+        boolean enforcePolicy =
+            context.isMustEnforceStrictPolicies() || (gameRules != null
+                && gameRules.isPreventTradeOutsideGroup());
 
+        if (!enforcePolicy) {
+            return;
+        }
+
+        String menuTarget = event.getMenuTarget();
+        String name = TextUtils.sanitizePlayerName(menuTarget);
+        Member member = memberService.getMemberByName(name);
+        if (member != null) {
+            return;
+        }
+
+        event.consume();
+        tradeRestrictionError();
+    }
+
+    private void onTradeWithClicked(MenuOptionClicked event) {
         PolicyContext context = createContext();
         GameRules gameRules = context.getGameRules();
         boolean enforcePolicy =
@@ -95,22 +124,25 @@ public class TradePolicy extends PolicyBase implements BUPluginLifecycle {
             return;
         }
         log.info("...and is not a member of are group.");
+
         event.consume();
-
-        boolean isPlayingAlone = memberService.isPlayingAlone();
-        String message = isPlayingAlone ?
-            "You are a Bronzeman. You (sort of) stand alone."
-            : "You are a Group Bronzeman. You can only trade members of your group.";
-        buChatService.sendMessage(message);
-
-        buSoundHelper.playDisabledSound();
+        tradeRestrictionError();
     }
 
-    public void onTradeAcceptClicked() {
-//        if (!shouldEnforcePolicies()) {
+    public void onTradeWindowAcceptClicked() {
+//        PolicyContext context = createContext();
+//        GameRules gameRules = context.getGameRules();
+//        boolean enforcePolicy =
+//            context.isMustEnforceStrictPolicies() || (gameRules != null
+//                && gameRules.isPreventTradeLockedItems());
+//
+//        if (!enforcePolicy) {
 //            return;
 //        }
-//        GameRules gameRules = gameRulesService.getGameRules();
-//        if (gameRules.isPreventTradeOutsideGroup())
+    }
+
+    private void tradeRestrictionError() {
+        buChatService.sendMessage(chatMessageProvider.messageFor(MessageKey.TRADE_RESTRICTION_ERROR));
+        buSoundHelper.playDisabledSound();
     }
 }

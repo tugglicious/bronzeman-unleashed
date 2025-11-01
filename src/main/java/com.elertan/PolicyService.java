@@ -1,5 +1,7 @@
 package com.elertan;
 
+import com.elertan.chat.ChatMessageProvider;
+import com.elertan.chat.ChatMessageProvider.MessageKey;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.Getter;
@@ -9,6 +11,8 @@ public class PolicyService implements BUPluginLifecycle {
 
     @Inject
     private BUChatService buChatService;
+    @Inject
+    private ChatMessageProvider chatMessageProvider;
 
     @Getter
     private boolean hasNotifiedGameRulesNotLoaded = false;
@@ -29,7 +33,6 @@ public class PolicyService implements BUPluginLifecycle {
         }
         hasNotifiedGameRulesNotLoaded = true;
 
-        buChatService.sendMessage(
-            "Temporarily enforcing strict game rules to ensure Bronzeman integrity whilst loading...");
+        buChatService.sendMessage(chatMessageProvider.messageFor(MessageKey.STILL_LOADING_TEMPORARY_STRICT_GAME_RULES_ENFORCEMENT));
     }
 }
