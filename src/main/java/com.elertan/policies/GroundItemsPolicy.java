@@ -155,7 +155,8 @@ public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
         OffsetDateTime despawnsAt = OffsetDateTime.now().plus(despawnDuration);
         GroundItemOwnedByData newGroundItemOwnedByData = new GroundItemOwnedByData(
             client.getAccountHash(),
-            new ISOOffsetDateTime(despawnsAt)
+            new ISOOffsetDateTime(despawnsAt),
+            null
         );
 
         groundItemOwnedByDataProvider.update(key, newGroundItemOwnedByData)

@@ -6,20 +6,28 @@ import com.elertan.BUPluginLifecycle;
 import com.elertan.GameRulesService;
 import com.elertan.PolicyService;
 import com.elertan.chat.ChatMessageProvider;
+import com.elertan.data.GroundItemOwnedByDataProvider;
 import com.elertan.models.GameRules;
+import com.elertan.models.GroundItemOwnedByData;
+import com.elertan.models.GroundItemOwnedByKey;
+import com.elertan.models.ISOOffsetDateTime;
+import com.elertan.utils.TextUtils;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import lombok.NonNull;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Actor;
 import net.runelite.api.Client;
 import net.runelite.api.Player;
-import net.runelite.api.Point;
-import net.runelite.api.coords.WorldArea;
+import net.runelite.api.WorldView;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ActorDeath;
 import net.runelite.client.events.PlayerLootReceived;
@@ -35,8 +43,10 @@ public class PlayerVersusPlayerPolicy extends PolicyBase implements BUPluginLife
     private BUChatService buChatService;
     @Inject
     private ChatMessageProvider chatMessageProvider;
+    @Inject
+    private GroundItemOwnedByDataProvider groundItemOwnedByDataProvider;
 
-    private ConcurrentHashMap<String, ConcurrentLinkedQueue<PlayerDeathLocation>> playerDeathLocations;
+    private ConcurrentHashMap<String, ConcurrentLinkedQueue<PlayerDeathLocation>> playerDeathLocationsByPlayerName;
 
     @Inject
     public PlayerVersusPlayerPolicy(AccountConfigurationService accountConfigurationService,
@@ -46,12 +56,12 @@ public class PlayerVersusPlayerPolicy extends PolicyBase implements BUPluginLife
 
     @Override
     public void startUp() throws Exception {
-        playerDeathLocations = new ConcurrentHashMap<>();
+        playerDeathLocationsByPlayerName = new ConcurrentHashMap<>();
     }
 
     @Override
     public void shutDown() throws Exception {
-        playerDeathLocations = null;
+        playerDeathLocationsByPlayerName = null;
     }
 
     public void onActorDeath(ActorDeath e) {
@@ -67,7 +77,7 @@ public class PlayerVersusPlayerPolicy extends PolicyBase implements BUPluginLife
             log.debug("we died...");
             return;
         }
-        if (playerDeathLocations == null) {
+        if (playerDeathLocationsByPlayerName == null) {
             log.debug("playerDeathLocations is null");
             return;
         }
@@ -75,33 +85,12 @@ public class PlayerVersusPlayerPolicy extends PolicyBase implements BUPluginLife
         GameRules gameRules = policyContext.getGameRules();
         if (policyContext.isMustEnforceStrictPolicies()) {
             addPlayerDeathLocation(otherPlayer);
+            return;
         }
-//        if (gameRules == null || gameRules.) {
-//            addPlayerDeathLocation(otherPlayer);
-//        }
-    }
-
-    private void addPlayerDeathLocation(Player player) {
-        long tickCount = client.getTickCount();
-
-        String playerName = player.getName();
-        WorldPoint actorLocation = player.getWorldLocation();
-        WorldArea worldArea = actorLocation.toWorldArea();
-
-        ConcurrentLinkedQueue<PlayerDeathLocation> deathLocations = playerDeathLocations.computeIfAbsent(
-            playerName,
-            k -> new ConcurrentLinkedQueue<>()
-        );
-        Point point = new Point(worldArea.getX(), worldArea.getY());
-        PlayerDeathLocation playerDeathLocation = new PlayerDeathLocation(point, tickCount);
-        deathLocations.add(playerDeathLocation);
-        log.info(
-            "Added death location for player {} at tick count {} for x: {}, y: {}",
-            playerName,
-            tickCount,
-            point.getX(),
-            point.getY()
-        );
+        if (gameRules == null || !gameRules.isRestrictPlayerVersusPlayerLoot()) {
+            return;
+        }
+        addPlayerDeathLocation(otherPlayer);
     }
 
     public void onPlayerLootReceived(PlayerLootReceived e) {
@@ -111,14 +100,44 @@ public class PlayerVersusPlayerPolicy extends PolicyBase implements BUPluginLife
         if (player == null) {
             return;
         }
-        log.info("loot received for player: {}", player.getName());
+        Collection<ItemStack> itemStacks = e.getItems();
 
-        if (playerDeathLocations == null) {
+        PolicyContext policyContext = createContext();
+        GameRules gameRules = policyContext.getGameRules();
+        if (policyContext.isMustEnforceStrictPolicies()) {
+            enforcePlayerLootReceivedPolicy(player, itemStacks);
+            return;
+        }
+        if (gameRules == null || !gameRules.isRestrictPlayerVersusPlayerLoot()) {
+            return;
+        }
+        enforcePlayerLootReceivedPolicy(player, itemStacks);
+    }
+
+    private void enforcePlayerLootReceivedPolicy(Player player, Collection<ItemStack> itemStacks) {
+        String playerName = TextUtils.sanitizePlayerName(player.getName());
+        log.info("loot received for player: {}", playerName);
+
+        if (playerDeathLocationsByPlayerName == null) {
             log.info("playerDeathLocations is null");
             return;
         }
+        ConcurrentLinkedQueue<PlayerDeathLocation> playerDeathLocations = playerDeathLocationsByPlayerName.get(
+            playerName);
+        if (playerDeathLocations == null) {
+            log.info("playerDeathLocations is null for player: {}", playerName);
+            return;
+        }
+        if (playerDeathLocations.isEmpty()) {
+            log.info("playerDeathLocations is empty for player: {}", playerName);
+            return;
+        }
+        PlayerDeathLocation lastDeathLocation = playerDeathLocations.remove();
+        if (lastDeathLocation == null) {
+            log.info("lastDeathLocation is null for player: {}", playerName);
+            return;
+        }
 
-        Collection<ItemStack> itemStacks = e.getItems();
         if (itemStacks == null) {
             log.info("item stacks is null, ignoring");
             return;
@@ -127,15 +146,106 @@ public class PlayerVersusPlayerPolicy extends PolicyBase implements BUPluginLife
             if (itemStack == null) {
                 continue;
             }
+
             int itemId = itemStack.getId();
-            log.info("item id: {} -> {}", itemId, itemStack.getQuantity());
+            int world = lastDeathLocation.getWorld();
+            WorldPoint worldPoint = lastDeathLocation.getWorldPoint();
+            WorldView worldView = lastDeathLocation.getWorldView();
+            int plane = worldPoint.getPlane();
+
+            GroundItemOwnedByKey key = GroundItemOwnedByKey.builder()
+                .itemId(itemId)
+                .world(world)
+                .worldViewId(worldView.getId())
+                .plane(plane)
+                .worldX(worldPoint.getX())
+                .worldY(worldPoint.getY())
+                .build();
+
+            markGroundItemOwnedByAsPlayerVersusPlayerLoot(key, playerName)
+                .whenComplete((__, throwable) -> {
+                    if (throwable != null) {
+                        log.error(
+                            "Failed to mark ground item as player versus player loot",
+                            throwable
+                        );
+                    }
+                });
         }
+    }
+
+    private void addPlayerDeathLocation(Player player) {
+        long tickCount = client.getTickCount();
+
+        String playerName = TextUtils.sanitizePlayerName(player.getName());
+        WorldPoint worldPoint = player.getWorldLocation();
+
+        int world = client.getWorld();
+        WorldView worldView = client.findWorldViewFromWorldPoint(worldPoint);
+
+        ConcurrentLinkedQueue<PlayerDeathLocation> deathLocations = playerDeathLocationsByPlayerName.computeIfAbsent(
+            playerName,
+            k -> new ConcurrentLinkedQueue<>()
+        );
+        PlayerDeathLocation playerDeathLocation = new PlayerDeathLocation(
+            world,
+            worldPoint,
+            worldView,
+            tickCount
+        );
+        deathLocations.add(playerDeathLocation);
+        log.info(
+            "Added death location for player {} at tick count {} for x: {}, y: {}",
+            playerName,
+            tickCount,
+            worldPoint.getX(),
+            worldPoint.getY()
+        );
+    }
+
+    private CompletableFuture<Void> markGroundItemOwnedByAsPlayerVersusPlayerLoot(
+        @NonNull GroundItemOwnedByKey key, @NonNull String playerName) {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+
+        ConcurrentHashMap<GroundItemOwnedByKey, GroundItemOwnedByData> map = groundItemOwnedByDataProvider.getGroundItemOwnedByMap();
+        GroundItemOwnedByData data;
+        if (map == null) {
+            data = null;
+        } else {
+            data = map.get(key);
+        }
+
+        if (data == null) {
+            // We can assume player vs player loot despawns after 3 minutes (300 ticks)
+            ISOOffsetDateTime despawnsAt = new ISOOffsetDateTime(OffsetDateTime.now()
+                .plus(Duration.ofMinutes(3)));
+            data = new GroundItemOwnedByData(client.getAccountHash(), despawnsAt, playerName);
+        } else {
+            long accountHash = data.getAccountHash();
+            ISOOffsetDateTime despawnsAt = data.getDespawnsAt();
+            data = new GroundItemOwnedByData(accountHash, despawnsAt, playerName);
+        }
+
+        groundItemOwnedByDataProvider.update(key, data)
+            .whenComplete((result, throwable) -> {
+                if (throwable != null) {
+                    log.error("GroundItemOwnedByDataProvider update failed", throwable);
+                    future.completeExceptionally(throwable);
+                    return;
+                }
+
+                future.complete(null);
+            });
+
+        return future;
     }
 
     @Value
     private static class PlayerDeathLocation {
 
-        Point location;
+        int world;
+        WorldPoint worldPoint;
+        WorldView worldView;
         long tickCount;
     }
 }
