@@ -2,17 +2,18 @@ package com.elertan;
 
 import com.elertan.data.GameRulesDataProvider;
 import com.elertan.models.GameRules;
-import com.elertan.models.ISOOffsetDateTime;
 import com.elertan.models.Member;
 import com.elertan.utils.ListenerUtils;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.time.Duration;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.chat.ChatMessageBuilder;
@@ -98,32 +99,50 @@ public class GameRulesService implements BUPluginLifecycle {
         }
 
         if (gameRules != null && oldGameRules != null) {
-            ChatMessageBuilder builder = new ChatMessageBuilder();
-            builder.append("Game rules have been updated");
+            {
+                ChatMessageBuilder builder = new ChatMessageBuilder();
+                builder.append("Game rules have been updated");
 
-            if (gameRules.getLastUpdatedByAccountHash() != null) {
-                Member member = null;
-                try {
-                    member = memberService.getMemberByAccountHash(gameRules.getLastUpdatedByAccountHash());
-                } catch (Exception e) {
-                    // ignored
+                if (gameRules.getLastUpdatedByAccountHash() != null) {
+                    Member member = null;
+                    try {
+                        member = memberService.getMemberByAccountHash(gameRules.getLastUpdatedByAccountHash());
+                    } catch (Exception e) {
+                        // ignored
+                    }
+                    if (member != null) {
+                        builder.append(" by ");
+                        builder.append(buPluginConfig.chatPlayerNameColor(), member.getName());
+                    }
                 }
-                if (member != null) {
-                    builder.append(" by ");
-                    builder.append(buPluginConfig.chatPlayerNameColor(), member.getName());
+//                if (gameRules.getLastUpdatedAt() != null) {
+//                    builder.append(" at ");
+//                    ISOOffsetDateTime lastUpdatedAt = gameRules.getLastUpdatedAt();
+//                    String formattedMoment = lastUpdatedAt.getValue()
+//                        .format(DateTimeFormatter.ISO_LOCAL_TIME);
+//                    builder.append(buPluginConfig.chatHighlightColor(), formattedMoment);
+//                }
+                builder.append(".");
+
+                buChatService.sendMessage(builder.build());
+            }
+
+            Map<String, String> differences = generateGameRulesUpdateDifference(
+                oldGameRules,
+                gameRules
+            );
+            if (differences != null && !differences.isEmpty()) {
+                for (Map.Entry<String, String> entry : differences.entrySet()) {
+                    ChatMessageBuilder builder = new ChatMessageBuilder();
+                    builder.append("  > ");
+                    builder.append(entry.getKey());
+                    builder.append(": ");
+                    builder.append(buPluginConfig.chatHighlightColor(), entry.getValue());
+
+                    buChatService.sendMessage(builder.build());
                 }
             }
-            if (gameRules.getLastUpdatedAt() != null) {
-                builder.append(" at ");
-                ISOOffsetDateTime lastUpdatedAt = gameRules.getLastUpdatedAt();
-                String formattedMoment = lastUpdatedAt.getValue()
-                    .format(DateTimeFormatter.ofLocalizedDateTime(
-                        FormatStyle.MEDIUM));
-                builder.append(buPluginConfig.chatHighlightColor(), formattedMoment);
-            }
-            builder.append(".");
 
-            buChatService.sendMessage(builder.build());
         }
 
         for (Listener listener : listeners) {
@@ -135,6 +154,79 @@ public class GameRulesService implements BUPluginLifecycle {
         }
     }
 
+    private Map<String, String> generateGameRulesUpdateDifference(GameRules oldGameRules,
+        GameRules newGameRules) {
+        if (oldGameRules == null || newGameRules == null) {
+            return null;
+        }
+
+        Function<Boolean, String> booleanFormatter = (value) -> value ? "enabled" : "disabled";
+
+        Map<String, String> differences = new HashMap<>();
+        if (oldGameRules.isOnlyForTradeableItems() != newGameRules.isOnlyForTradeableItems()) {
+            differences.put(
+                "Only for tradeable items",
+                booleanFormatter.apply(newGameRules.isOnlyForTradeableItems())
+            );
+        }
+        if (oldGameRules.isRestrictGroundItems() != newGameRules.isRestrictGroundItems()) {
+            differences.put(
+                "Restrict ground items",
+                booleanFormatter.apply(newGameRules.isRestrictGroundItems())
+            );
+        }
+        if (oldGameRules.isPreventGrandExchangeBuyOffers()
+            != newGameRules.isPreventGrandExchangeBuyOffers()) {
+            differences.put(
+                "Prevent Grand Exchange buy offers",
+                booleanFormatter.apply(newGameRules.isPreventGrandExchangeBuyOffers())
+            );
+        }
+        if (oldGameRules.isPreventTradeLockedItems() != newGameRules.isPreventTradeLockedItems()) {
+            differences.put(
+                "Prevent trade locked items",
+                booleanFormatter.apply(newGameRules.isPreventTradeLockedItems())
+            );
+        }
+        if (oldGameRules.isPreventTradeOutsideGroup()
+            != newGameRules.isPreventTradeOutsideGroup()) {
+            differences.put(
+                "Prevent trade outside group",
+                booleanFormatter.apply(newGameRules.isPreventTradeOutsideGroup())
+            );
+        }
+        if (oldGameRules.isPreventPlayedOwnedHouse() != newGameRules.isPreventPlayedOwnedHouse()) {
+            differences.put(
+                "Prevent played owned house",
+                booleanFormatter.apply(newGameRules.isPreventPlayedOwnedHouse())
+            );
+        }
+        if (!Objects.equals(
+            oldGameRules.getValuableLootNotificationThreshold(),
+            newGameRules.getValuableLootNotificationThreshold()
+        )) {
+            Integer threshold = newGameRules.getValuableLootNotificationThreshold();
+            String newValue;
+            if (threshold == null || threshold <= 0) {
+                newValue = "disabled";
+            } else {
+                newValue = String.format("%,d", threshold) + " coins";
+            }
+            differences.put("Valuable loot notification threshold", newValue);
+        }
+        if (oldGameRules.isShareAchievementNotifications()
+            != newGameRules.isShareAchievementNotifications()) {
+            differences.put(
+                "Share achievement notifications",
+                booleanFormatter.apply(newGameRules.isShareAchievementNotifications())
+            );
+        }
+        if (!Objects.equals(oldGameRules.getPartyPassword(), newGameRules.getPartyPassword())) {
+            differences.put("Party password", "*hidden see config*");
+        }
+        return differences;
+    }
+
     private void setState(State state) {
         if (this.state == state) {
             return;
@@ -143,8 +235,7 @@ public class GameRulesService implements BUPluginLifecycle {
     }
 
     public enum State {
-        NotReady,
-        Ready,
+        NotReady, Ready,
     }
 
     public interface Listener {
