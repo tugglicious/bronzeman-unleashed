@@ -18,14 +18,17 @@ It gives you more freedom in doing content you like doing, but retains the rewar
 certain items before you can use them.
 Unlike a normal account, you cannot trade items you haven't unlocked yet, but once you do you can trade them freely.
 
+Bronzeman mode is also great if you enjoy doing PvP, as you can configure the game rules to allow PvP loot to count as
+unlocks.
+
 So no more herbs runs to farm for supplies to go do bossing, or any other adventures that await you!
 
 ---
 
 ## 🔧 Play Bronzeman Your Way — Custom Game Rules
 
-![Game Rules Panel](assets/game_rules_panel.png)  
-*Full control over your playstyle — every rule configurable, every journey unique.*
+![Game Rules Panel](assets/game-rules.png)  
+*Full control over your playstyle — configure your own game rules and restrictions.*.*
 
 I built Bronzeman Unleashed to adapt to your journey, not the other way around.
 
