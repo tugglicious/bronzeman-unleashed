@@ -25,7 +25,7 @@ So no more herbs runs to farm for supplies to go do bossing, or any other advent
 
 ---
 
-## 🔧 Play Bronzeman Your Way — Custom Game Rules
+## Play Bronzeman Your Way — Custom Game Rules
 
 *Full control over your playstyle — configure your own game rules and restrictions.*
 
