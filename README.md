@@ -33,7 +33,7 @@ I built Bronzeman Unleashed to adapt to your journey, not the other way around.
 
 You can define your own adventure by choosing what rules and restrictions you want to apply.
 
-<table style="border: none; border-collapse: collapse;">
+<table>
 <tr>
 <td>
 
