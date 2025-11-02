@@ -404,10 +404,11 @@ public class GameRulesEditor extends JPanel {
             shareAchievementsCheckbox,
             viewModel.shareAchievementNotificationsProperty
         );
-        Bindings.bindEnabled(
-            shareAchievementsCheckbox,
-            viewModel.isViewOnlyModeProperty.derive(isViewOnlyMode -> !isViewOnlyMode)
-        );
+//        Bindings.bindEnabled(
+//            shareAchievementsCheckbox,
+//            viewModel.isViewOnlyModeProperty.derive(isViewOnlyMode -> !isViewOnlyMode)
+//        );
+        shareAchievementsCheckbox.setEnabled(false);
         panel.add(
             createCheckboxInput(
                 "Share achievements",

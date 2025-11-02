@@ -134,7 +134,7 @@ public class GameRulesService implements BUPluginLifecycle {
             if (differences != null && !differences.isEmpty()) {
                 for (Map.Entry<String, String> entry : differences.entrySet()) {
                     ChatMessageBuilder builder = new ChatMessageBuilder();
-                    builder.append("  > ");
+                    builder.append(" - ");
                     builder.append(entry.getKey());
                     builder.append(": ");
                     builder.append(buPluginConfig.chatHighlightColor(), entry.getValue());

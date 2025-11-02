@@ -24,6 +24,8 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.Client;
+import net.runelite.api.GameState;
 import okhttp3.OkHttpClient;
 
 @Slf4j
@@ -33,6 +35,8 @@ public class RemoteStorageService implements BUPluginLifecycle {
     private final ConcurrentLinkedQueue<Consumer<State>> stateListeners = new ConcurrentLinkedQueue<>();
     @Inject
     private OkHttpClient httpClient;
+    @Inject
+    private Client client;
     @Inject
     private Gson gson;
     @Inject
@@ -56,6 +60,9 @@ public class RemoteStorageService implements BUPluginLifecycle {
     public void startUp() {
         accountConfigurationService.addCurrentAccountConfigurationChangeListener(
             currentAccountConfigurationChangeListener);
+        if (accountConfigurationService.isReady() && client.getGameState() == GameState.LOGGED_IN) {
+            useAccountConfiguration(accountConfigurationService.getCurrentAccountConfiguration());
+        }
     }
 
     @Override
@@ -89,6 +96,10 @@ public class RemoteStorageService implements BUPluginLifecycle {
 
     private void currentAccountConfigurationChangeListener(
         AccountConfiguration accountConfiguration) {
+        useAccountConfiguration(accountConfiguration);
+    }
+
+    private void useAccountConfiguration(AccountConfiguration accountConfiguration) {
         if (accountConfiguration == null) {
             try {
                 clearCurrentDataport();

@@ -125,12 +125,26 @@ public class ItemUnlockOverlay extends Overlay {
             });
     }
 
+    public void clear() {
+        queue.clear();
+        current = null;
+        next = null;
+        phase = Phase.IDLE;
+        overlayT0 = 0L;
+        itemT0 = 0L;
+        swapT0 = 0L;
+        sessionFrameHeight = HEIGHT;
+    }
+
     @Override
     public Dimension render(Graphics2D g) {
         if (!config.showUnlockOverlay()) {
             return null;
         }
         if (!accountConfigurationService.isReady()) {
+            return null;
+        }
+        if (accountConfigurationService.getCurrentAccountConfiguration() == null) {
             return null;
         }
         if (phase == Phase.IDLE && current == null) {

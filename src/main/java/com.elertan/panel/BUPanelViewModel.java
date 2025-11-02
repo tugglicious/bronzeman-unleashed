@@ -8,6 +8,8 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.Client;
+import net.runelite.api.GameState;
 
 @Slf4j
 public final class BUPanelViewModel implements AutoCloseable {
@@ -16,11 +18,16 @@ public final class BUPanelViewModel implements AutoCloseable {
     private final Consumer<AccountConfiguration> currentAccountConfigurationChangeListener = this::currentAccountConfigurationChangeListener;
     private final AccountConfigurationService accountConfigurationService;
 
-    private BUPanelViewModel(AccountConfigurationService accountConfigurationService) {
+    private BUPanelViewModel(AccountConfigurationService accountConfigurationService,
+        Client client) {
         this.accountConfigurationService = accountConfigurationService;
 
         accountConfigurationService.addCurrentAccountConfigurationChangeListener(
             currentAccountConfigurationChangeListener);
+
+        if (accountConfigurationService.isReady() && client.getGameState() == GameState.LOGGED_IN) {
+            setScreenForAccountConfiguration(accountConfigurationService.getCurrentAccountConfiguration());
+        }
     }
 
     @Override
@@ -30,6 +37,11 @@ public final class BUPanelViewModel implements AutoCloseable {
     }
 
     private void currentAccountConfigurationChangeListener(
+        AccountConfiguration accountConfiguration) {
+        setScreenForAccountConfiguration(accountConfiguration);
+    }
+
+    private void setScreenForAccountConfiguration(
         AccountConfiguration accountConfiguration) {
         if (accountConfiguration == null) {
             screen.set(Screen.SETUP);
@@ -55,10 +67,12 @@ public final class BUPanelViewModel implements AutoCloseable {
 
         @Inject
         private AccountConfigurationService accountConfigurationService;
+        @Inject
+        private Client client;
 
         @Override
         public BUPanelViewModel create() {
-            return new BUPanelViewModel(accountConfigurationService);
+            return new BUPanelViewModel(accountConfigurationService, client);
         }
     }
 }
