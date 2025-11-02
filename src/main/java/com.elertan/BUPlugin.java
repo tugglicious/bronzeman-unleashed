@@ -272,6 +272,7 @@ public final class BUPlugin extends Plugin {
         tradePolicy.onMenuOptionClicked(event);
         groundItemsPolicy.onMenuOptionClicked(event);
         playerOwnedHousePolicy.onMenuOptionClicked(event);
+        playerVersusPlayerPolicy.onMenuOptionClicked(event);
     }
 
     @Subscribe

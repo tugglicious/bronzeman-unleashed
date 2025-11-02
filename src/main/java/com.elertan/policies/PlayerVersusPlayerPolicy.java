@@ -2,10 +2,13 @@ package com.elertan.policies;
 
 import com.elertan.AccountConfigurationService;
 import com.elertan.BUChatService;
+import com.elertan.BUPluginConfig;
 import com.elertan.BUPluginLifecycle;
+import com.elertan.BUSoundHelper;
 import com.elertan.GameRulesService;
 import com.elertan.PolicyService;
 import com.elertan.chat.ChatMessageProvider;
+import com.elertan.chat.ChatMessageProvider.MessageKey;
 import com.elertan.data.GroundItemOwnedByDataProvider;
 import com.elertan.models.GameRules;
 import com.elertan.models.GroundItemOwnedByData;
@@ -30,6 +33,10 @@ import net.runelite.api.Player;
 import net.runelite.api.WorldView;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ActorDeath;
+import net.runelite.api.events.MenuOptionClicked;
+import net.runelite.api.gameval.InterfaceID;
+import net.runelite.api.widgets.Widget;
+import net.runelite.client.chat.ChatMessageBuilder;
 import net.runelite.client.events.PlayerLootReceived;
 import net.runelite.client.game.ItemStack;
 
@@ -45,6 +52,10 @@ public class PlayerVersusPlayerPolicy extends PolicyBase implements BUPluginLife
     private ChatMessageProvider chatMessageProvider;
     @Inject
     private GroundItemOwnedByDataProvider groundItemOwnedByDataProvider;
+    @Inject
+    private BUPluginConfig buPluginConfig;
+    @Inject
+    private BUSoundHelper buSoundHelper;
 
     private ConcurrentHashMap<String, ConcurrentLinkedQueue<PlayerDeathLocation>> playerDeathLocationsByPlayerName;
 
@@ -248,6 +259,46 @@ public class PlayerVersusPlayerPolicy extends PolicyBase implements BUPluginLife
             });
 
         return future;
+    }
+
+    public void onMenuOptionClicked(MenuOptionClicked event) {
+        if (!accountConfigurationService.isReady()
+            || accountConfigurationService.getCurrentAccountConfiguration() == null) {
+            return;
+        }
+
+        String menuOption = event.getMenuOption();
+        Widget widget = event.getWidget();
+        if (widget == null) {
+            return;
+        }
+        int widgetId = widget.getId();
+        if (widgetId == InterfaceID.WildyLootChest.ITEMS) {
+            if (menuOption.startsWith("Take") || menuOption.startsWith("Bank")) {
+                event.consume();
+
+                ChatMessageBuilder builder = new ChatMessageBuilder();
+                builder.append(
+                    buPluginConfig.chatRestrictionColor(),
+                    chatMessageProvider.messageFor(MessageKey.PLAYER_VERSUS_PLAYER_LOOT_KEY_RESTRICTION)
+                );
+                buChatService.sendMessage(builder.build());
+                buSoundHelper.playDisabledSound();
+                return;
+            }
+        }
+        if (widgetId == InterfaceID.WildyLootChest.WITHDRAWBANK
+            || widgetId == InterfaceID.WildyLootChest.WITHDRAWINV) {
+            event.consume();
+
+            ChatMessageBuilder builder = new ChatMessageBuilder();
+            builder.append(
+                buPluginConfig.chatRestrictionColor(),
+                chatMessageProvider.messageFor(MessageKey.PLAYER_VERSUS_PLAYER_LOOT_KEY_RESTRICTION)
+            );
+            buChatService.sendMessage(builder.build());
+            buSoundHelper.playDisabledSound();
+        }
     }
 
     @Value

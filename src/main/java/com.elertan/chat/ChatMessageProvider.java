@@ -46,6 +46,10 @@ public final class ChatMessageProvider {
             MessageKey.PLAYER_VERSUS_PLAYER_LOOT_RESTRICTION,
             this::playerVersusPlayerLootRestrictionMessage
         );
+        this.resolvers.put(
+            MessageKey.PLAYER_VERSUS_PLAYER_LOOT_KEY_RESTRICTION,
+            this::playerVersusPlayerLootKeyRestrictionMessage
+        );
     }
 
     /**
@@ -134,6 +138,15 @@ public final class ChatMessageProvider {
         );
     }
 
+    private String playerVersusPlayerLootKeyRestrictionMessage() {
+        boolean isSolo = isSolo();
+        String identity = getIdentity(isSolo);
+        return String.format(
+            "You cannot take or bank any items from loot keys due to %s restrictions.",
+            identity
+        );
+    }
+
     /**
      * Keys for message lookups. Extend with non-error keys later without changing call sites.
      */
@@ -145,5 +158,6 @@ public final class ChatMessageProvider {
         POH_ENTER_RESTRICTION,
         GROUND_ITEM_CAST_RESTRICTION,
         PLAYER_VERSUS_PLAYER_LOOT_RESTRICTION,
+        PLAYER_VERSUS_PLAYER_LOOT_KEY_RESTRICTION,
     }
 }
