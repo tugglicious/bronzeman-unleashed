@@ -62,6 +62,8 @@ You can define your own adventure by choosing what rules and restrictions you wa
 - **Valuable drop notification:** Automatically share rare drops with your group when they exceed a set GP value.
 - **Party plugin support:** Set a party password and join automatically on login.
 
+#### And more to come in the future!
+
 ---
 
 ## Sync your data online and get started in under five minutes
@@ -74,6 +76,10 @@ You’ll be ready to play in under five minutes.
 
 As of right now I decided to only support Firebase. Firebase will be free to use using their free tier.
 No credit card required, just a Google account.
+
+The plugin itself will guide you through the setup process, but you can view
+the [firebase setup guide](https://github.com/elertan/bronzeman-unleashed/blob/main/firebase-guide.md) for more
+details.
 
 The plugin has been developed with the intention of supporting other
 backends in the future. Feel free to create an issue with other suggestions!
