@@ -112,6 +112,11 @@ public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
     }
 
     public void onItemSpawned(ItemSpawned event) {
+        if (!accountConfigurationService.isReady()
+            || accountConfigurationService.getCurrentAccountConfiguration() == null) {
+            return;
+        }
+
         PolicyContext context = createContext();
         GameRules gameRules = context.getGameRules();
         if (gameRules == null || !gameRules.isRestrictGroundItems()) {
@@ -172,6 +177,11 @@ public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
     }
 
     public void onItemDespawned(ItemDespawned event) {
+        if (!accountConfigurationService.isReady()
+            || accountConfigurationService.getCurrentAccountConfiguration() == null) {
+            return;
+        }
+
         TileItem tileItem = event.getItem();
         if (tileItem.getOwnership() != TileItem.OWNERSHIP_SELF
             && tileItem.getOwnership() != TileItem.OWNERSHIP_GROUP) {
@@ -215,6 +225,11 @@ public class GroundItemsPolicy extends PolicyBase implements BUPluginLifecycle {
     }
 
     public void onMenuOptionClicked(MenuOptionClicked event) {
+        if (!accountConfigurationService.isReady()
+            || accountConfigurationService.getCurrentAccountConfiguration() == null) {
+            return;
+        }
+
         PolicyContext context = createContext();
         enforceItemTakePolicyWhereNecessary(event, context);
     }

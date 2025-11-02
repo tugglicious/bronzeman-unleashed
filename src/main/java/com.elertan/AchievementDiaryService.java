@@ -241,6 +241,8 @@ public class AchievementDiaryService implements BUPluginLifecycle {
     private Client client;
     @Inject
     private BUEventService buEventService;
+    @Inject
+    private AccountConfigurationService accountConfigurationService;
 
     private static AchievementDiaryVarbitInfo info(AchievementDiaryArea area,
         AchievementDiaryTier tier) {
@@ -277,6 +279,11 @@ public class AchievementDiaryService implements BUPluginLifecycle {
         if (!hasPassedVarbitInitializationWindow) {
             log.debug(
                 "skipping diary completion event due to varbit initialization window not passed");
+            return;
+        }
+
+        if (!accountConfigurationService.isReady()
+            || accountConfigurationService.getCurrentAccountConfiguration() == null) {
             return;
         }
 

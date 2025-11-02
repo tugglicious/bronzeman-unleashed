@@ -43,6 +43,11 @@ public class GrandExchangePolicy extends PolicyBase implements BUPluginLifecycle
     }
 
     public void onScriptPostFired(ScriptPostFired event) {
+        if (!accountConfigurationService.isReady()
+            || accountConfigurationService.getCurrentAccountConfiguration() == null) {
+            return;
+        }
+
         int scriptId = event.getScriptId();
         if (scriptId == GE_SEARCH_BUILD_SCRIPT_ID) {
             onSearchBuild();

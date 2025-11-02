@@ -26,6 +26,8 @@ public class LootValuationService implements BUPluginLifecycle {
     private BUEventService buEventService;
     @Inject
     private GameRulesService gameRulesService;
+    @Inject
+    private AccountConfigurationService accountConfigurationService;
 
     @Override
     public void startUp() throws Exception {
@@ -39,6 +41,11 @@ public class LootValuationService implements BUPluginLifecycle {
 
 
     public void onServerNpcLoot(ServerNpcLoot event) {
+        if (!accountConfigurationService.isReady()
+            || accountConfigurationService.getCurrentAccountConfiguration() == null) {
+            return;
+        }
+
         Collection<ItemStack> itemStacks = event.getItems();
         if (itemStacks == null) {
             return;

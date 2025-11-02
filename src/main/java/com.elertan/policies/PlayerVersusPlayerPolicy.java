@@ -65,6 +65,11 @@ public class PlayerVersusPlayerPolicy extends PolicyBase implements BUPluginLife
     }
 
     public void onActorDeath(ActorDeath e) {
+        if (!accountConfigurationService.isReady()
+            || accountConfigurationService.getCurrentAccountConfiguration() == null) {
+            return;
+        }
+
         Actor actor = e.getActor();
         boolean isPlayer = actor instanceof Player;
         if (!isPlayer) {
@@ -94,6 +99,11 @@ public class PlayerVersusPlayerPolicy extends PolicyBase implements BUPluginLife
     }
 
     public void onPlayerLootReceived(PlayerLootReceived e) {
+        if (!accountConfigurationService.isReady()
+            || accountConfigurationService.getCurrentAccountConfiguration() == null) {
+            return;
+        }
+
         // This covers PvP loot, including loot keys when opened.
         // Tag this batch as PvP using e.getPlayerName() or source info.
         Player player = e.getPlayer();

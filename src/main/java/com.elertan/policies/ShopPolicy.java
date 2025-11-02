@@ -62,6 +62,11 @@ public class ShopPolicy extends PolicyBase implements BUPluginLifecycle {
     }
 
     public void onWidgetLoaded(WidgetLoaded event) {
+        if (!accountConfigurationService.isReady()
+            || accountConfigurationService.getCurrentAccountConfiguration() == null) {
+            return;
+        }
+
         int groupId = event.getGroupId();
         if (groupId != InterfaceID.SHOPMAIN) {
             return;
@@ -70,6 +75,11 @@ public class ShopPolicy extends PolicyBase implements BUPluginLifecycle {
     }
 
     public void onWidgetClosed(WidgetClosed event) {
+        if (!accountConfigurationService.isReady()
+            || accountConfigurationService.getCurrentAccountConfiguration() == null) {
+            return;
+        }
+
         int groupId = event.getGroupId();
         if (groupId != InterfaceID.SHOPMAIN) {
             return;

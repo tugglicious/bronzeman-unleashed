@@ -60,6 +60,11 @@ public class TradePolicy extends PolicyBase implements BUPluginLifecycle {
     }
 
     public void onMenuOptionClicked(MenuOptionClicked event) {
+        if (!accountConfigurationService.isReady()
+            || accountConfigurationService.getCurrentAccountConfiguration() == null) {
+            return;
+        }
+
         MenuAction action = event.getMenuAction();
         String menuOption = event.getMenuOption();
 

@@ -123,6 +123,11 @@ public class PlayerOwnedHousePolicy extends PolicyBase implements BUPluginLifecy
     }
 
     public void onMenuOptionClicked(MenuOptionClicked event) {
+        if (!accountConfigurationService.isReady()
+            || accountConfigurationService.getCurrentAccountConfiguration() == null) {
+            return;
+        }
+
         PolicyContext context = createContext();
         if (context.isMustEnforceStrictPolicies()) {
             enforcePolicyMenuOptionClicked(event);
@@ -287,6 +292,11 @@ public class PlayerOwnedHousePolicy extends PolicyBase implements BUPluginLifecy
     }
 
     public void onScriptPreFired(ScriptPreFired event) {
+        if (!accountConfigurationService.isReady()
+            || accountConfigurationService.getCurrentAccountConfiguration() == null) {
+            return;
+        }
+
         if (event.getScriptId() == CHATBOX_INPUT_SCRIPT_ID) {
             ScriptEvent scriptEvent = event.getScriptEvent();
             int typedChar = scriptEvent.getTypedKeyChar();
