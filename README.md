@@ -75,7 +75,6 @@ You can define your own adventure by choosing what rules and restrictions you wa
 </td>
 </tr>
 </table>
----
 
 ## Sync your data online and get started in under five minutes
 
@@ -99,16 +98,21 @@ backends in the future. Feel free to create an issue with other suggestions!
 
 ## Unlocked Items Panel
 
-![Unlocked Items Panel](assets/unlocked_items_panel.png)  
-*Browse, search, and filter every unlocked item with full group visibility.*
-
+<table>
+<tr>
+<td>
 See your progress come to life.
 The **Bronzeman Panel** showcases every unlocked item with:
 
 - Search, sorting, and filtering tools.
 - Detailed metadata: who unlocked it, when, and from which NPC drop (if applicable).
 
----
+</td>
+<td>
+<img src="assets/unlocked-items.png" alt="Unlocked Items Panel"> 
+</td>
+</tr>
+</table>
 
 ## And when you earn a new unlock, it feels special
 
