@@ -124,12 +124,9 @@ Enjoy:
 
 - A beautifully animated overlay celebrating your or your group member's achievement.
 - A detailed chatbox message.
-- Group notifications for shared triumphs.
 
-![Chatbox Unlock Example](assets/chatbox_unlock.png)  
+![Chatbox Unlock Example](assets/chatbox-unlocks.png)  
 *Chatbox messages record every unlock with NPC and item details.*
-
-Every discovery is an event worth remembering.
 
 ---
 
