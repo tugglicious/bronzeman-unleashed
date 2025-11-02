@@ -47,7 +47,7 @@ import net.runelite.client.plugins.PluginDescriptor;
 @Slf4j
 @PluginDescriptor(
     name = "Bronzeman Unleashed (BETA)",
-    description = "Redefine your RuneScape adventure — Bronzeman Unleashed lets you craft your own rules, earn every unlock, and share the grind with friends.",
+    description = "Redefine your adventure - craft your own rules, earn every unlock, and share the grind with friends.",
     tags = {
         "bronzeman",
         "gamemode",
