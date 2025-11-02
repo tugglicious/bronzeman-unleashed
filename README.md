@@ -27,7 +27,9 @@ So no more herbs runs to farm for supplies to go do bossing, or any other advent
 
 ## 🔧 Play Bronzeman Your Way — Custom Game Rules
 
-![Game Rules Panel](assets/game-rules.png)  
+<img src="assets/game-rules.png" alt="Game Rules Panel" height="400">
+
+[//]: # (![Game Rules Panel]&#40;assets/game-rules.png&#41;  )
 *Full control over your playstyle — configure your own game rules and restrictions.*.*
 
 I built Bronzeman Unleashed to adapt to your journey, not the other way around.
