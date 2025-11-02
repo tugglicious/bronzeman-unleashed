@@ -31,33 +31,33 @@ I built Bronzeman Unleashed to adapt to your journey, not the other way around.
 
 You can define your own adventure by choosing what rules and restrictions you want to apply.
 
-### 💎 Item Unlocks
+### Item Unlocks
 
 - **Tradeable-only mode:** Choose to track only tradeable items to reduce clutter and streamline your progression.
 
-### 🌾 Ground Items
+### Ground Items
 
 - **Restrict pickups:** Configure whether you can only pick up items that belong to you or those that belong to your
   group
   members.
 
-### 🤝 Trading
+### Trading
 
 - **Prevent trading outside group:** Restrict trading to your Bronzeman group only.
 
-### 📈 Grand Exchange
+### Grand Exchange
 
 - **Prevent buy offers:** Block buy offers for items not yet unlocked.
 
-### 🏠 Player Owned House (POH)
+### Player Owned House (POH)
 
 - **Restrict POH access:** Prevent entry to any POH that doesn't belong to you or your group members.
 
-### ⚔️ Player vs. Player (PvP)
+### Player vs. Player (PvP)
 
 - **Restrict loot:** Restrict loot from PvP kills and loot keys.
 
-### 📣 Notifications and Integration
+### Notifications and Integration
 
 - **Valuable drop notification:** Automatically share rare drops with your group when they exceed a set GP value.
 - **Party plugin support:** Set a party password and join automatically on login.
