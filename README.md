@@ -27,10 +27,11 @@ So no more herbs runs to farm for supplies to go do bossing, or any other advent
 
 ## 🔧 Play Bronzeman Your Way — Custom Game Rules
 
-<img src="assets/game-rules.png" alt="Game Rules Panel" height="400">
+*Full control over your playstyle — configure your own game rules and restrictions.*
 
-[//]: # (![Game Rules Panel]&#40;assets/game-rules.png&#41;  )
-*Full control over your playstyle — configure your own game rules and restrictions.*.*
+<table>
+<tr>
+<td>
 
 I built Bronzeman Unleashed to adapt to your journey, not the other way around.
 
@@ -43,8 +44,7 @@ You can define your own adventure by choosing what rules and restrictions you wa
 ### Ground Items
 
 - **Restrict pickups:** Configure whether you can only pick up items that belong to you or those that belong to your
-  group
-  members.
+  group members.
 
 ### Trading
 
@@ -69,6 +69,12 @@ You can define your own adventure by choosing what rules and restrictions you wa
 
 #### And more to come in the future!
 
+</td>
+<td>
+<img src="assets/game-rules.png" alt="Game Rules Panel">
+</td>
+</tr>
+</table>
 ---
 
 ## Sync your data online and get started in under five minutes
