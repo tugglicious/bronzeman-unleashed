@@ -45,8 +45,17 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 
 @Slf4j
-@PluginDescriptor(name = "Bronzeman Unleashed (BETA)", description = "Bronzeman Unleashed description", tags = {
-    "bronzeman"})
+@PluginDescriptor(
+    name = "Bronzeman Unleashed (BETA)",
+    description = "Redefine your RuneScape adventure — Bronzeman Unleashed lets you craft your own rules, earn every unlock, and share the grind with friends.",
+    tags = {
+        "bronzeman",
+        "gamemode",
+        "restrict",
+        "trade",
+        "group"
+    }
+)
 public final class BUPlugin extends Plugin {
 
     @Inject
