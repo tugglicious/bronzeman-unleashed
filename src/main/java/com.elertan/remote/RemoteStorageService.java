@@ -100,12 +100,12 @@ public class RemoteStorageService implements BUPluginLifecycle {
     }
 
     private void useAccountConfiguration(AccountConfiguration accountConfiguration) {
+        try {
+            clearCurrentDataport();
+        } catch (Exception e) {
+            log.error("Failed to clear current data port", e);
+        }
         if (accountConfiguration == null) {
-            try {
-                clearCurrentDataport();
-            } catch (Exception e) {
-                log.error("Failed to clear current data port", e);
-            }
             return;
         }
 

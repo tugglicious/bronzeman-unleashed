@@ -495,10 +495,10 @@ public class ItemUnlockService implements BUPluginLifecycle {
         if (state != UnlockedItemsDataProvider.State.Ready) {
             return;
         }
-        if (hasUnlockedItemDataProviderReadyStateBeenSeen) {
-            return;
-        }
-        hasUnlockedItemDataProviderReadyStateBeenSeen = true;
+//        if (hasUnlockedItemDataProviderReadyStateBeenSeen) {
+//            return;
+//        }
+//        hasUnlockedItemDataProviderReadyStateBeenSeen = true;
 
         clientThread.invokeLater(() -> {
             Map<Integer, UnlockedItem> map = unlockedItemsDataProvider.getUnlockedItemsMap();

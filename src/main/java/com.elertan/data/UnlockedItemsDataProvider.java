@@ -173,7 +173,10 @@ public class UnlockedItemsDataProvider implements BUPluginLifecycle {
     private void remoteStorageServiceStateListener(RemoteStorageService.State state) {
         if (state == RemoteStorageService.State.NotReady) {
             unlockedItemsMap = null;
-            keyValueStoragePort = null;
+            if (keyValueStoragePort != null) {
+                keyValueStoragePort.removeListener(unlockedItemsStoragePortListener);
+                keyValueStoragePort = null;
+            }
             setState(State.NotReady);
             return;
         }
@@ -184,7 +187,10 @@ public class UnlockedItemsDataProvider implements BUPluginLifecycle {
     private void tryInitialize() {
         if (remoteStorageService.getState() == RemoteStorageService.State.NotReady) {
             unlockedItemsMap = null;
-            keyValueStoragePort = null;
+            if (keyValueStoragePort != null) {
+                keyValueStoragePort.removeListener(unlockedItemsStoragePortListener);
+                keyValueStoragePort = null;
+            }
             setState(State.NotReady);
             return;
         }
