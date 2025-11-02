@@ -78,7 +78,7 @@ You can define your own adventure by choosing what rules and restrictions you wa
 
 ## Sync your data online and get started in under five minutes
 
-![Setup Guide Screenshot](assets/setup_guide.png)  
+<img src="assets/setup.png" alt="Setup Guide" height="600">
 *Simple setup, automatic syncing — ready to play in under five minutes.*
 
 Your data syncs online after a minimal setup.
