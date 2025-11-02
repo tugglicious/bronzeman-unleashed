@@ -88,6 +88,11 @@ public class BUChatService implements BUPluginLifecycle {
     }
 
     public void onChatMessage(ChatMessage chatMessage) {
+        if (!accountConfigurationService.isReady()
+            || accountConfigurationService.getCurrentAccountConfiguration() == null) {
+            return;
+        }
+
         MessageNode messageNode = chatMessage.getMessageNode();
         ChatMessageType chatMessageType = chatMessage.getType();
 
