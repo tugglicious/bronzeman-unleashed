@@ -62,9 +62,14 @@ You can define your own adventure by choosing what rules and restrictions you wa
 
 - **Restrict loot:** Restrict loot from PvP kills and loot keys.
 
-### Notifications and Integration
+### Notifications
 
 - **Valuable drop notification:** Automatically share rare drops with your group when they exceed a set GP value.
+  
+![drop notification image](assets/drop-notification.png)  
+
+### Integration with other plugins
+
 - **Party plugin support:** Set a party password and join automatically on login.
 
 #### And more to come in the future!
