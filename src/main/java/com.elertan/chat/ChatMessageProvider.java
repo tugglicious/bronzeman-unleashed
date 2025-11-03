@@ -122,7 +122,7 @@ public final class ChatMessageProvider {
         boolean isSolo = isSolo();
         String identity = getIdentity(isSolo);
         return String.format(
-            "You cannot enter this Played Owned House due to %s restrictions.%s",
+            "You cannot enter this Player Owned House due to %s restrictions.%s",
             identity,
             isSolo ? "" : " You may only enter one owned by your group."
         );

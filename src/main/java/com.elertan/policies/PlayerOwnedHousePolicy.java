@@ -93,7 +93,7 @@ public class PlayerOwnedHousePolicy extends PolicyBase implements BUPluginLifecy
                             return;
                         }
                         GameRules gameRules = policyContext.getGameRules();
-                        if (gameRules == null || !gameRules.isPreventPlayedOwnedHouse()) {
+                        if (gameRules == null || !gameRules.isPreventPlayerOwnedHouse()) {
                             return;
                         }
                         enforcePolicyEnterKeyPressedOnFriendsHouseName(e);
@@ -134,7 +134,7 @@ public class PlayerOwnedHousePolicy extends PolicyBase implements BUPluginLifecy
             return;
         }
         GameRules gameRules = context.getGameRules();
-        if (gameRules == null || !gameRules.isPreventPlayedOwnedHouse()) {
+        if (gameRules == null || !gameRules.isPreventPlayerOwnedHouse()) {
             return;
         }
         enforcePolicyMenuOptionClicked(event);
@@ -168,23 +168,23 @@ public class PlayerOwnedHousePolicy extends PolicyBase implements BUPluginLifecy
     private void enforcePolicyEnterHouseMenuOptionClicked(MenuOptionClicked event) {
         Widget buttonWidget = event.getWidget();
         if (buttonWidget == null) {
-            log.error("Button widget is null played owned house policy");
+            log.error("Button widget is null played owner house policy");
             return;
         }
         Widget pohboardNameWidget = client.getWidget(InterfaceID.PohBoard.NAME);
         if (pohboardNameWidget == null) {
-            log.error("Pohboard name widget is null played owned house policy");
+            log.error("Pohboard name widget is null player owned house policy");
             return;
         }
         int buttonWidgetIdx = buttonWidget.getIndex();
         Widget pohNameWidget = pohboardNameWidget.getChild(buttonWidgetIdx);
         if (pohNameWidget == null) {
-            log.error("Poh name widget is null played owned house policy");
+            log.error("Poh name widget is null player owned house policy");
             return;
         }
         String pohNameWidgetText = pohNameWidget.getText();
         if (pohNameWidgetText == null) {
-            log.error("Poh name widget text is null played owned house policy");
+            log.error("Poh name widget text is null player owned house policy");
             return;
         }
 

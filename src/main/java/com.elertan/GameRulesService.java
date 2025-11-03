@@ -195,10 +195,10 @@ public class GameRulesService implements BUPluginLifecycle {
                 booleanFormatter.apply(newGameRules.isPreventTradeOutsideGroup())
             );
         }
-        if (oldGameRules.isPreventPlayedOwnedHouse() != newGameRules.isPreventPlayedOwnedHouse()) {
+        if (oldGameRules.isPreventPlayerOwnedHouse() != newGameRules.isPreventPlayerOwnedHouse()) {
             differences.put(
-                "Restrict played owned house",
-                booleanFormatter.apply(newGameRules.isPreventPlayedOwnedHouse())
+                "Restrict player owned house",
+                booleanFormatter.apply(newGameRules.isPreventPlayerOwnedHouse())
             );
         }
         if (oldGameRules.isRestrictPlayerVersusPlayerLoot()

@@ -39,10 +39,10 @@ public class GameRules {
     @Setter
     private boolean preventGrandExchangeBuyOffers;
 
-    // Played Owned House
+    // Played Owner House
     @Getter
     @Setter
-    private boolean preventPlayedOwnedHouse;
+    private boolean preventPlayerOwnedHouse;
 
     // Player Versus Player
     @Getter
@@ -69,7 +69,7 @@ public class GameRules {
         boolean preventTradeOutsideGroup,
         boolean preventTradeLockedItems,
         boolean preventGrandExchangeBuyOffers,
-        boolean preventPlayedOwnedHouse,
+        boolean preventPlayerOwnedHouse,
         boolean restrictPlayerVersusPlayerLoot,
         boolean shareAchievementNotifications,
         Integer valuableLootNotificationThreshold, String partyPassword) {
@@ -80,7 +80,7 @@ public class GameRules {
         this.preventTradeOutsideGroup = preventTradeOutsideGroup;
         this.preventTradeLockedItems = preventTradeLockedItems;
         this.preventGrandExchangeBuyOffers = preventGrandExchangeBuyOffers;
-        this.preventPlayedOwnedHouse = preventPlayedOwnedHouse;
+        this.preventPlayerOwnedHouse = preventPlayerOwnedHouse;
         this.restrictPlayerVersusPlayerLoot = restrictPlayerVersusPlayerLoot;
         this.shareAchievementNotifications = shareAchievementNotifications;
         this.valuableLootNotificationThreshold = valuableLootNotificationThreshold;
@@ -114,7 +114,7 @@ public class GameRules {
             + ", preventTradeOutsideGroup=" + preventTradeOutsideGroup +
             ", preventTradeLockedItems=" + preventTradeLockedItems
             + ", preventGrandExchangeBuyOffers=" + preventGrandExchangeBuyOffers
-            + ", preventPlayedOwnedHouse=" + preventPlayedOwnedHouse
+            + ", preventPlayedOwnedHouse=" + preventPlayerOwnedHouse
             + ", restrictPlayerVersusPlayerLoot=" + restrictPlayerVersusPlayerLoot
             + ", shareAchievementNotifications=" + shareAchievementNotifications
             + ", valuableLootNotificationThreshold=" + valuableLootNotificationThreshold
