@@ -125,7 +125,8 @@ public class ItemUnlockService implements BUPluginLifecycle {
         WorldType.PVP,
         WorldType.SKILL_TOTAL,
         WorldType.HIGH_RISK,
-        WorldType.FRESH_START_WORLD
+        WorldType.FRESH_START_WORLD,
+        WorldType.LAST_MAN_STANDING  // Allow LMS worlds, varbit check handles in-game detection
     );
     private final ConcurrentLinkedQueue<Consumer<UnlockedItem>> newUnlockedItemListeners = new ConcurrentLinkedQueue<>();
     @Inject
@@ -505,7 +506,8 @@ public class ItemUnlockService implements BUPluginLifecycle {
      * @return true if the player is in LMS, false otherwise
      */
     private boolean isInLMS() {
-        // Varbit 5314 = IN_LMS (1 if in game, 0 if not)
+        // TODO: Replace with Varbits.IN_LMS constant when refactoring to MinigameDetectionService
+        // Varbit 5314 = Varbits.IN_LMS (1 if in game, 0 if not)
         return client.getVarbitValue(5314) == 1;
     }
 
